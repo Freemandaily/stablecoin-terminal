@@ -1,0 +1,27 @@
+name: stableflow
+version: 1.0.0
+config-version: 2
+
+profile: stableflow
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  stableflow:
+    +materialized: view
+    staging:
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+
+flags:
+  require_casts_to_bool: true

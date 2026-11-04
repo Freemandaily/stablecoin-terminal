@@ -1,0 +1,593 @@
+[0m16:12:55.071841 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c3dbde80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c2563ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c2563b10>]}
+
+
+============================== 16:12:55.259827 | f7b46999-14ed-49aa-b147-555a2cf2062b ==============================
+[0m16:12:55.259827 [info ] [MainThread]: Running with dbt=1.12.6
+[0m16:12:55.263715 [debug] [MainThread]: running dbt with arguments {'partial_parse': 'True', 'debug': 'False', 'maximum_seed_size_mib': '1', 'fail_fast': 'False', 'invocation_command': 'dbt run --profiles-dir .', 'indirect_selection': 'eager', 'version_check': 'True', 'profiles_dir': '.', 'static_parser': 'True', 'log_cache_events': 'False', 'warn_error': 'None', 'log_format': 'default', 'no_print': 'None', 'write_json': 'True', 'introspect': 'True', 'hints_enabled': 'True', 'target_path': 'None', 'use_experimental_parser': 'False', 'printer_width': '80', 'quiet': 'False', 'send_anonymous_usage_stats': 'True', 'empty': 'False', 'use_colors': 'True', 'cache_selected_only': 'False', 'log_path': '/home/freeman/stablecoin-flow/transform/logs', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])'}
+[0m16:12:55.711868 [error] [MainThread]: [[31mERROR[0m]: Encountered an error:
+Runtime Error
+  Credentials in profile "stableflow", target "dev" invalid: '5432' is not of type 'integer'
+[0m16:12:55.723330 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": false, "command_wall_clock_time": 0.9974235, "process_in_blocks": "0", "process_kernel_time": 3.107948, "process_mem_max_rss": "140580", "process_out_blocks": "0", "process_user_time": 8.329626}
+[0m16:12:55.727673 [debug] [MainThread]: Command `dbt run` failed at 16:12:55.726507 after 1.00 seconds
+[0m16:12:55.729261 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c2a5dcd0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c2a6d130>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x74c0c2a9ee00>]}
+[0m16:12:55.731153 [debug] [MainThread]: Flushing usage events
+[0m16:12:57.276871 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:13:04.211853 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c706c69be0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c705743ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c7057439d0>]}
+
+
+============================== 16:13:04.216035 | d0d9dc91-0ebc-4b05-9598-b087dac12ea5 ==============================
+[0m16:13:04.216035 [info ] [MainThread]: Running with dbt=1.12.6
+[0m16:13:04.216855 [debug] [MainThread]: running dbt with arguments {'quiet': 'False', 'send_anonymous_usage_stats': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'empty': 'None', 'hints_enabled': 'True', 'debug': 'False', 'use_experimental_parser': 'False', 'maximum_seed_size_mib': '1', 'introspect': 'True', 'no_print': 'None', 'use_colors': 'True', 'log_format': 'default', 'fail_fast': 'False', 'profiles_dir': '.', 'target_path': 'None', 'version_check': 'True', 'log_path': '/home/freeman/stablecoin-flow/transform/logs', 'invocation_command': 'dbt test --profiles-dir .', 'write_json': 'True', 'cache_selected_only': 'False', 'log_cache_events': 'False', 'static_parser': 'True', 'warn_error': 'None', 'indirect_selection': 'eager', 'printer_width': '80', 'partial_parse': 'True'}
+[0m16:13:04.317888 [error] [MainThread]: [[31mERROR[0m]: Encountered an error:
+Runtime Error
+  Credentials in profile "stableflow", target "dev" invalid: '5432' is not of type 'integer'
+[0m16:13:04.319703 [debug] [MainThread]: Resource report: {"command_name": "test", "command_success": false, "command_wall_clock_time": 0.28987464, "process_in_blocks": "0", "process_kernel_time": 0.807589, "process_mem_max_rss": "114320", "process_out_blocks": "0", "process_user_time": 3.242409}
+[0m16:13:04.322111 [debug] [MainThread]: Command `dbt test` failed at 16:13:04.321852 after 0.29 seconds
+[0m16:13:04.322829 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c705490fc0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c7057fae70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70c70578f9b0>]}
+[0m16:13:04.323534 [debug] [MainThread]: Flushing usage events
+[0m16:13:05.439959 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:13:34.630923 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd29275be0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd27d53ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd27d539d0>]}
+
+
+============================== 16:13:34.651417 | 60ec1fa5-415b-4862-8967-9e0b01ae77a7 ==============================
+[0m16:13:34.651417 [info ] [MainThread]: Running with dbt=1.12.6
+[0m16:13:34.657470 [debug] [MainThread]: running dbt with arguments {'partial_parse': 'True', 'invocation_command': 'dbt run --profiles-dir .', 'log_path': '/home/freeman/stablecoin-flow/transform/logs', 'log_format': 'default', 'empty': 'False', 'indirect_selection': 'eager', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'log_cache_events': 'False', 'send_anonymous_usage_stats': 'True', 'use_experimental_parser': 'False', 'fail_fast': 'False', 'warn_error': 'None', 'profiles_dir': '.', 'printer_width': '80', 'hints_enabled': 'True', 'write_json': 'True', 'static_parser': 'True', 'version_check': 'True', 'maximum_seed_size_mib': '1', 'quiet': 'False', 'use_colors': 'True', 'no_print': 'None', 'debug': 'False', 'introspect': 'True', 'cache_selected_only': 'False'}
+[0m16:13:36.460211 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd28fb6190>]}
+[0m16:13:37.116639 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd296bbdf0>]}
+[0m16:13:37.133503 [info ] [MainThread]: Registered adapter: postgres=1.11.0
+[0m16:13:37.805131 [debug] [MainThread]: checksum: 00e49e0611acbd563071cffb2f83560f7f7ab4e970b1d33c6837ccedbb3d8cb7, vars: {}, profile: stableflow, target: dev, version: 1.12.6
+[0m16:13:37.808183 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m16:13:37.813170 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd27ec7a50>]}
+[0m16:13:46.683197 [warn ] [MainThread]: [[33mWARNING[0m][MissingArgumentsPropertyInGenericTestDeprecation]: Deprecated
+functionality
+Found top-level arguments to test `accepted_values` defined on 'raw_load_log' in
+package 'stableflow' (models/staging/sources.yml). Arguments to generic tests
+should be nested under the `arguments` property.
+[0m16:13:46.684544 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'deprecation', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'property_': 'warn', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd2678f7a0>]}
+[0m16:13:47.224099 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 2 unused configuration paths:
+- models.stableflow.intermediate
+- models.stableflow.marts
+[0m16:13:47.235451 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd257691d0>]}
+[0m16:13:47.796131 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/transform/target/manifest.json
+[0m16:13:47.803804 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/transform/target/semantic_manifest.json
+[0m16:13:48.058370 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/transform/target/osi_document.json
+[0m16:13:48.239463 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd24b6b450>]}
+[0m16:13:48.243689 [info ] [MainThread]: Found 1 model, 5 data tests, 1 source, 477 macros
+[0m16:13:48.248223 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd253b3e90>]}
+[0m16:13:48.254208 [info ] [MainThread]: 
+[0m16:13:48.256548 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m16:13:48.258033 [info ] [MainThread]: 
+[0m16:13:48.260050 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m16:13:48.267895 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow'
+[0m16:13:48.728150 [debug] [ThreadPool]: Using postgres connection "list_stableflow"
+[0m16:13:48.732742 [debug] [ThreadPool]: On list_stableflow: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m16:13:48.733204 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m16:13:48.825062 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.092 seconds
+[0m16:13:48.828597 [debug] [ThreadPool]: On list_stableflow: Close
+[0m16:13:48.834903 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_stableflow, now create_stableflow_public_staging)
+[0m16:13:48.839523 [debug] [ThreadPool]: Creating schema "database: "stableflow"
+schema: "public_staging"
+"
+[0m16:13:48.861399 [debug] [ThreadPool]: Using postgres connection "create_stableflow_public_staging"
+[0m16:13:48.871102 [debug] [ThreadPool]: On create_stableflow_public_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "create_stableflow_public_staging"} */
+create schema if not exists "public_staging"
+[0m16:13:48.872115 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m16:13:48.932591 [debug] [ThreadPool]: SQL status: CREATE SCHEMA in 0.056 seconds
+[0m16:13:48.938310 [debug] [ThreadPool]: On create_stableflow_public_staging: COMMIT
+[0m16:13:48.938815 [debug] [ThreadPool]: Using postgres connection "create_stableflow_public_staging"
+[0m16:13:48.939490 [debug] [ThreadPool]: On create_stableflow_public_staging: COMMIT
+[0m16:13:48.971931 [debug] [ThreadPool]: SQL status: COMMIT in 0.028 seconds
+[0m16:13:48.972606 [debug] [ThreadPool]: On create_stableflow_public_staging: Close
+[0m16:13:48.987800 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly create_stableflow_public_staging, now list_stableflow_public_staging)
+[0m16:13:49.020434 [debug] [ThreadPool]: Using postgres connection "list_stableflow_public_staging"
+[0m16:13:49.021532 [debug] [ThreadPool]: On list_stableflow_public_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_public_staging"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'public_staging'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'public_staging'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'public_staging'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'public_staging'
+  
+[0m16:13:49.022634 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m16:13:49.394326 [debug] [ThreadPool]: SQL status: SELECT 0 in 0.372 seconds
+[0m16:13:49.399727 [debug] [ThreadPool]: On list_stableflow_public_staging: ROLLBACK
+[0m16:13:49.402313 [debug] [ThreadPool]: On list_stableflow_public_staging: Close
+[0m16:13:49.433082 [debug] [MainThread]: Using postgres connection "master"
+[0m16:13:49.443197 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "master"} */
+select distinct
+        dependent_namespace.nspname as dependent_schema,
+        dependent_class.relname as dependent_name,
+        referenced_namespace.nspname as referenced_schema,
+        referenced_class.relname as referenced_name
+
+    -- Query for views: views are entries in pg_class with an entry in pg_rewrite, but we avoid
+    -- a seq scan on pg_rewrite by leveraging the fact there is an "internal" row in pg_depend for
+    -- the view...
+    from pg_class as dependent_class
+    join pg_namespace as dependent_namespace on dependent_namespace.oid = dependent_class.relnamespace
+    join pg_depend as dependent_depend on dependent_depend.refobjid = dependent_class.oid
+        and dependent_depend.classid = 'pg_rewrite'::regclass
+        and dependent_depend.refclassid = 'pg_class'::regclass
+        and dependent_depend.deptype = 'i'
+
+    -- ... and via pg_depend (that has a row per column, hence the need for "distinct" above, and
+    -- making sure to exclude the internal row to avoid a view appearing to depend on itself)...
+    join pg_depend as joining_depend on joining_depend.objid = dependent_depend.objid
+        and joining_depend.classid = 'pg_rewrite'::regclass
+        and joining_depend.refclassid = 'pg_class'::regclass
+        and joining_depend.refobjid != dependent_depend.refobjid
+
+    -- ... we can find the tables they query from in pg_class, but excluding system tables. Note we
+    -- don't need need to exclude _dependent_ system tables, because they only query from other
+    -- system tables, and so are automatically excluded by excluding _referenced_ system tables
+    join pg_class as referenced_class on referenced_class.oid = joining_depend.refobjid
+    join pg_namespace as referenced_namespace on referenced_namespace.oid = referenced_class.relnamespace
+        and referenced_namespace.nspname != 'information_schema'
+        and referenced_namespace.nspname not like 'pg\_%'
+
+    order by
+        dependent_schema, dependent_name, referenced_schema, referenced_name;
+[0m16:13:49.447133 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:13:49.614389 [debug] [MainThread]: SQL status: SELECT 0 in 0.167 seconds
+[0m16:13:49.618651 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd241e8aa0>]}
+[0m16:13:49.620422 [debug] [MainThread]: On master: ROLLBACK
+[0m16:13:49.622437 [debug] [MainThread]: On master: COMMIT
+[0m16:13:49.623546 [debug] [MainThread]: Using postgres connection "master"
+[0m16:13:49.624816 [debug] [MainThread]: On master: COMMIT
+[0m16:13:49.627099 [debug] [MainThread]: SQL status: COMMIT in 0.001 seconds
+[0m16:13:49.630351 [debug] [MainThread]: On master: Close
+[0m16:13:49.642818 [debug] [Thread-1 (]: Began running node model.stableflow.stg_load_log
+[0m16:13:49.644053 [info ] [Thread-1 (]: 1 of 1 START sql view model public_staging.stg_load_log ........................ [RUN]
+[0m16:13:49.645880 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_stableflow_public_staging, now model.stableflow.stg_load_log)
+[0m16:13:49.648036 [debug] [Thread-1 (]: Began compiling node model.stableflow.stg_load_log
+[0m16:13:49.665374 [debug] [Thread-1 (]: Writing injected SQL for node "model.stableflow.stg_load_log"
+[0m16:13:49.670254 [debug] [Thread-1 (]: Began executing node model.stableflow.stg_load_log
+[0m16:13:49.769681 [debug] [Thread-1 (]: Writing runtime sql for node "model.stableflow.stg_load_log"
+[0m16:13:49.774669 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m16:13:49.775883 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+
+  create view "stableflow"."public_staging"."stg_load_log__dbt_tmp"
+    
+    
+  as (
+    -- P0.3 stub model: operational heartbeat.
+-- Real staging models arrive in P1.3; this proves the dbt → postgres path
+-- and gives dbt-test something meaningful to check on day one.
+select
+    job,
+    status,
+    started_at,
+    finished_at,
+    rows_loaded
+from "stableflow"."public"."load_log"
+  );
+[0m16:13:49.776952 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m16:13:49.833198 [debug] [Thread-1 (]: SQL status: CREATE VIEW in 0.056 seconds
+[0m16:13:49.843241 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m16:13:49.844144 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+alter table "stableflow"."public_staging"."stg_load_log__dbt_tmp" rename to "stg_load_log"
+[0m16:13:49.851853 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.004 seconds
+[0m16:13:49.887790 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: COMMIT
+[0m16:13:49.888668 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m16:13:49.889436 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: COMMIT
+[0m16:13:49.898424 [debug] [Thread-1 (]: SQL status: COMMIT in 0.006 seconds
+[0m16:13:49.914213 [debug] [Thread-1 (]: Applying DROP to: "stableflow"."public_staging"."stg_load_log__dbt_backup"
+[0m16:13:49.937967 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m16:13:49.939178 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+drop view if exists "stableflow"."public_staging"."stg_load_log__dbt_backup" cascade
+[0m16:13:49.947859 [debug] [Thread-1 (]: SQL status: DROP VIEW in 0.007 seconds
+[0m16:13:49.952789 [debug] [Thread-1 (]: On model.stableflow.stg_load_log: Close
+[0m16:13:49.966632 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '60ec1fa5-415b-4862-8967-9e0b01ae77a7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd28f2e3f0>]}
+[0m16:13:49.968735 [info ] [Thread-1 (]: 1 of 1 OK created sql view model public_staging.stg_load_log ................... [[32mCREATE VIEW[0m in 0.31s]
+[0m16:13:49.970205 [debug] [Thread-1 (]: Finished running node model.stableflow.stg_load_log
+[0m16:13:49.976864 [debug] [MainThread]: On master: COMMIT
+[0m16:13:49.977984 [debug] [MainThread]: Using postgres connection "master"
+[0m16:13:49.979158 [debug] [MainThread]: On master: COMMIT
+[0m16:13:49.980573 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m16:13:50.030879 [debug] [MainThread]: SQL status: COMMIT in 0.050 seconds
+[0m16:13:50.031884 [debug] [MainThread]: On master: Close
+[0m16:13:50.036297 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m16:13:50.036930 [debug] [MainThread]: Connection 'model.stableflow.stg_load_log' was properly closed.
+[0m16:13:50.038868 [info ] [MainThread]: 
+[0m16:13:50.040095 [info ] [MainThread]: Finished running 1 view model in 0 hours 0 minutes and 1.78 seconds (1.78s).
+[0m16:13:50.041412 [debug] [MainThread]: Command end result
+[0m16:13:50.116906 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/transform/target/manifest.json
+[0m16:13:50.122276 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/transform/target/semantic_manifest.json
+[0m16:13:50.125824 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/transform/target/osi_document.json
+[0m16:13:50.141847 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/freeman/stablecoin-flow/transform/target/run_results.json
+[0m16:13:50.142397 [info ] [MainThread]: 
+[0m16:13:50.142979 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m16:13:50.145918 [info ] [MainThread]: 
+[0m16:13:50.146627 [info ] [MainThread]: Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=1
+[0m16:13:50.148146 [warn ] [MainThread]: [[33mWARNING[0m][DeprecationsSummary]: Deprecated functionality
+Summary of encountered deprecations:
+- MissingArgumentsPropertyInGenericTestDeprecation: 1 occurrence
+To see all deprecation instances instead of just the first occurrence of each,
+run command again with the `--show-all-deprecations` flag. You may also need to
+run with `--no-partial-parse` as some deprecations are only encountered during
+parsing.
+[0m16:13:50.150972 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 16.275372, "process_in_blocks": "0", "process_kernel_time": 1.791744, "process_mem_max_rss": "144540", "process_out_blocks": "0", "process_user_time": 10.158413}
+[0m16:13:50.152061 [debug] [MainThread]: Command `dbt run` succeeded at 16:13:50.151585 after 16.28 seconds
+[0m16:13:50.152903 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd25759dd0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd253f66d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70dd27db1e10>]}
+[0m16:13:50.153508 [debug] [MainThread]: Flushing usage events
+[0m16:13:51.191684 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:14:01.286126 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b188191be0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b186c6bed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b186c6b9d0>]}
+
+
+============================== 16:14:01.305767 | b89f6922-687b-49d0-ab9f-e9366b5a87ab ==============================
+[0m16:14:01.305767 [info ] [MainThread]: Running with dbt=1.12.6
+[0m16:14:01.308211 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'introspect': 'True', 'use_colors': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'indirect_selection': 'eager', 'fail_fast': 'False', 'version_check': 'True', 'invocation_command': 'dbt test --profiles-dir .', 'warn_error': 'None', 'use_experimental_parser': 'False', 'empty': 'None', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'no_print': 'None', 'write_json': 'True', 'printer_width': '80', 'profiles_dir': '.', 'log_cache_events': 'False', 'maximum_seed_size_mib': '1', 'debug': 'False', 'partial_parse': 'True', 'hints_enabled': 'True', 'log_path': '/home/freeman/stablecoin-flow/transform/logs'}
+[0m16:14:03.081601 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b187ece190>]}
+[0m16:14:03.399075 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b1885d7df0>]}
+[0m16:14:03.403903 [info ] [MainThread]: Registered adapter: postgres=1.11.0
+[0m16:14:03.947683 [debug] [MainThread]: checksum: 00e49e0611acbd563071cffb2f83560f7f7ab4e970b1d33c6837ccedbb3d8cb7, vars: {}, profile: stableflow, target: dev, version: 1.12.6
+[0m16:14:04.977779 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m16:14:04.978564 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m16:14:04.979145 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m16:14:04.995143 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 2 unused configuration paths:
+- models.stableflow.marts
+- models.stableflow.intermediate
+[0m16:14:05.005273 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b185df4650>]}
+[0m16:14:05.462616 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/transform/target/manifest.json
+[0m16:14:05.474469 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/transform/target/semantic_manifest.json
+[0m16:14:05.502952 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/transform/target/osi_document.json
+[0m16:14:05.859179 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b1849f66c0>]}
+[0m16:14:05.860436 [info ] [MainThread]: Found 1 model, 5 data tests, 1 source, 477 macros
+[0m16:14:05.861332 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b184113310>]}
+[0m16:14:05.864303 [info ] [MainThread]: 
+[0m16:14:05.865176 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m16:14:05.872930 [info ] [MainThread]: 
+[0m16:14:05.875157 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m16:14:05.879089 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow_public_staging'
+[0m16:14:05.977880 [debug] [ThreadPool]: Using postgres connection "list_stableflow_public_staging"
+[0m16:14:05.978541 [debug] [ThreadPool]: On list_stableflow_public_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_public_staging"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'public_staging'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'public_staging'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'public_staging'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'public_staging'
+  
+[0m16:14:05.979023 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m16:14:06.051726 [debug] [ThreadPool]: SQL status: SELECT 1 in 0.068 seconds
+[0m16:14:06.059716 [debug] [ThreadPool]: On list_stableflow_public_staging: ROLLBACK
+[0m16:14:06.061865 [debug] [ThreadPool]: On list_stableflow_public_staging: Close
+[0m16:14:06.079697 [debug] [MainThread]: Using postgres connection "master"
+[0m16:14:06.080429 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "master"} */
+select distinct
+        dependent_namespace.nspname as dependent_schema,
+        dependent_class.relname as dependent_name,
+        referenced_namespace.nspname as referenced_schema,
+        referenced_class.relname as referenced_name
+
+    -- Query for views: views are entries in pg_class with an entry in pg_rewrite, but we avoid
+    -- a seq scan on pg_rewrite by leveraging the fact there is an "internal" row in pg_depend for
+    -- the view...
+    from pg_class as dependent_class
+    join pg_namespace as dependent_namespace on dependent_namespace.oid = dependent_class.relnamespace
+    join pg_depend as dependent_depend on dependent_depend.refobjid = dependent_class.oid
+        and dependent_depend.classid = 'pg_rewrite'::regclass
+        and dependent_depend.refclassid = 'pg_class'::regclass
+        and dependent_depend.deptype = 'i'
+
+    -- ... and via pg_depend (that has a row per column, hence the need for "distinct" above, and
+    -- making sure to exclude the internal row to avoid a view appearing to depend on itself)...
+    join pg_depend as joining_depend on joining_depend.objid = dependent_depend.objid
+        and joining_depend.classid = 'pg_rewrite'::regclass
+        and joining_depend.refclassid = 'pg_class'::regclass
+        and joining_depend.refobjid != dependent_depend.refobjid
+
+    -- ... we can find the tables they query from in pg_class, but excluding system tables. Note we
+    -- don't need need to exclude _dependent_ system tables, because they only query from other
+    -- system tables, and so are automatically excluded by excluding _referenced_ system tables
+    join pg_class as referenced_class on referenced_class.oid = joining_depend.refobjid
+    join pg_namespace as referenced_namespace on referenced_namespace.oid = referenced_class.relnamespace
+        and referenced_namespace.nspname != 'information_schema'
+        and referenced_namespace.nspname not like 'pg\_%'
+
+    order by
+        dependent_schema, dependent_name, referenced_schema, referenced_name;
+[0m16:14:06.080952 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:14:06.146419 [debug] [MainThread]: SQL status: SELECT 1 in 0.065 seconds
+[0m16:14:06.149523 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'b89f6922-687b-49d0-ab9f-e9366b5a87ab', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b1851df520>]}
+[0m16:14:06.151344 [debug] [MainThread]: On master: ROLLBACK
+[0m16:14:06.153437 [debug] [MainThread]: On master: COMMIT
+[0m16:14:06.154856 [debug] [MainThread]: Using postgres connection "master"
+[0m16:14:06.156066 [debug] [MainThread]: On master: COMMIT
+[0m16:14:06.161107 [debug] [MainThread]: SQL status: COMMIT in 0.003 seconds
+[0m16:14:06.162101 [debug] [MainThread]: On master: Close
+[0m16:14:06.179436 [debug] [Thread-1 (]: Began running node test.stableflow.not_null_stg_load_log_job.cfb8360539
+[0m16:14:06.186270 [debug] [Thread-3 (]: Began running node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m16:14:06.196357 [info ] [Thread-3 (]: 3 of 5 START test source_accepted_values_raw_load_log_status__running__success__failed  [RUN]
+[0m16:14:06.192339 [info ] [Thread-1 (]: 1 of 5 START test not_null_stg_load_log_job .................................... [RUN]
+[0m16:14:06.199387 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_stableflow_public_staging, now test.stableflow.not_null_stg_load_log_job.cfb8360539)
+[0m16:14:06.193232 [debug] [Thread-4 (]: Began running node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m16:14:06.208277 [info ] [Thread-4 (]: 4 of 5 START test source_not_null_raw_load_log_job ............................. [RUN]
+[0m16:14:06.195159 [debug] [Thread-2 (]: Began running node test.stableflow.not_null_stg_load_log_started_at.1f1d67483c
+[0m16:14:06.211306 [info ] [Thread-2 (]: 2 of 5 START test not_null_stg_load_log_started_at ............................. [RUN]
+[0m16:14:06.197876 [debug] [Thread-3 (]: Acquiring new postgres connection 'test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc'
+[0m16:14:06.215161 [debug] [Thread-3 (]: Began compiling node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m16:14:06.201251 [debug] [Thread-1 (]: Began compiling node test.stableflow.not_null_stg_load_log_job.cfb8360539
+[0m16:14:06.212612 [debug] [Thread-2 (]: Acquiring new postgres connection 'test.stableflow.not_null_stg_load_log_started_at.1f1d67483c'
+[0m16:14:06.234916 [debug] [Thread-2 (]: Began compiling node test.stableflow.not_null_stg_load_log_started_at.1f1d67483c
+[0m16:14:06.210495 [debug] [Thread-4 (]: Acquiring new postgres connection 'test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd'
+[0m16:14:06.236136 [debug] [Thread-4 (]: Began compiling node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m16:14:06.345356 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.not_null_stg_load_log_job.cfb8360539"
+[0m16:14:06.348020 [debug] [Thread-2 (]: Writing injected SQL for node "test.stableflow.not_null_stg_load_log_started_at.1f1d67483c"
+[0m16:14:06.386278 [debug] [Thread-4 (]: Writing injected SQL for node "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m16:14:06.395167 [debug] [Thread-1 (]: Began executing node test.stableflow.not_null_stg_load_log_job.cfb8360539
+[0m16:14:06.399301 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m16:14:06.400639 [debug] [Thread-2 (]: Began executing node test.stableflow.not_null_stg_load_log_started_at.1f1d67483c
+[0m16:14:06.408452 [debug] [Thread-4 (]: Began executing node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m16:14:06.502561 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.not_null_stg_load_log_job.cfb8360539"
+[0m16:14:06.506570 [debug] [Thread-2 (]: Writing runtime sql for node "test.stableflow.not_null_stg_load_log_started_at.1f1d67483c"
+[0m16:14:06.509593 [debug] [Thread-4 (]: Writing runtime sql for node "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m16:14:06.511075 [debug] [Thread-3 (]: Began executing node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m16:14:06.516102 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.not_null_stg_load_log_job.cfb8360539"
+[0m16:14:06.523247 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m16:14:06.524262 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_load_log_job.cfb8360539: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_load_log_job.cfb8360539"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select job
+from "stableflow"."public_staging"."stg_load_log"
+where job is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m16:14:06.525552 [debug] [Thread-2 (]: Using postgres connection "test.stableflow.not_null_stg_load_log_started_at.1f1d67483c"
+[0m16:14:06.527176 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m16:14:06.529136 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m16:14:06.539238 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+with all_values as (
+
+    select
+        status as value_field,
+        count(*) as n_records
+
+    from "stableflow"."public"."load_log"
+    group by status
+
+)
+
+select *
+from all_values
+where value_field not in (
+    'running','success','failed'
+)
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m16:14:06.535268 [debug] [Thread-2 (]: On test.stableflow.not_null_stg_load_log_started_at.1f1d67483c: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_load_log_started_at.1f1d67483c"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select started_at
+from "stableflow"."public_staging"."stg_load_log"
+where started_at is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m16:14:06.530569 [debug] [Thread-4 (]: Using postgres connection "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m16:14:06.541145 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m16:14:06.543520 [debug] [Thread-4 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select job
+from "stableflow"."public"."load_log"
+where job is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m16:14:06.542288 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m16:14:06.547408 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m16:14:06.619504 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.073 seconds
+[0m16:14:06.621814 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.094 seconds
+[0m16:14:06.623498 [debug] [Thread-2 (]: SQL status: SELECT 1 in 0.081 seconds
+[0m16:14:06.642513 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_load_log_job.cfb8360539: ROLLBACK
+[0m16:14:06.644460 [debug] [Thread-2 (]: On test.stableflow.not_null_stg_load_log_started_at.1f1d67483c: ROLLBACK
+[0m16:14:06.645782 [debug] [Thread-4 (]: SQL status: SELECT 1 in 0.098 seconds
+[0m16:14:06.647628 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_load_log_job.cfb8360539: Close
+[0m16:14:06.651165 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: ROLLBACK
+[0m16:14:06.652000 [debug] [Thread-2 (]: On test.stableflow.not_null_stg_load_log_started_at.1f1d67483c: Close
+[0m16:14:06.657232 [debug] [Thread-4 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: ROLLBACK
+[0m16:14:06.659716 [info ] [Thread-1 (]: 1 of 5 PASS not_null_stg_load_log_job .......................................... [[32mPASS[0m in 0.46s]
+[0m16:14:06.661718 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: Close
+[0m16:14:06.668000 [debug] [Thread-1 (]: Finished running node test.stableflow.not_null_stg_load_log_job.cfb8360539
+[0m16:14:06.675068 [debug] [Thread-1 (]: Began running node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m16:14:06.663682 [info ] [Thread-2 (]: 2 of 5 PASS not_null_stg_load_log_started_at ................................... [[32mPASS[0m in 0.45s]
+[0m16:14:06.677332 [debug] [Thread-2 (]: Finished running node test.stableflow.not_null_stg_load_log_started_at.1f1d67483c
+[0m16:14:06.673258 [debug] [Thread-4 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: Close
+[0m16:14:06.676257 [info ] [Thread-1 (]: 5 of 5 START test source_not_null_raw_load_log_status .......................... [RUN]
+[0m16:14:06.678746 [info ] [Thread-4 (]: 4 of 5 PASS source_not_null_raw_load_log_job ................................... [[32mPASS[0m in 0.47s]
+[0m16:14:06.680900 [debug] [Thread-4 (]: Finished running node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m16:14:06.671910 [info ] [Thread-3 (]: 3 of 5 PASS source_accepted_values_raw_load_log_status__running__success__failed  [[32mPASS[0m in 0.47s]
+[0m16:14:06.680090 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_load_log_job.cfb8360539, now test.stableflow.source_not_null_raw_load_log_status.953965e13b)
+[0m16:14:06.687208 [debug] [Thread-1 (]: Began compiling node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m16:14:06.685698 [debug] [Thread-3 (]: Finished running node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m16:14:06.705765 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m16:14:06.707490 [debug] [Thread-1 (]: Began executing node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m16:14:06.713696 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m16:14:06.717520 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m16:14:06.718462 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_not_null_raw_load_log_status.953965e13b"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select status
+from "stableflow"."public"."load_log"
+where status is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m16:14:06.719907 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m16:14:06.757270 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.038 seconds
+[0m16:14:06.759375 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: ROLLBACK
+[0m16:14:06.761325 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: Close
+[0m16:14:06.767416 [info ] [Thread-1 (]: 5 of 5 PASS source_not_null_raw_load_log_status ................................ [[32mPASS[0m in 0.09s]
+[0m16:14:06.773129 [debug] [Thread-1 (]: Finished running node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m16:14:06.777311 [debug] [MainThread]: On master: COMMIT
+[0m16:14:06.778495 [debug] [MainThread]: Using postgres connection "master"
+[0m16:14:06.780210 [debug] [MainThread]: On master: COMMIT
+[0m16:14:06.780780 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m16:14:06.808314 [debug] [MainThread]: SQL status: COMMIT in 0.027 seconds
+[0m16:14:06.809076 [debug] [MainThread]: On master: Close
+[0m16:14:06.810053 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m16:14:06.814328 [debug] [MainThread]: Connection 'test.stableflow.source_not_null_raw_load_log_status.953965e13b' was properly closed.
+[0m16:14:06.815369 [debug] [MainThread]: Connection 'test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc' was properly closed.
+[0m16:14:06.816262 [debug] [MainThread]: Connection 'test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd' was properly closed.
+[0m16:14:06.819369 [debug] [MainThread]: Connection 'test.stableflow.not_null_stg_load_log_started_at.1f1d67483c' was properly closed.
+[0m16:14:06.820169 [info ] [MainThread]: 
+[0m16:14:06.823480 [info ] [MainThread]: Finished running 5 data tests in 0 hours 0 minutes and 0.95 seconds (0.95s).
+[0m16:14:06.827878 [debug] [MainThread]: Command end result
+[0m16:14:06.959550 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/transform/target/manifest.json
+[0m16:14:06.973690 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/transform/target/semantic_manifest.json
+[0m16:14:06.978117 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/transform/target/osi_document.json
+[0m16:14:07.017836 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/freeman/stablecoin-flow/transform/target/run_results.json
+[0m16:14:07.019063 [info ] [MainThread]: 
+[0m16:14:07.020241 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m16:14:07.021269 [info ] [MainThread]: 
+[0m16:14:07.033613 [info ] [MainThread]: Done. PASS=5 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=5
+[0m16:14:07.035602 [debug] [MainThread]: Resource report: {"command_name": "test", "command_success": true, "command_wall_clock_time": 6.507228, "process_in_blocks": "0", "process_kernel_time": 1.790331, "process_mem_max_rss": "162616", "process_out_blocks": "0", "process_user_time": 7.714777}
+[0m16:14:07.036842 [debug] [MainThread]: Command `dbt test` succeeded at 16:14:07.036569 after 6.51 seconds
+[0m16:14:07.049290 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b186e49b50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b1849ecd60>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x70b1849ed7b0>]}
+[0m16:14:07.051475 [debug] [MainThread]: Flushing usage events
+[0m16:14:08.495339 [debug] [MainThread]: An error was encountered while trying to flush usage events

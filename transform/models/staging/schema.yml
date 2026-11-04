@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_load_log
+    description: Cleaned view over the raw ingestion run log.
+    columns:
+      - name: job
+        tests:
+          - not_null
+      - name: started_at
+        tests:
+          - not_null

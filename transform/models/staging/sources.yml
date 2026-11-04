@@ -1,0 +1,16 @@
+sources:
+  - name: raw
+    schema: public
+    description: Tables written directly by ingestion jobs (pre-dbt).
+    tables:
+      - name: load_log
+        description: Ingestion run log (scripts/migrate.py → 001_init.sql).
+        columns:
+          - name: job
+            tests:
+              - not_null
+          - name: status
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['running', 'success', 'failed']
