@@ -348,7 +348,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* `SELECT * FROM mart_market_overview ORDER BY date DESC LIMIT 1`
   returns total ≈ 290–300B USD (sanity band, adjust ±10% in test).
 
-- [ ] **P1.5 Peg mart (view C)**
+- [x] **P1.5 Peg mart (view C)**
   `mart_peg_daily` with deviation bps, rolling 30d avg/max, `is_depeg_event`
   flag (`|dev|>50bps` — first cut: flag any day in deviation; refinement:
   require ≥ 1h via hourly price source once available).

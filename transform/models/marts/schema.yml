@@ -45,3 +45,22 @@ models:
           # epsilon: numeric division yields 100.00000000000000005 (float dust)
           - dbt_utils.expression_is_true:
               expression: "> 0 and top3_share <= 100.001"
+
+  - name: mart_peg_daily
+    description: USD-peg deviation per coin per day + rolling 30d stats — View C.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - date
+            - asset_id
+    columns:
+      - name: price_usd
+        tests:
+          - not_null
+      - name: dev_abs_bps
+        tests:
+          # True invariant is non-negative deviation. No upper bound: 11 real
+          # long-tail "peggedUSD" coins exceed ±100% (TOR @ $20, dead coins @ 0)
+          # — real market data, not transform errors (decisions B-D11).
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"

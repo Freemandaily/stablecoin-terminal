@@ -34,6 +34,9 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 ## Open / pending
 
 | dbt 1.12 deprecation: generic test args should nest under `arguments:` (2 occurrences, warning only) | cleanup TODO — fix before dbt upgrade |
+| 2026-11-04 | B-D10 | dbt custom schemas removed — all models in `public` (was `public_staging`) | single-user project; psql/Metabase/ad-hoc SQL stay simple |
+| 2026-11-04 | B-D11 | **No upper bound on peg deviation tests.** 11 real long-tail peggedUSD coins exceed ±100% (TOR @ $20.09, dead coins @ 0) — 157 historical rows | market truth, not transform error; View C events table filters to meaningful coins at P1.7 |
+| 2026-11-04 | B-D12 | **P1.5 acceptance actual:** USDC rolling-30d max deviation = **9.0 bps** (doc band: <30 ✅), avg 3.09 bps; 54 coins in depeg-event state today (long-tail noise) | baseline for P1.7 event filtering |
 | Topic | Status |
 |---|---|
 | AGENTS.md E4 deviation in prototype: hardcoded hexes outside `:root` (`#121619`, `#171C20`, `#000`) — promote to tokens (`--panel-hover`, `--track`, `--tip-bg`) or grant reference-file exception? | awaiting human decision |

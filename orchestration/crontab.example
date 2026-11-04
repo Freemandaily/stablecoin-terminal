@@ -1,0 +1,22 @@
+# StableFlow cron schedule (P1.6) — install with:
+#   crontab orchestration/crontab.example        (inspect first!)
+# or append these lines to your existing crontab:  crontab -e
+#
+# All commands run from the repo root and log to logs/.
+# Docker (postgres/metabase) must be running: make up
+
+SHELL=/bin/bash
+REPO=/home/freeman/stablecoin-flow
+cd $REPO
+
+# ── Phase 1 (P1.6) ────────────────────────────────────────────────
+# supply + full-market ingest — daily 06:00 UTC
+0 6 * * *  uv run python -m ingestion.defillama --coins >> logs/cron-defillama.log 2>&1 && uv run python -m ingestion.loaders >> logs/cron-loaders.log 2>&1 && cd transform && uv run dbt run --profiles-dir . >> ../logs/cron-dbt.log 2>&1 && uv run dbt test --profiles-dir . >> ../logs/cron-dbt.log 2>&1
+
+# ── Phase 2 (added at P2.4 / P2.9) ───────────────────────────────
+# transfers ingest — daily 04:00 UTC
+# 0 4 * * *  ... ingest-transfers ...
+# alert dispatcher — every 15 min
+# */15 * * * * ... alerts/dispatcher.py ...
+# daily digest — daily 07:00 UTC (P1.8)
+# 0 7 * * *  uv run python -m alerts.digest >> logs/cron-digest.log 2>&1

@@ -16,12 +16,10 @@ clean-targets: ["target", "dbt_packages"]
 models:
   stableflow:
     +materialized: view
-    staging:
-      +schema: staging
+    # No custom schemas (decisions B-D10): everything in `public` keeps psql,
+    # Metabase and ad-hoc SQL simple for a single-user project.
     intermediate:
       +materialized: ephemeral
-    marts:
-      +materialized: table
 
 flags:
   require_casts_to_bool: true
