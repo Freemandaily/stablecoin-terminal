@@ -330,7 +330,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   fetch S4 → prices. Cache-if-exists logic.
   *Accept:* files exist for today; re-run produces no duplicate download.
 
-- [ ] **P1.2 Per-coin supply history ingest**
+- [x] **P1.2 Per-coin supply history ingest**
   Loop core coin ids (from S1 by symbol) → S2 cached per coin; normalize
   `minted` number|object → `stg_assets`, `stg_chain_current`, `stg_supply_daily`,
   `stg_price_daily` via `ingestion/loaders.py` (idempotent upsert).

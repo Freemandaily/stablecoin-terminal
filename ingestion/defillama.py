@@ -21,7 +21,7 @@ import sys
 from typing import Any
 
 from .config import CORE_COIN_SYMBOLS, LLAMA_COINGECKO, LLAMA_S1, LLAMA_S2, LLAMA_S4
-from .http import get_json, has_landed, load_landing, save_landing
+from .http import FetchError, get_json, has_landed, load_landing, save_landing
 from .logging_setup import get_logger
 
 log = get_logger("defillama")
@@ -60,22 +60,41 @@ def fetch_coin_history(coin_id: str, *, force: bool = False) -> dict:
 def fetch_price_history(gecko_id: str, *, force: bool = False) -> dict:
     """CoinGecko — 365d daily price series for peg deviation stats (§6.4)."""
     kind = f"defillama/pricehist_{gecko_id}"
-    url = f"{LLAMA_COINGECKO}/{gecko_id}/market_chart"
+    url = f"{LLAMA_COINGECKO}/coins/{gecko_id}/market_chart"
     params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
     return _cached(kind, lambda: get_json(url, params=params), force=force)
 
 
 def resolve_core_ids(assets: dict) -> dict[str, str]:
-    """Map CORE_COIN_SYMBOLS → coin id using live S1 data (never trust stale hardcodes)."""
-    by_symbol = {a["symbol"]: a["id"] for a in assets["peggedAssets"]}
+    """Map CORE_COIN_SYMBOLS → coin id using live S1 data (never trust stale hardcodes).
+
+    Symbols can collide (USDS matches 5 different assets) — pick the match with
+    the largest circulating supply. Caught live in P1.2: plain dict-order kept
+    Sable Coin ($0) instead of Sky Dollar ($6.5B).
+    """
+    by_symbol: dict[str, list[dict]] = {}
+    for a in assets["peggedAssets"]:
+        by_symbol.setdefault(a["symbol"], []).append(a)
+
     resolved: dict[str, str] = {}
     for sym in CORE_COIN_SYMBOLS:
-        if sym in by_symbol:
-            resolved[sym] = by_symbol[sym]
-        else:
+        matches = by_symbol.get(sym) or []
+        if not matches:
             log.warning("core coin %s not found in S1 — skipping", sym)
-    # cross-check documented anchors (§6.1: USDT=1, USDC=4)
-    for sym, documented in {"USDT": "1", "USDC": "4"}.items():
+            continue
+        best = max(
+            matches,
+            key=lambda a: (a.get("circulating") or {}).get("peggedUSD") or 0,
+        )
+        if len(matches) > 1:
+            log.warning(
+                "symbol %s matches %d assets — picking largest: id=%s (%s)",
+                sym, len(matches), best["id"], best.get("name"),
+            )
+        resolved[sym] = str(best["id"])
+
+    # cross-check documented anchors (§6.1: USDT=1, USDC=2 — verified live 2026-11-04)
+    for sym, documented in {"USDT": "1", "USDC": "2"}.items():
         if resolved.get(sym) and resolved[sym] != documented:
             log.warning("%s id changed: documented=%s live=%s", sym, documented, resolved[sym])
     return resolved
@@ -97,14 +116,22 @@ def main() -> int:
     log.info("assets: %d coins, total supply $%.1fB", len(assets["peggedAssets"]), total_usd / 1e9)
 
     if args.coins:
+        failed_hist: list[str] = []
         for sym, cid in ids.items():
             fetch_coin_history(cid, force=args.force)
             gecko = next(
                 (a.get("gecko_id") for a in assets["peggedAssets"] if a["id"] == cid), None
             )
             if gecko:
-                fetch_price_history(gecko, force=args.force)
-        log.info("coin histories fetched for %d coins", len(ids))
+                try:
+                    fetch_price_history(gecko, force=args.force)
+                except FetchError as e:
+                    # CoinGecko free tier rate-limits (429) — S4 already carries
+                    # daily price history, so this is §6.4 backup, not critical.
+                    log.warning("price history skipped for %s (backup source): %s", sym, e)
+                    failed_hist.append(sym)
+        missed = f" (price-hist backup missed: {','.join(failed_hist)})" if failed_hist else ""
+        log.info("coin histories fetched for %d coins%s", len(ids), missed)
 
     # sanity: S4 price shape (coin_id → price)
     if not isinstance(prices, (dict, list)) or not prices:
