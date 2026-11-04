@@ -38,10 +38,12 @@ dbt-test: ## run dbt tests
 ingest-check: ## smoke-test data source connectivity
 	uv run python -m ingestion.check
 
-ingest-supply: ## DeFiLlama supply ingest (daily)
-	@echo "TODO P1.1/P1.2: supply ingest not built yet" && exit 1
-ingest-prices: ## DeFiLlama price ingest (hourly)
-	@echo "TODO P1.1: price ingest not built yet" && exit 1
+ingest-supply: ## DeFiLlama supply ingest: fetch (S1-S4) + load to Postgres
+	uv run python -m ingestion.defillama --coins
+	uv run python -m ingestion.loaders
+ingest-prices: ## DeFiLlama price snapshot (hourly; cache-aware, reuses today's files)
+	uv run python -m ingestion.defillama
+	uv run python -m ingestion.loaders
 ingest-transfers: ## BigQuery transfers (daily, P2.4)
 	@echo "TODO P2.4: transfers extractor not built yet" && exit 1
 

@@ -355,7 +355,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* dbt test: USDC 30d max deviation < 30 bps (2026 stable period —
   relax if reality differs; record actual value in `decisions.md`).
 
-- [ ] **P1.6 Scheduling**
+- [x] **P1.6 Scheduling**
   `make ingest-supply` (daily 06:00 UTC) and `make ingest-prices` (hourly)
   wired in `orchestration/crontab.example`; jobs log to `logs/`.
   *Accept:* documented cron install; manual run of both targets succeeds back-to-back.
