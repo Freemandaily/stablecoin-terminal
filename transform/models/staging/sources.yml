@@ -14,3 +14,15 @@ sources:
               - not_null
               - accepted_values:
                   values: ['running', 'success', 'failed']
+
+      - name: raw_assets
+        description: S1 metadata + current supply (ingestion/loaders.py).
+
+      - name: raw_chain_current
+        description: S1 per-chain current supply, PK (asset_id, chain).
+
+      - name: raw_supply_daily
+        description: S2 daily supply history, PK (date, asset_id, chain).
+
+      - name: raw_price_daily
+        description: S4 daily price history, PK (date, asset_id).

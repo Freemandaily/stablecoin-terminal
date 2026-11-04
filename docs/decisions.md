@@ -25,6 +25,11 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 | 2026-11-04 | B-D2 | App port **8080** (not 8000) | port 8000 occupied on this machine by a foreign process |
 | 2026-11-04 | B-D3 | `stablecoin-flow` gets its **own git repo** | the `.git` above it is rooted at `$HOME` with unrelated course history — committing there would mix personal/home state into this project |
 | 2026-11-04 | B-D4 | **USDC DeFiLlama id = `2`**, not `4` as originally documented (caught live by `resolve_core_ids` anchor check in P1.1) | runtime resolution over hardcoded ids is the rule; §6.1 corrected |
+| 2026-11-04 | B-D5 | **Naming split:** physical loader tables = `raw_*`, dbt models = `stg_*` views over them | avoids loader/dbt name collision while keeping §5 model names |
+| 2026-11-04 | B-D6 | **S4 = daily price history since 2020** (not just current prices) — CoinGecko demoted to best-effort backup (429 rate-limits) | peg history is free from DeFiLlama |
+| 2026-11-04 | B-D7 | **Staging price bound = [0, 50)**, not doc's (0, 2) | live data: TOR=20.09, dead coins=0 (2,210 rows ≥ 2) |
+| 2026-11-04 | B-D8 | **Chain-level supply may be negative** (USDC/Arbitrum 2025-03-26 = −$125.9M, DeFiLlama bridged-accounting artifact) — invariant `≥ 0` applies to `chain='ALL'` totals only | source truth kept raw; singular test enforces totals |
+| 2026-11-04 | B-D9 | **dbt_utils added** (packages.yml, v1.4.1) | standard dbt companion — needed for composite-key + expression tests |
 
 ## Open / pending
 

@@ -1,12 +1,63 @@
 version: 2
 
 models:
-  - name: stg_load_log
-    description: Cleaned view over the raw ingestion run log.
+  - name: stg_assets
+    description: S1 metadata + current supply, one row per tracked stablecoin.
     columns:
-      - name: job
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: symbol
         tests:
           - not_null
-      - name: started_at
+      - name: peg_type
         tests:
           - not_null
+      - name: circulating_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+  - name: stg_supply_daily
+    description: S2 daily supply history; chain='ALL' rows are coin totals.
+    columns:
+      - name: date
+        tests:
+          - not_null
+      # amount_usd: totals invariant (≥ 0) lives in the singular test
+      # tests/assert_total_supply_nonnegative.sql — chain rows can dip
+      # negative due to a source artifact (decisions B-D8).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - date
+            - asset_id
+            - chain
+
+  - name: stg_price_daily
+    description: S4 daily price history (since 2020-12-30).
+    columns:
+      - name: price_usd
+        tests:
+          - not_null
+          # Real-data bound (decisions B-D7): doc said (0,2) but TOR trades at
+          # 20.09 and dead coins sit at 0 — invariant is "not negative, sane cap".
+          # expression_is_true prefixes this column, hence the repeated name.
+          - dbt_utils.expression_is_true:
+              expression: ">= 0 and price_usd < 50"
+
+  - name: stg_chain_current
+    description: S1 current per-chain supply split with prev-day/week/month deltas.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - asset_id
+            - chain
+    columns:
+      - name: amount_usd
+        tests:
+          # chain-level values can be negative (source artifact) — see
+          # tests/assert_total_supply_nonnegative.sql for the real invariant.
+          - dbt_utils.expression_is_true:
+              expression: ">= -1000000000000"

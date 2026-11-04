@@ -337,7 +337,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* `SELECT COUNT(*) FROM stg_supply_daily WHERE date = CURRENT_DATE` ≥
   number of core coins × their chains; re-running doesn't change row count.
 
-- [ ] **P1.3 dbt staging + tests**
+- [x] **P1.3 dbt staging + tests**
   `stg_assets`, `stg_supply_daily`, `stg_price_daily` with tests:
   unique+not_null PK, `price_usd` in (0, 2), `amount_usd >= 0`, accepted `peg_type`.
   *Accept:* `make dbt-test` green.
