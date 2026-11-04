@@ -1,0 +1,26 @@
+# env & secrets
+.env
+service-account*.json
+*-service-account.json
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# data (never commit raw dumps)
+landing/*
+!landing/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# dbt
+transform/target/
+transform/dbt_packages/
+transform/dbt_files/
+
+# misc
+*.duckdb
+.DS_Store
