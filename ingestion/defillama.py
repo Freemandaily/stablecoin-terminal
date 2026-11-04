@@ -1,0 +1,117 @@
+"""DeFiLlama stablecoin API client (§6.1).
+
+Endpoints (verified 2026-11-04):
+  S1  /stablecoins            metadata + current supply for all coins
+  S2  /stablecoin/{id}        per-coin + per-chain daily history (22 MB for USDT!)
+  S4  /stablecoinprices       current price for every tracked coin
+  CG  CoinGecko market_chart  daily price history for peg stats (§6.4, backup use)
+
+All fetchers are cache-first: if today's landing file exists it is reused
+unless force=True — re-running the job is a free no-op (§3 rule 4).
+
+Run:  uv run python -m ingestion.defillama            # S1 + S4
+      uv run python -m ingestion.defillama --coins    # + core coin histories
+      uv run python -m ingestion.defillama --force    # refresh today's files
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from typing import Any
+
+from .config import CORE_COIN_SYMBOLS, LLAMA_COINGECKO, LLAMA_S1, LLAMA_S2, LLAMA_S4
+from .http import get_json, has_landed, load_landing, save_landing
+from .logging_setup import get_logger
+
+log = get_logger("defillama")
+
+K_ASSETS = "defillama/stablecoins"
+K_PRICES = "defillama/prices"
+
+
+def _cached(kind: str, fetch, *, force: bool = False) -> Any:
+    """Return landing file for today, fetching + saving it on miss (or force)."""
+    if not force and has_landed(kind):
+        log.info("cache hit  %s", kind)
+        return load_landing(kind)
+    payload = fetch()
+    save_landing(kind, payload)
+    log.info("fetched    %s (%s bytes)", kind, len(str(payload)))
+    return payload
+
+
+def fetch_assets(*, force: bool = False) -> dict:
+    """S1 — all tracked stablecoins with supply, chains, peg info."""
+    return _cached(K_ASSETS, lambda: get_json(LLAMA_S1), force=force)
+
+
+def fetch_prices(*, force: bool = False) -> dict:
+    """S4 — current price of every tracked coin."""
+    return _cached(K_PRICES, lambda: get_json(LLAMA_S4), force=force)
+
+
+def fetch_coin_history(coin_id: str, *, force: bool = False) -> dict:
+    """S2 — full daily history (total + per chain) for one coin. Heavy (≈22 MB)."""
+    kind = f"defillama/coin_{coin_id}"
+    return _cached(kind, lambda: get_json(LLAMA_S2.format(id=coin_id)), force=force)
+
+
+def fetch_price_history(gecko_id: str, *, force: bool = False) -> dict:
+    """CoinGecko — 365d daily price series for peg deviation stats (§6.4)."""
+    kind = f"defillama/pricehist_{gecko_id}"
+    url = f"{LLAMA_COINGECKO}/{gecko_id}/market_chart"
+    params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
+    return _cached(kind, lambda: get_json(url, params=params), force=force)
+
+
+def resolve_core_ids(assets: dict) -> dict[str, str]:
+    """Map CORE_COIN_SYMBOLS → coin id using live S1 data (never trust stale hardcodes)."""
+    by_symbol = {a["symbol"]: a["id"] for a in assets["peggedAssets"]}
+    resolved: dict[str, str] = {}
+    for sym in CORE_COIN_SYMBOLS:
+        if sym in by_symbol:
+            resolved[sym] = by_symbol[sym]
+        else:
+            log.warning("core coin %s not found in S1 — skipping", sym)
+    # cross-check documented anchors (§6.1: USDT=1, USDC=4)
+    for sym, documented in {"USDT": "1", "USDC": "4"}.items():
+        if resolved.get(sym) and resolved[sym] != documented:
+            log.warning("%s id changed: documented=%s live=%s", sym, documented, resolved[sym])
+    return resolved
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="DeFiLlama stablecoin ingest (P1.1)")
+    ap.add_argument("--coins", action="store_true", help="also fetch core coin histories")
+    ap.add_argument("--force", action="store_true", help="ignore today's cache")
+    args = ap.parse_args()
+
+    assets = fetch_assets(force=args.force)
+    prices = fetch_prices(force=args.force)
+    ids = resolve_core_ids(assets)
+
+    total_usd = sum(
+        (a.get("circulating") or {}).get("peggedUSD") or 0 for a in assets["peggedAssets"]
+    )
+    log.info("assets: %d coins, total supply $%.1fB", len(assets["peggedAssets"]), total_usd / 1e9)
+
+    if args.coins:
+        for sym, cid in ids.items():
+            fetch_coin_history(cid, force=args.force)
+            gecko = next(
+                (a.get("gecko_id") for a in assets["peggedAssets"] if a["id"] == cid), None
+            )
+            if gecko:
+                fetch_price_history(gecko, force=args.force)
+        log.info("coin histories fetched for %d coins", len(ids))
+
+    # sanity: S4 price shape (coin_id → price)
+    if not isinstance(prices, (dict, list)) or not prices:
+        log.error("S4 prices empty or malformed")
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

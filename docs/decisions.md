@@ -24,6 +24,7 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 | 2026-11-04 | B-D1 | Metabase image tag **`v0.64-lts`** (not `latest`) | `v0.55` doesn't exist; LTS for infra stability |
 | 2026-11-04 | B-D2 | App port **8080** (not 8000) | port 8000 occupied on this machine by a foreign process |
 | 2026-11-04 | B-D3 | `stablecoin-flow` gets its **own git repo** | the `.git` above it is rooted at `$HOME` with unrelated course history — committing there would mix personal/home state into this project |
+| 2026-11-04 | B-D4 | **USDC DeFiLlama id = `2`**, not `4` as originally documented (caught live by `resolve_core_ids` anchor check in P1.1) | runtime resolution over hardcoded ids is the rule; §6.1 corrected |
 
 ## Open / pending
 

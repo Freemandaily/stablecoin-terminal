@@ -243,7 +243,7 @@ net_issuance_7d| / total < 5%` — chain-derived vs DeFiLlama issuance must agre
 | # | Endpoint | Returns | Size |
 |---|---|---|---|
 | S1 | `GET https://stablecoins.llama.fi/stablecoins` | `{peggedAssets: [...]}` — 435 coins. Keys: `id, name, symbol, pegType, pegMechanism, price, priceSource, gecko_id, chains[], chainCirculating{}, circulating{peggedUSD}, circulatingPrevDay/Week/Month` | 560 KB |
-| S2 | `GET https://stablecoins.llama.fi/stablecoin/{id}` | `{tokens: [{date, circulating, minted, unreleased, bridgedTo}]}` (3,263 daily rows since 2017-11-29) **and** `chainBalances{chain: {tokens: [...]}}` for ~130 chains. USDT=`1`, USDC=`4` | 22 MB (USDT) |
+| S2 | `GET https://stablecoins.llama.fi/stablecoin/{id}` | `{tokens: [{date, circulating, minted, unreleased, bridgedTo}]}` (3,263 daily rows since 2017-11-29) **and** `chainBalances{chain: {tokens: [...]}}` for ~130 chains. USDT=`1`, USDC=`2` (verified live 2026-11-04) | 22 MB (USDT) |
 | S3 | `GET https://stablecoins.llama.fi/stablecoincharts/all` | Daily totals split **by peg currency** (`totalCirculatingUSD.peggedUSD`, `.peggedEUR`, …) — *not* per coin | 1.3 MB |
 | S4 | `GET https://stablecoins.llama.fi/stablecoinprices` | Current price for every tracked coin | 6.4 MB |
 
@@ -254,7 +254,7 @@ net_issuance_7d| / total < 5%` — chain-derived vs DeFiLlama issuance must agre
 - S3 aggregates by peg currency; **per-coin history comes from S2 only.**
 - `circulatingPrevDay/Week/Month` in S1 give free 1d/7d/30d deltas — use as a sanity check for mart nets.
 
-Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, PYUSD, FDUSD, TUSD, FRAX, GHO, EURC, RLUSD (resolve ids at runtime, don't hardcode beyond USDT=1/USDC=4).
+Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, PYUSD, FDUSD, TUSD, FRAX, GHO, EURC, RLUSD (resolve ids at runtime, don't hardcode beyond USDT=1/USDC=2).
 
 ### 6.2 BigQuery public dataset — Phase 2 (requires GCP project)
 
@@ -325,7 +325,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 
 ### Phase 1 — Supply & Peg Tracker (Views A, B, C, D)
 
-- [ ] **P1.1 DeFiLlama asset + price ingest**
+- [x] **P1.1 DeFiLlama asset + price ingest**
   `ingestion/defillama.py`: fetch S1 → `landing/.../stablecoins/<date>.json`;
   fetch S4 → prices. Cache-if-exists logic.
   *Accept:* files exist for today; re-run produces no duplicate download.
