@@ -293,31 +293,31 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 
 ### Phase 0 — Foundation
 
-- [ ] **P0.1 Scaffold the repo**
+- [x] **P0.1 Scaffold the repo**
   Create layout (§4), `pyproject.toml` (ruff, pytest, dbt deps), `.env.example`,
   `.gitignore` (landing/, .env, *.duckdb, service-account json), `Makefile`
   stubs, empty package dirs.
   *Accept:* `ruff check .` and `pytest` both run and exit 0 (0 tests is fine).
 
-- [ ] **P0.2 Postgres + Metabase up**
+- [x] **P0.2 Postgres + Metabase up**
   `docker-compose.yml` with `postgres:16` (healthcheck) and `metabase`;
   `make up` / `make down`; database `stableflow` + migration runner
   (plain SQL files in `migrations/` applied by a tiny script — no Alembic yet).
   *Accept:* `make up && make migrate` → `\dt` shows migration table; Metabase
   answers on `:3000`.
 
-- [ ] **P0.3 dbt init**
+- [x] **P0.3 dbt init**
   `transform/` dbt project targeting Postgres; `profiles.yml` via env vars;
   one `stg_` stub model + schema test.
   *Accept:* `make dbt-run` and `make dbt-test` pass.
 
-- [ ] **P0.4 Docs baseline**
+- [x] **P0.4 Docs baseline**
   `README.md` (setup, run, credentials), `docs/MVP.md` (copy spec from chat:
   views A–H + metric list), `docs/architecture.md` (ASCII flow), `docs/decisions.md`
   seeded with D1–D9 from §2.2.
   *Accept:* README alone is enough to go from clone → `make up` working.
 
-- [ ] **P0.5 Ingestion framework**
+- [x] **P0.5 Ingestion framework**
   `ingestion/config.py` (env, UTC dates), landing file helpers
   (`save_json(path, date)`, `exists_today()`), retrying HTTP helper,
   structured logging. Live-smoke test hitting S1 and asserting 200 + `peggedAssets` key.
