@@ -18,7 +18,7 @@ $295.1B supply · −$6.5B (7d) · 1 live peg outlier — data: stablecoins.llam
 | MVP | Phases 0–2 complete | ⏳ |
 
 Build plan: [`implementation.md`](implementation.md) · Product spec: [`docs/MVP.md`](docs/MVP.md) ·
-UI standard (binding): [`AGENTS.md`](AGENTS.md) · UI prototype: [`dashboard/prototype/`](dashboard/prototype/)
+UI standard (binding): [`AGENTS.md`](AGENTS.md) · UI prototype: [`ui/prototype/`](ui/prototype/)
 
 ## Quickstart
 
@@ -29,8 +29,8 @@ cp .env.example .env
 # 1. install deps
 make setup
 
-# 2. infra: postgres + metabase
-make up          # docker compose up -d
+# 2. infra: postgres
+make up          # docker compose up -d postgres
 make migrate     # apply SQL migrations
 
 # 3. verify
@@ -38,24 +38,27 @@ make test        # pytest
 make lint        # ruff
 make dbt-run && make dbt-test
 
-# 4. UI prototype (static, live seed data)
-cd dashboard/prototype && python3 -m http.server 8000   # port 8000 may be taken → use 8090
+# 4. API + UI together (live data from Postgres)
+make serve       # http://localhost:8080  → UI at /, API at /api/overview
 ```
 
-Metabase: `http://localhost:3000` · Postgres: `localhost:5432` (user/pass/db = `stableflow`)
+Postgres: `localhost:5432` (user/pass/db = `stableflow`)
 
 ## Layout
 
 ```
-ingestion/      data source clients + loaders (Python)
-transform/      dbt project: stg_ → int_ → fct_/mart_
-migrations/     SQL migrations (tracked in schema_migrations)
-labels/         address label registry (issuers, exchanges)
-alerts/         digest + event dispatcher (Telegram)
-dashboard/      prototype UI + Metabase exports
-scripts/        backfill & maintenance utilities
+backend/        all server-side code
+  api/          FastAPI: /api/overview + serves the UI
+  ingest/       data source clients + loaders (Python)
+  transform/    dbt project: stg_ → int_ → fct_/mart_
+  migrations/   SQL migrations (tracked in schema_migrations)
+  jobs/         runners (migrate.py, future backfills)
+  labels/       address label registry (issuers, exchanges)
+  alerts/       digest + event dispatcher (Telegram)
+  scheduling/   crontab.example
+ui/prototype/   terminal UI (vanilla JS — AGENTS.md spec)
+data/           runtime files (gitignored): landing/ (raw API dumps), logs/
 docs/           MVP spec, architecture, decisions, data dictionary
-landing/        raw API dumps (gitignored)
 ```
 
 ## Rules of the road

@@ -71,5 +71,5 @@ labels beyond exchanges+issuers · transfer history > 30 days.
 ## Dashboard shell
 
 8 views (A–H) in Metabase (D4) themed toward `AGENTS.md`; the vanilla prototype
-(`dashboard/prototype/index.html`) is the canonical visual target and the
+(`ui/prototype/index.html`) is the canonical visual target and the
 "terminal" tab. Frontend standard: `AGENTS.md`.

@@ -35,7 +35,7 @@ def log_run(logger: logging.Logger, job: str, fn, *, conn=None):  # noqa: ANN001
     """Run fn() while recording the attempt in load_log (if a conn is given).
 
     Returns fn()'s result; failed runs are recorded with the error message.
-    Expects an autocommit connection (same policy as scripts/migrate.py).
+    Expects an autocommit connection (same policy as backend/jobs/migrate.py).
     """
     cur = conn.cursor() if conn else None
     run_id = None

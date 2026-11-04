@@ -1,6 +1,6 @@
 """P0.5 live smoke check — verifies source reachability before any build task.
 
-Run: make ingest-check   |   uv run python -m ingestion.check
+Run: make ingest-check   |   uv run python -m backend.ingest.check
 Confirms the documented §6.1 shapes:
   S1 → dict with peggedAssets   ·   S3 → list of daily rows w/ totalCirculatingUSD
 """

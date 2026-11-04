@@ -4,7 +4,7 @@
 > If a change conflicts with this document, this document wins — or you must
 > amend it in `docs/decisions.md` *first* and get human approval.
 >
-> **Canonical reference implementation:** `dashboard/prototype/index.html`
+> **Canonical reference implementation:** `ui/prototype/index.html`
 > (+ `data.js`). It embodies this spec. Compare every UI change against it.
 >
 > **Goal:** Maintain and exceed the current standard. No visual downgrades.
@@ -139,7 +139,7 @@ Rules:
 
 ## 5. Component inventory (spec-by-reference)
 
-Reference implementation: `dashboard/prototype/index.html`. Rebuild these
+Reference implementation: `ui/prototype/index.html`. Rebuild these
 exactly when re-implementing elsewhere (e.g., React port, Metabase styling):
 
 | Component | Spec notes |
@@ -246,9 +246,8 @@ zero dependencies. Fonts: Inter + IBM Plex Mono (system fallbacks).
 - Chart libraries remain banned unless an approved decision notes a chart
   type we cannot hand-roll (sankey, candlestick heatmap) — and even then the
   library must be styled to this spec (colors, hairlines, mono labels).
-- Metabase dashboards (views A–H) must be themed toward this spec:
-  dark background, hairline borders, mono numerals where configurable.
-  This prototype is their visual target.
+- Views A–H are served by this UI + FastAPI (D4/Metabase superseded, B-D13).
+  If Metabase is ever reintroduced, it must be themed toward this spec.
 
 ---
 
@@ -267,7 +266,7 @@ Copy this checklist into the task/PR description and check every box:
 [ ] Sample/unbacked data carries a SAMPLE chip; live views show as-of time (§9)
 [ ] Hover/focus/error/loading states follow §8 (focus outline intact)
 [ ] Renders correctly at 1440px and collapses sensibly ≤1100px
-[ ] Compared side-by-side with dashboard/prototype/index.html — no downgrade
+[ ] Compared side-by-side with ui/prototype/index.html — no downgrade
     in density, alignment, or restraint
 ```
 
@@ -281,11 +280,12 @@ it is a downgrade and must be rejected — regardless of code quality.
 
 | File | Role |
 |---|---|
-| `dashboard/prototype/index.html` | **Canonical implementation** of this spec |
-| `dashboard/prototype/data.js` | API response shape reference (future `/api` contract) |
+| `ui/prototype/index.html` | **Canonical implementation** of this spec |
+| `ui/prototype/data.js` | API response shape reference (future `/api` contract) |
 | `docs/MVP.md` | Product spec — views A–H this UI must serve |
 | `implementation.md` §7 | Build tasks: P1.7 / P2.8 wire these views |
 | `docs/decisions.md` | The *only* place exceptions to this file are recorded |
+| `backend/api/main.py` | FastAPI endpoint serving `/api/overview` (JSON = `data.js` shape) |
 
 *Amendments to this spec require: a `docs/decisions.md` entry + human approval.
 Last updated: 2026-11-04.*

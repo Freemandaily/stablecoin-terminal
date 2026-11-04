@@ -9,9 +9,9 @@ Endpoints (verified 2026-11-04):
 All fetchers are cache-first: if today's landing file exists it is reused
 unless force=True — re-running the job is a free no-op (§3 rule 4).
 
-Run:  uv run python -m ingestion.defillama            # S1 + S4
-      uv run python -m ingestion.defillama --coins    # + core coin histories
-      uv run python -m ingestion.defillama --force    # refresh today's files
+Run:  uv run python -m backend.ingest.defillama            # S1 + S4
+      uv run python -m backend.ingest.defillama --coins    # + core coin histories
+      uv run python -m backend.ingest.defillama --force    # refresh today's files
 """
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from ingestion import check, config
+from backend.ingest import check, config
 
 
 def test_sources_live():
@@ -37,7 +37,7 @@ def test_check_module_passes():
 
 def test_landing_roundtrip(tmp_path, monkeypatch):
     """Landing files: save → has_landed → load, atomic write, no network."""
-    from ingestion import http as ing_http
+    from backend.ingest import http as ing_http
 
     monkeypatch.setattr(ing_http, "LANDING", tmp_path)
     kind = "unit_test"
@@ -50,7 +50,7 @@ def test_landing_roundtrip(tmp_path, monkeypatch):
 
 def test_get_json_retries_then_fails(monkeypatch):
     """Retries: FetchError after HTTP_RETRIES attempts on a dead endpoint."""
-    from ingestion import http as ing_http
+    from backend.ingest import http as ing_http
 
     def boom(*a, **k):
         raise httpx.ConnectError("refused")

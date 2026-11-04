@@ -11,15 +11,15 @@ __pycache__/
 .ruff_cache/
 
 # data (never commit raw dumps)
-landing/*
-!landing/.gitkeep
-logs/*
-!logs/.gitkeep
+data/landing/*
+!data/landing/.gitkeep
+data/logs/*
+!data/logs/.gitkeep
 
 # dbt
-transform/target/
-transform/dbt_packages/
-transform/dbt_files/
+backend/transform/target/
+backend/transform/dbt_packages/
+backend/transform/dbt_files/
 
 # misc
 *.duckdb

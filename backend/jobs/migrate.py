@@ -1,6 +1,6 @@
 """Apply SQL migrations in order, tracked in schema_migrations.
 
-Usage: make migrate  |  uv run python scripts/migrate.py
+Usage: make migrate  |  uv run python backend/jobs/migrate.py
 Files: migrations/NNN_name.sql (lexical order = numeric order).
 Idempotent: already-applied versions are skipped.
 """
@@ -14,8 +14,8 @@ from pathlib import Path
 import psycopg
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
-MIGRATIONS = ROOT / "migrations"
+ROOT = Path(__file__).resolve().parents[2]   # backend/jobs/migrate.py → repo root
+MIGRATIONS = ROOT / "backend" / "migrations"
 
 
 def conn() -> psycopg.Connection:

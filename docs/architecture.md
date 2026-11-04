@@ -6,7 +6,7 @@
                         ┌─────────────────────────────────────────────┐
    SOURCES (free)       │                INGESTION (Python)          │
                         │                                             │
-  stablecoins.llama.fi ─┼─► defillama.py ──► landing/defillama/*.json │
+  stablecoins.llama.fi ─┼─► defillama.py ──► data/landing/defillama/*.json │
    S1 metadata          │        (daily supply, hourly prices,        │
    S2 per-coin history  │         cache-if-exists, idempotent)        │
    S4 prices            │                                             │
@@ -36,13 +36,13 @@
                                                │
               ┌────────────────────────────────┼───────────────────────┐
               ▼                                ▼                       ▼
-     Metabase (views A–H)            alerts/dispatcher        dashboard/prototype
-     dashboards from marts           Telegram: large mint,     (vanilla UI, later
-                                     z>2, peg break,           fetch('/api/…') per
-                                     contraction               AGENTS.md §10)
+      FastAPI /api/overview           alerts/dispatcher        ui/prototype
+      (views A–C JSON contract,        Telegram: large mint,     terminal UI at :8080,
+       serves UI at :8080 — B-D13)     z>2, peg break,           AGENTS.md spec — B-D13)
+                                      contraction
 ```
 
-## Scheduling (cron via orchestration/crontab.example)
+## Scheduling (cron via backend/scheduling/crontab.example)
 
 | Job | Cadence | Task |
 |---|---|---|

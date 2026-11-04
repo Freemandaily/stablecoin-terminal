@@ -7,7 +7,7 @@ Loads whatever today's landing files contain:
 
 All loads are idempotent upserts — re-running never duplicates rows (§3 rule 4).
 
-Run:  uv run python -m ingestion.loaders
+Run:  uv run python -m backend.ingest.loaders
 """
 
 from __future__ import annotations
@@ -221,7 +221,7 @@ def load_market(c: psycopg.Connection, rows: list) -> int:
 
 def main() -> int:
     if not has_landed(K_ASSETS):
-        log.error("no landing file for %s — run: python -m ingestion.defillama", K_ASSETS)
+        log.error("no landing file for %s — run: python -m backend.ingest.defillama", K_ASSETS)
         return 1
 
     assets = load_landing(K_ASSETS)

@@ -10,10 +10,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
-LANDING = ROOT / "landing"
-LOGS = ROOT / "logs"
-LABELS_CSV = ROOT / "labels" / "addresses.csv"
+ROOT = Path(__file__).resolve().parents[2]   # backend/ingest/config.py → repo root
+LANDING = ROOT / "data" / "landing"
+LOGS = ROOT / "data" / "logs"
+LABELS_CSV = ROOT / "backend" / "labels" / "addresses.csv"
 
 load_dotenv(ROOT / ".env")
 

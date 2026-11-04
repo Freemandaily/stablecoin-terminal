@@ -122,7 +122,7 @@ serving 8 dashboard views **A–H** defined in `docs/MVP.md`.
    docstrings on modules. dbt models: SQL named `stg_*` / `int_*` / `fct_*` /
    `mart_*`, one fact per file, `refs()` never raw table names.
 8. **Commits.** One per task: `P1.3: add dbt staging tests`. No secrets,
-   no `.env`, no raw data files > 100 KB committed (landing/ is gitignored).
+   no `.env`, no raw data files > 100 KB committed (data/landing/ is gitignored).
 9. **Ask, don't guess.** If a task blocks on an undecided point, stop and
    surface the question with 2 options + a recommendation.
 10. **Update the doc.** If you learn something that changes §5/§6, edit it in
@@ -144,32 +144,39 @@ stablecoin-flow/
 ├── .env.example               # LLAMA_NO_KEY (none), BQ_PROJECT, TG_TOKEN, ...
 ├── Makefile                   # make ingest-supply / dbt-run / test / up / down
 ├── docker-compose.yml         # postgres + metabase
-├── ingestion/
-│   ├── __init__.py
-│   ├── config.py              # env, dates, constants (coin ids, lookback)
-│   ├── defillama.py           # Phase 1 client (§6.1)
-│   ├── bigquery_transfers.py  # Phase 2 extractor (§6.2)
-│   ├── labels.py              # label registry loader (Phase 2)
-│   ├── loaders.py             # landing → postgres staging
-│   └── tests/                 # pytest: shape tests, mock + one live smoke
-├── transform/                 # dbt project
-│   ├── dbt_project.yml
-│   ├── models/
-│   │   ├── staging/           # stg_supply_daily, stg_price_daily, stg_transfers, stg_labels
-│   │   ├── intermediate/      # int_mint_burn, int_exchange_flows, int_peg_events
-│   │   └── marts/             # mart_*, fct_events, fct_daily_flows
-│   └── tests/                 # singular/consistency tests (e.g. DeFiLlama vs chain)
-├── landing/                   # raw JSON dumps (gitignored, partitioned by date)
-├── labels/
-│   └── addresses.csv          # seed: kind,address,label,chain,source,verified_on
-├── orchestration/
-│   └── crontab.example        # schedule entries for make targets
-├── alerts/
-│   └── dispatcher.py          # reads fct_events → Telegram (Phase 2)
-├── dashboard/
-│   └── metabase/              # exported questions/dashboards (as JSON, later)
-└── scripts/
-    └── backfill_transfers.py  # P2.2 one-time backfill with quota guard
+├── backend/                   # ALL server-side code (B-D15)
+│   ├── api/
+│   │   └── main.py            # FastAPI: /api/overview, /api/health + UI mount
+│   ├── ingest/
+│   │   ├── __init__.py
+│   │   ├── config.py          # env, dates, constants (coin ids, lookback)
+│   │   ├── defillama.py       # Phase 1 client (§6.1)
+│   │   ├── bigquery_transfers.py  # Phase 2 extractor (§6.2)
+│   │   ├── labels.py          # label registry loader (Phase 2)
+│   │   ├── loaders.py         # landing → postgres raw_* tables
+│   │   └── tests/             # pytest: shape tests, mock + one live smoke
+│   ├── transform/             # dbt project
+│   │   ├── dbt_project.yml
+│   │   ├── models/
+│   │   │   ├── staging/       # stg_supply_daily, stg_price_daily, stg_transfers, stg_labels
+│   │   │   ├── intermediate/  # int_mint_burn, int_exchange_flows, int_peg_events
+│   │   │   └── marts/         # mart_*, fct_events, fct_daily_flows
+│   │   └── tests/             # singular/consistency tests (e.g. DeFiLlama vs chain)
+│   ├── migrations/            # ordered SQL migrations (schema_migrations)
+│   ├── jobs/
+│   │   ├── migrate.py         # applies backend/migrations/
+│   │   └── backfill_transfers.py  # P2.2 one-time backfill with quota guard
+│   ├── labels/
+│   │   └── addresses.csv      # seed: kind,address,label,chain,source,verified_on
+│   ├── alerts/
+│   │   └── dispatcher.py      # reads fct_events → Telegram (Phase 2)
+│   └── scheduling/
+│       └── crontab.example    # schedule entries for make targets
+├── ui/
+│   └── prototype/             # terminal UI (AGENTS.md spec, served at /)
+└── data/                      # runtime files (gitignored)
+    ├── landing/               # raw JSON dumps (partitioned by date)
+    └── logs/                  # job + cron logs
 ```
 
 ---
@@ -182,9 +189,9 @@ timestamps `TIMESTAMPTZ`.
 ### Phase 1
 
 ```
-landing/defillama/stablecoins/<date>.json          # raw, file
-landing/defillama/coin_<id>/<date>.json            # raw, file
-landing/defillama/prices/<date>.json               # raw, file
+data/landing/defillama/stablecoins/<date>.json          # raw, file
+data/landing/defillama/coin_<id>/<date>.json            # raw, file
+data/landing/defillama/prices/<date>.json               # raw, file
 
 stg_assets            (id PK, name, symbol, peg_type, peg_mechanism,
                        price, gecko_id, price_source, ingested_at)
@@ -250,7 +257,7 @@ net_issuance_7d| / total < 5%` — chain-derived vs DeFiLlama issuance must agre
 **Gotchas (real, observed):**
 - `api.llama.fi/stablecoins` → **404**. Host is `stablecoins.llama.fi`.
 - In S2, `minted` is sometimes `0` (number) and sometimes `{peggedUSD: n}` (object). Normalize on ingest.
-- S2 is 22 MB per coin → always cache to `landing/` and skip download if today's file exists.
+- S2 is 22 MB per coin → always cache to `data/landing/` and skip download if today's file exists.
 - S3 aggregates by peg currency; **per-coin history comes from S2 only.**
 - `circulatingPrevDay/Week/Month` in S1 give free 1d/7d/30d deltas — use as a sanity check for mart nets.
 
@@ -295,7 +302,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 
 - [x] **P0.1 Scaffold the repo**
   Create layout (§4), `pyproject.toml` (ruff, pytest, dbt deps), `.env.example`,
-  `.gitignore` (landing/, .env, *.duckdb, service-account json), `Makefile`
+  `.gitignore` (data/landing/, .env, *.duckdb, service-account json), `Makefile`
   stubs, empty package dirs.
   *Accept:* `ruff check .` and `pytest` both run and exit 0 (0 tests is fine).
 
@@ -318,7 +325,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* README alone is enough to go from clone → `make up` working.
 
 - [x] **P0.5 Ingestion framework**
-  `ingestion/config.py` (env, UTC dates), landing file helpers
+  `backend/ingest/config.py` (env, UTC dates), landing file helpers
   (`save_json(path, date)`, `exists_today()`), retrying HTTP helper,
   structured logging. Live-smoke test hitting S1 and asserting 200 + `peggedAssets` key.
   *Accept:* `make ingest-check` (or `pytest -k live`) passes with network.
@@ -326,7 +333,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 ### Phase 1 — Supply & Peg Tracker (Views A, B, C, D)
 
 - [x] **P1.1 DeFiLlama asset + price ingest**
-  `ingestion/defillama.py`: fetch S1 → `landing/.../stablecoins/<date>.json`;
+  `backend/ingest/defillama.py`: fetch S1 → `landing/.../stablecoins/<date>.json`;
   fetch S4 → prices. Cache-if-exists logic.
   *Accept:* files exist for today; re-run produces no duplicate download.
 
@@ -357,16 +364,17 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 
 - [x] **P1.6 Scheduling**
   `make ingest-supply` (daily 06:00 UTC) and `make ingest-prices` (hourly)
-  wired in `orchestration/crontab.example`; jobs log to `logs/`.
+  wired in `backend/scheduling/crontab.example`; jobs log to `data/logs/`.
   *Accept:* documented cron install; manual run of both targets succeeds back-to-back.
 
-- [ ] **P1.7 Metabase views A, B, C**
-  Connect Metabase → Postgres. Build: A (overview cards + chain/coin share
-  charts), B (per-coin drill-down with date filter), C (peg health board +
-  events table). Export saved questions to `dashboard/metabase/*.json`.
-  *Accept:* 3 dashboards render with current data; exports committed.
+- [x] **P1.7 API endpoints for views A, B, C** *(rewritten: Metabase dropped, B-D13)*
+  FastAPI `GET /api/overview` returning the exact `data.js` JSON shape
+  (market/coins/chains/hist/peg) + serving the prototype at `/`.
+  Prototype swaps `window.SF` → `fetch('/api/overview')` with seed fallback.
+  *Accept:* curl endpoint returns live numbers matching mart_market_overview;
+  browser at :8080 renders from the API.
 
-- [ ] **P1.8 Daily digest (view D)**
+- [ ] **P1.8 Daily digest (view D)** *(deferred → P2.9, B-D14)*
   `alerts/digest.py`: compose message (total Δ, top gainer/loser, chain
   migration note, peg events) → Telegram webhook (`TG_TOKEN`).
   *Accept:* `make digest` sends a message; no alert → sends "all calm" line.
@@ -384,7 +392,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 - [ ] **P2.2 Label registry**
   `labels/addresses.csv` seed: ≥ 2 issuer wallets (Tether), ≥ 2 (Circle),
   ≥ 40 exchange hot wallets; verify top 10 via Etherscan tag (manual/agent curl).
-  `ingestion/labels.py` loads CSV → `stg_labels` (idempotent).
+  `backend/ingest/labels.py` loads CSV → `stg_labels` (idempotent).
   *Accept:* `SELECT COUNT(*) FROM stg_labels WHERE kind='exchange'` ≥ 40;
   `make labels-check` validates address checksums (0x + 40 hex).
 

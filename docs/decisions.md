@@ -37,6 +37,9 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 | 2026-11-04 | B-D10 | dbt custom schemas removed — all models in `public` (was `public_staging`) | single-user project; psql/Metabase/ad-hoc SQL stay simple |
 | 2026-11-04 | B-D11 | **No upper bound on peg deviation tests.** 11 real long-tail peggedUSD coins exceed ±100% (TOR @ $20.09, dead coins @ 0) — 157 historical rows | market truth, not transform error; View C events table filters to meaningful coins at P1.7 |
 | 2026-11-04 | B-D12 | **P1.5 acceptance actual:** USDC rolling-30d max deviation = **9.0 bps** (doc band: <30 ✅), avg 3.09 bps; 54 coins in depeg-event state today (long-tail noise) | baseline for P1.7 event filtering |
+| 2026-11-04 | B-D13 | **D4 (Metabase) superseded** — dashboard = custom UI (prototype) + FastAPI endpoint. Metabase container stopped, compose entry kept for reference | user decision: one UI, not two; views A–C become API endpoints |
+| 2026-11-04 | B-D14 | **P1.8 (Telegram digest) deferred** — revisit with P2.9 alerts as one messaging integration | user decision: not now |
+| 2026-11-04 | B-D15 | **Directory reorganization:** all server code under `backend/` (api, ingest, transform, migrations, jobs, labels, alerts, scheduling), UI at `ui/prototype/`, runtime files at `data/` (landing, logs) | root had ~12 mixed top-level dirs; imports now `backend.ingest.*`; paths updated in config, Makefile, crontab, docs |
 | Topic | Status |
 |---|---|
 | AGENTS.md E4 deviation in prototype: hardcoded hexes outside `:root` (`#121619`, `#171C20`, `#000`) — promote to tokens (`--panel-hover`, `--track`, `--tip-bg`) or grant reference-file exception? | awaiting human decision |

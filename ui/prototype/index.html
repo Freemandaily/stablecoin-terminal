@@ -257,8 +257,18 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 
 <script src="data.js"></script>
 <script>
-/* ── helpers ───────────────────────────── */
-const D = window.SF, M = D.market;
+(async () => {
+/* ── data source: live API first, seed file as fallback ───────── */
+const D = await (async () => {
+  for (const url of ['/api/overview', 'http://localhost:8080/api/overview']) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (r.ok) return await r.json();
+    } catch (e) { /* next candidate */ }
+  }
+  return window.SF;  // seed data (file:// or API down)
+})();
+const M = D.market;
 const $ = s => document.querySelector(s);
 const fmtUSD = v => { const a=Math.abs(v);
   if(a>=1e12) return (v/1e12).toFixed(2)+'T';
@@ -504,6 +514,7 @@ document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',(
   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
 }));
+})();
 </script>
 </body>
 </html>
