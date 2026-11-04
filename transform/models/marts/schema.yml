@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: mart_supply_daily
+    description: Per-coin daily supply, issuance deltas (1/7/30d), market share — Views A/B.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - date
+            - asset_id
+    columns:
+      - name: date
+        tests:
+          - not_null
+      - name: total_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+  - name: mart_supply_chain
+    description: Per-coin per-chain supply, chain share, 30d migration delta — View A.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - date
+            - asset_id
+            - chain
+
+  - name: mart_market_overview
+    description: Market totals + concentration + chain mix, one row per date — View A.
+    tests:
+      - unique:
+          column_name: date
+    columns:
+      - name: date
+        tests:
+          - not_null
+      - name: total_supply_usd
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+      - name: top3_share
+        tests:
+          # epsilon: numeric division yields 100.00000000000000005 (float dust)
+          - dbt_utils.expression_is_true:
+              expression: "> 0 and top3_share <= 100.001"

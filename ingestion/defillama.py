@@ -20,7 +20,14 @@ import argparse
 import sys
 from typing import Any
 
-from .config import CORE_COIN_SYMBOLS, LLAMA_COINGECKO, LLAMA_S1, LLAMA_S2, LLAMA_S4
+from .config import (
+    CORE_COIN_SYMBOLS,
+    LLAMA_COINGECKO,
+    LLAMA_S1,
+    LLAMA_S2,
+    LLAMA_S3,
+    LLAMA_S4,
+)
 from .http import FetchError, get_json, has_landed, load_landing, save_landing
 from .logging_setup import get_logger
 
@@ -28,6 +35,7 @@ log = get_logger("defillama")
 
 K_ASSETS = "defillama/stablecoins"
 K_PRICES = "defillama/prices"
+K_MARKET = "defillama/market"  # S3: full-market daily totals (all 435 coins)
 
 
 def _cached(kind: str, fetch, *, force: bool = False) -> Any:
@@ -49,6 +57,11 @@ def fetch_assets(*, force: bool = False) -> dict:
 def fetch_prices(*, force: bool = False) -> dict:
     """S4 — current price of every tracked coin."""
     return _cached(K_PRICES, lambda: get_json(LLAMA_S4), force=force)
+
+
+def fetch_market(*, force: bool = False) -> list:
+    """S3 — full-market daily totals, by peg currency (all tracked coins)."""
+    return _cached(K_MARKET, lambda: get_json(LLAMA_S3), force=force)
 
 
 def fetch_coin_history(coin_id: str, *, force: bool = False) -> dict:
@@ -108,7 +121,15 @@ def main() -> int:
 
     assets = fetch_assets(force=args.force)
     prices = fetch_prices(force=args.force)
+    market = fetch_market(force=args.force)
     ids = resolve_core_ids(assets)
+
+    if not isinstance(market, list) or not market:
+        log.error("S3 market totals empty or malformed")
+        return 1
+    log.info("market: %d daily rows, last total $%.1fB",
+             len(market),
+             (market[-1].get("totalCirculatingUSD") or {}).get("peggedUSD", 0) / 1e9)
 
     total_usd = sum(
         (a.get("circulating") or {}).get("peggedUSD") or 0 for a in assets["peggedAssets"]

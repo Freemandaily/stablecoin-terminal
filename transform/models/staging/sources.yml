@@ -26,3 +26,6 @@ sources:
 
       - name: raw_price_daily
         description: S4 daily price history, PK (date, asset_id).
+
+      - name: raw_market_daily
+        description: S3 full-market daily totals (all tracked coins), PK (date).

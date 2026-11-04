@@ -342,7 +342,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   unique+not_null PK, `price_usd` in (0, 2), `amount_usd >= 0`, accepted `peg_type`.
   *Accept:* `make dbt-test` green.
 
-- [ ] **P1.4 dbt marts for views A/B**
+- [x] **P1.4 dbt marts for views A/B**
   `mart_supply_daily`, `mart_supply_chain`, `mart_market_overview` per §5,
   including 1d/7d/30d issuance + market shares.
   *Accept:* `SELECT * FROM mart_market_overview ORDER BY date DESC LIMIT 1`

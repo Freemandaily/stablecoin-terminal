@@ -33,6 +33,7 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 
 ## Open / pending
 
+| dbt 1.12 deprecation: generic test args should nest under `arguments:` (2 occurrences, warning only) | cleanup TODO — fix before dbt upgrade |
 | Topic | Status |
 |---|---|
 | AGENTS.md E4 deviation in prototype: hardcoded hexes outside `:root` (`#121619`, `#171C20`, `#000`) — promote to tokens (`--panel-hover`, `--track`, `--tip-bg`) or grant reference-file exception? | awaiting human decision |

@@ -20,7 +20,7 @@ import psycopg
 
 from .config import LANDING
 from .db import get_conn
-from .defillama import K_ASSETS, K_PRICES
+from .defillama import K_ASSETS, K_MARKET, K_PRICES
 from .http import has_landed, load_landing
 from .logging_setup import get_logger
 
@@ -184,6 +184,39 @@ def load_prices(c: psycopg.Connection, prices: list, gecko_to_id: dict[str, str]
     return len(rows)
 
 
+# ── S3: full-market daily totals ─────────────────────────────────────
+
+def load_market(c: psycopg.Connection, rows: list) -> int:
+    out = []
+    for r in rows:
+        # S3 dates arrive as strings (S2 uses ints) — coerce before comparing
+        ts = int(r.get("date") or 0)
+        if ts <= 0:
+            continue
+        circ = r.get("totalCirculatingUSD") or {}
+        out.append(
+            (
+                _date(ts),
+                _usd(circ.get("peggedUSD")),
+                _usd((r.get("totalMintedUSD") or {}).get("peggedUSD")),
+                _usd(r.get("totalBridgedToUSD")),
+            )
+        )
+    with c.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO raw_market_daily (date, total_usd, minted_usd, bridged_usd)
+            VALUES (%s,%s,%s,%s)
+            ON CONFLICT (date) DO UPDATE SET
+                total_usd=EXCLUDED.total_usd, minted_usd=EXCLUDED.minted_usd,
+                bridged_usd=EXCLUDED.bridged_usd
+            """,
+            out,
+        )
+    log.info("raw_market_daily upserted: %d rows", len(out))
+    return len(out)
+
+
 # ── CLI: load everything landed today ────────────────────────────────
 
 def main() -> int:
@@ -203,6 +236,9 @@ def main() -> int:
 
         if has_landed(K_PRICES):
             total += load_prices(c, load_landing(K_PRICES), gecko_to_id)
+
+        if has_landed(K_MARKET):
+            total += load_market(c, load_landing(K_MARKET))
 
         # every landed coin history: landing/defillama/coin_<id>/<today>.json
         from .http import today as _today
