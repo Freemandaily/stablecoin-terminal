@@ -22,3 +22,6 @@ backend/transform/dbt_files/
 # misc
 *.duckdb
 .DS_Store
+
+# dbt runtime logs
+backend/transform/logs/
