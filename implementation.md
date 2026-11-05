@@ -122,7 +122,7 @@ serving 8 dashboard views **A–H** defined in `docs/MVP.md`.
    docstrings on modules. dbt models: SQL named `stg_*` / `int_*` / `fct_*` /
    `mart_*`, one fact per file, `refs()` never raw table names.
 8. **Commits.** One per task: `P1.3: add dbt staging tests`. No secrets,
-   no `.env`, no raw data files > 100 KB committed (data/landing/ is gitignored).
+   no `.env`, no raw data files > 100 KB committed (data/ is gitignored).
 9. **Ask, don't guess.** If a task blocks on an undecided point, stop and
    surface the question with 2 options + a recommendation.
 10. **Update the doc.** If you learn something that changes §5/§6, edit it in
@@ -153,7 +153,7 @@ stablecoin-flow/
 │   │   ├── defillama.py       # Phase 1 client (§6.1)
 │   │   ├── bigquery_transfers.py  # Phase 2 extractor (§6.2)
 │   │   ├── labels.py          # label registry loader (Phase 2)
-│   │   ├── loaders.py         # landing → postgres raw_* tables
+│   │   ├── loaders.py         # payload → raw_* upserts (in-memory, B-D16)
 │   │   └── tests/             # pytest: shape tests, mock + one live smoke
 │   ├── transform/             # dbt project
 │   │   ├── dbt_project.yml
@@ -175,7 +175,6 @@ stablecoin-flow/
 ├── ui/
 │   └── prototype/             # terminal UI (AGENTS.md spec, served at /)
 └── data/                      # runtime files (gitignored)
-    ├── landing/               # raw JSON dumps (partitioned by date)
     └── logs/                  # job + cron logs
 ```
 
@@ -189,9 +188,7 @@ timestamps `TIMESTAMPTZ`.
 ### Phase 1
 
 ```
-data/landing/defillama/stablecoins/<date>.json          # raw, file
-data/landing/defillama/coin_<id>/<date>.json            # raw, file
-data/landing/defillama/prices/<date>.json               # raw, file
+# raw layer: raw_* tables — upserted directly from API payloads (B-D16: no files)
 
 stg_assets            (id PK, name, symbol, peg_type, peg_mechanism,
                        price, gecko_id, price_source, ingested_at)
@@ -257,7 +254,7 @@ net_issuance_7d| / total < 5%` — chain-derived vs DeFiLlama issuance must agre
 **Gotchas (real, observed):**
 - `api.llama.fi/stablecoins` → **404**. Host is `stablecoins.llama.fi`.
 - In S2, `minted` is sometimes `0` (number) and sometimes `{peggedUSD: n}` (object). Normalize on ingest.
-- S2 is 22 MB per coin → always cache to `data/landing/` and skip download if today's file exists.
+- S2 is 22 MB per coin → fetched once per run, parsed in memory, upserted (B-D16 — no files).
 - S3 aggregates by peg currency; **per-coin history comes from S2 only.**
 - `circulatingPrevDay/Week/Month` in S1 give free 1d/7d/30d deltas — use as a sanity check for mart nets.
 
@@ -302,7 +299,7 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
 
 - [x] **P0.1 Scaffold the repo**
   Create layout (§4), `pyproject.toml` (ruff, pytest, dbt deps), `.env.example`,
-  `.gitignore` (data/landing/, .env, *.duckdb, service-account json), `Makefile`
+  `.gitignore` (data/, .env, *.duckdb, service-account json), `Makefile`
   stubs, empty package dirs.
   *Accept:* `ruff check .` and `pytest` both run and exit 0 (0 tests is fine).
 
@@ -325,22 +322,21 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* README alone is enough to go from clone → `make up` working.
 
 - [x] **P0.5 Ingestion framework**
-  `backend/ingest/config.py` (env, UTC dates), landing file helpers
-  (`save_json(path, date)`, `exists_today()`), retrying HTTP helper,
+  `backend/ingest/config.py` (env, UTC dates), retrying HTTP helper,
   structured logging. Live-smoke test hitting S1 and asserting 200 + `peggedAssets` key.
   *Accept:* `make ingest-check` (or `pytest -k live`) passes with network.
 
 ### Phase 1 — Supply & Peg Tracker (Views A, B, C, D)
 
 - [x] **P1.1 DeFiLlama asset + price ingest**
-  `backend/ingest/defillama.py`: fetch S1 → `landing/.../stablecoins/<date>.json`;
-  fetch S4 → prices. Cache-if-exists logic.
-  *Accept:* files exist for today; re-run produces no duplicate download.
+  `backend/ingest/defillama.py`: fetch S1/S3/S4 → parse → upsert `raw_*`
+  in one pass (B-D16: in-memory, no landing files).
+  *Accept:* `raw_*` rows upserted; re-run produces no duplicates.
 
 - [x] **P1.2 Per-coin supply history ingest**
-  Loop core coin ids (from S1 by symbol) → S2 cached per coin; normalize
-  `minted` number|object → `stg_assets`, `stg_chain_current`, `stg_supply_daily`,
-  `stg_price_daily` via `ingestion/loaders.py` (idempotent upsert).
+  Loop core coin ids (from S1 by symbol) → S2 fetched per coin, parsed in
+  memory → `raw_supply_daily` via `backend/ingest/loaders.py` (idempotent
+  upsert; B-D16 — no files).
   *Accept:* `SELECT COUNT(*) FROM stg_supply_daily WHERE date = CURRENT_DATE` ≥
   number of core coins × their chains; re-running doesn't change row count.
 

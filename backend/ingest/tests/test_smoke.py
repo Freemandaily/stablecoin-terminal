@@ -35,19 +35,6 @@ def test_check_module_passes():
         pytest.skip(f"network unavailable: {e}")
 
 
-def test_landing_roundtrip(tmp_path, monkeypatch):
-    """Landing files: save → has_landed → load, atomic write, no network."""
-    from backend.ingest import http as ing_http
-
-    monkeypatch.setattr(ing_http, "LANDING", tmp_path)
-    kind = "unit_test"
-    assert not ing_http.has_landed(kind, "2099-01-01")
-    ing_http.save_landing(kind, {"hello": 1}, "2099-01-01")
-    assert ing_http.has_landed(kind, "2099-01-01")
-    assert ing_http.load_landing(kind, "2099-01-01") == {"hello": 1}
-    assert not list(tmp_path.joinpath(kind).glob("*.tmp"))  # atomic replace
-
-
 def test_get_json_retries_then_fails(monkeypatch):
     """Retries: FetchError after HTTP_RETRIES attempts on a dead endpoint."""
     from backend.ingest import http as ing_http

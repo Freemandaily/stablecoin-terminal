@@ -1,81 +1,51 @@
-"""DeFiLlama stablecoin API client (§6.1).
+"""DeFiLlama stablecoin API client → Postgres, single-pass (B-D16: no landing files).
 
 Endpoints (verified 2026-11-04):
   S1  /stablecoins            metadata + current supply for all coins
   S2  /stablecoin/{id}        per-coin + per-chain daily history (22 MB for USDT!)
-  S4  /stablecoinprices       current price for every tracked coin
-  CG  CoinGecko market_chart  daily price history for peg stats (§6.4, backup use)
+  S3  /stablecoincharts/all   full-market daily totals (all tracked coins)
+  S4  /stablecoinprices       daily price history (peg deviation)
 
-All fetchers are cache-first: if today's landing file exists it is reused
-unless force=True — re-running the job is a free no-op (§3 rule 4).
+Flow: fetch → parse → upsert raw_* tables in one process. Payloads stay in
+memory; nothing is written to disk. Loads are idempotent upserts, so
+re-running the job is safe (§3 rule 4).
 
-Run:  uv run python -m backend.ingest.defillama            # S1 + S4
-      uv run python -m backend.ingest.defillama --coins    # + core coin histories
-      uv run python -m backend.ingest.defillama --force    # refresh today's files
+Run:  uv run python -m backend.ingest.defillama            # S1 + S3 + S4
+      uv run python -m backend.ingest.defillama --coins    # + core coin histories (S2)
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-from typing import Any
 
-from .config import (
-    CORE_COIN_SYMBOLS,
-    LLAMA_COINGECKO,
-    LLAMA_S1,
-    LLAMA_S2,
-    LLAMA_S3,
-    LLAMA_S4,
-)
-from .http import FetchError, get_json, has_landed, load_landing, save_landing
+from .config import CORE_COIN_SYMBOLS, LLAMA_S1, LLAMA_S2, LLAMA_S3, LLAMA_S4
+from .db import get_conn
+from .http import get_json
+from .loaders import load_assets, load_chain_current, load_coin_history, load_market, load_prices
 from .logging_setup import get_logger
 
 log = get_logger("defillama")
 
-K_ASSETS = "defillama/stablecoins"
-K_PRICES = "defillama/prices"
-K_MARKET = "defillama/market"  # S3: full-market daily totals (all 435 coins)
 
-
-def _cached(kind: str, fetch, *, force: bool = False) -> Any:
-    """Return landing file for today, fetching + saving it on miss (or force)."""
-    if not force and has_landed(kind):
-        log.info("cache hit  %s", kind)
-        return load_landing(kind)
-    payload = fetch()
-    save_landing(kind, payload)
-    log.info("fetched    %s (%s bytes)", kind, len(str(payload)))
-    return payload
-
-
-def fetch_assets(*, force: bool = False) -> dict:
+def fetch_assets() -> dict:
     """S1 — all tracked stablecoins with supply, chains, peg info."""
-    return _cached(K_ASSETS, lambda: get_json(LLAMA_S1), force=force)
+    return get_json(LLAMA_S1)
 
 
-def fetch_prices(*, force: bool = False) -> dict:
-    """S4 — current price of every tracked coin."""
-    return _cached(K_PRICES, lambda: get_json(LLAMA_S4), force=force)
+def fetch_prices() -> dict:
+    """S4 — daily price history of every tracked coin."""
+    return get_json(LLAMA_S4)
 
 
-def fetch_market(*, force: bool = False) -> list:
+def fetch_market() -> list:
     """S3 — full-market daily totals, by peg currency (all tracked coins)."""
-    return _cached(K_MARKET, lambda: get_json(LLAMA_S3), force=force)
+    return get_json(LLAMA_S3)
 
 
-def fetch_coin_history(coin_id: str, *, force: bool = False) -> dict:
+def fetch_coin_history(coin_id: str) -> dict:
     """S2 — full daily history (total + per chain) for one coin. Heavy (≈22 MB)."""
-    kind = f"defillama/coin_{coin_id}"
-    return _cached(kind, lambda: get_json(LLAMA_S2.format(id=coin_id)), force=force)
-
-
-def fetch_price_history(gecko_id: str, *, force: bool = False) -> dict:
-    """CoinGecko — 365d daily price series for peg deviation stats (§6.4)."""
-    kind = f"defillama/pricehist_{gecko_id}"
-    url = f"{LLAMA_COINGECKO}/coins/{gecko_id}/market_chart"
-    params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
-    return _cached(kind, lambda: get_json(url, params=params), force=force)
+    return get_json(LLAMA_S2.format(id=coin_id))
 
 
 def resolve_core_ids(assets: dict) -> dict[str, str]:
@@ -115,49 +85,52 @@ def resolve_core_ids(assets: dict) -> dict[str, str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="DeFiLlama stablecoin ingest (P1.1)")
-    ap.add_argument("--coins", action="store_true", help="also fetch core coin histories")
-    ap.add_argument("--force", action="store_true", help="ignore today's cache")
+    ap.add_argument("--coins", action="store_true", help="also fetch core coin histories (S2)")
     args = ap.parse_args()
 
-    assets = fetch_assets(force=args.force)
-    prices = fetch_prices(force=args.force)
-    market = fetch_market(force=args.force)
+    # ── fetch into memory + shape sanity before touching the DB ──
+    assets = fetch_assets()
+    prices = fetch_prices()
+    market = fetch_market()
     ids = resolve_core_ids(assets)
 
     if not isinstance(market, list) or not market:
         log.error("S3 market totals empty or malformed")
         return 1
-    log.info("market: %d daily rows, last total $%.1fB",
-             len(market),
-             (market[-1].get("totalCirculatingUSD") or {}).get("peggedUSD", 0) / 1e9)
+    log.info(
+        "market: %d daily rows, last total $%.1fB",
+        len(market),
+        (market[-1].get("totalCirculatingUSD") or {}).get("peggedUSD", 0) / 1e9,
+    )
 
     total_usd = sum(
         (a.get("circulating") or {}).get("peggedUSD") or 0 for a in assets["peggedAssets"]
     )
     log.info("assets: %d coins, total supply $%.1fB", len(assets["peggedAssets"]), total_usd / 1e9)
 
-    if args.coins:
-        failed_hist: list[str] = []
-        for sym, cid in ids.items():
-            fetch_coin_history(cid, force=args.force)
-            gecko = next(
-                (a.get("gecko_id") for a in assets["peggedAssets"] if a["id"] == cid), None
-            )
-            if gecko:
-                try:
-                    fetch_price_history(gecko, force=args.force)
-                except FetchError as e:
-                    # CoinGecko free tier rate-limits (429) — S4 already carries
-                    # daily price history, so this is §6.4 backup, not critical.
-                    log.warning("price history skipped for %s (backup source): %s", sym, e)
-                    failed_hist.append(sym)
-        missed = f" (price-hist backup missed: {','.join(failed_hist)})" if failed_hist else ""
-        log.info("coin histories fetched for %d coins%s", len(ids), missed)
-
-    # sanity: S4 price shape (coin_id → price)
     if not isinstance(prices, (dict, list)) or not prices:
         log.error("S4 prices empty or malformed")
         return 1
+
+    gecko_to_id = {
+        a["gecko_id"]: str(a["id"]) for a in assets["peggedAssets"] if a.get("gecko_id")
+    }
+
+    # ── upsert → raw_* tables (idempotent, §3 rule 4) ──
+    with get_conn() as c:
+        load_assets(c, assets)
+        load_chain_current(c, assets)
+        load_market(c, market)
+        load_prices(c, prices, gecko_to_id)
+
+        if args.coins:
+            for sym, cid in ids.items():
+                hist = fetch_coin_history(cid)
+                load_coin_history(c, cid, hist)
+                del hist  # 22 MB parsed payload — release before the next fetch
+            log.info("coin histories loaded for %d coins", len(ids))
+
+    log.info("ingest complete — raw_* tables updated")
     return 0
 
 

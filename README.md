@@ -57,7 +57,7 @@ backend/        all server-side code
   alerts/       digest + event dispatcher (Telegram)
   scheduling/   crontab.example
 ui/prototype/   terminal UI (vanilla JS — AGENTS.md spec)
-data/           runtime files (gitignored): landing/ (raw API dumps), logs/
+data/           runtime files (gitignored): logs/ (job + cron logs)
 docs/           MVP spec, architecture, decisions, data dictionary
 ```
 

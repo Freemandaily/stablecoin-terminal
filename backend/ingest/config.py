@@ -11,7 +11,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[2]   # backend/ingest/config.py → repo root
-LANDING = ROOT / "data" / "landing"
 LOGS = ROOT / "data" / "logs"
 LABELS_CSV = ROOT / "backend" / "labels" / "addresses.csv"
 
@@ -49,5 +48,4 @@ USER_AGENT = "stableflow/0.1 (+stablecoin circulation observability)"
 
 
 def ensure_dirs() -> None:
-    for d in (LANDING, LOGS):
-        d.mkdir(parents=True, exist_ok=True)
+    LOGS.mkdir(parents=True, exist_ok=True)

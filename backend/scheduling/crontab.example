@@ -10,8 +10,8 @@ REPO=/home/freeman/stablecoin-flow
 cd $REPO
 
 # ── Phase 1 (P1.6) ────────────────────────────────────────────────
-# supply + full-market ingest — daily 06:00 UTC
-0 6 * * *  uv run python -m backend.ingest.defillama --coins >> data/logs/cron-defillama.log 2>&1 && uv run python -m backend.ingest.loaders >> data/logs/cron-loaders.log 2>&1 && cd backend/transform && uv run dbt run --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1 && uv run dbt test --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1
+# supply + full-market ingest (fetch → upsert raw_* in one pass, B-D16) — daily 06:00 UTC
+0 6 * * *  uv run python -m backend.ingest.defillama --coins >> data/logs/cron-defillama.log 2>&1 && cd backend/transform && uv run dbt run --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1 && uv run dbt test --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1
 
 # ── Phase 2 (added at P2.4 / P2.9) ───────────────────────────────
 # transfers ingest — daily 04:00 UTC

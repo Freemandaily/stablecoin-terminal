@@ -40,6 +40,7 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 | 2026-11-04 | B-D13 | **D4 (Metabase) superseded** — dashboard = custom UI (prototype) + FastAPI endpoint. Metabase container stopped, compose entry kept for reference | user decision: one UI, not two; views A–C become API endpoints |
 | 2026-11-04 | B-D14 | **P1.8 (Telegram digest) deferred** — revisit with P2.9 alerts as one messaging integration | user decision: not now |
 | 2026-11-04 | B-D15 | **Directory reorganization:** all server code under `backend/` (api, ingest, transform, migrations, jobs, labels, alerts, scheduling), UI at `ui/prototype/`, runtime files at `data/` (landing, logs) | root had ~12 mixed top-level dirs; imports now `backend.ingest.*`; paths updated in config, Makefile, crontab, docs |
+| 2026-11-05 | B-D16 | **No JSON landing zone** — ingest = fetch → parse → upsert `raw_*` in one pass; `data/landing/` removed, loaders no longer read/write files | user decision: save directly to Postgres; avoids ~67 MB/day of redundant full-history snapshots; raw layer = `raw_*` tables (idempotent upserts), dbt rebuilds marts from there |
 | Topic | Status |
 |---|---|
 | AGENTS.md E4 deviation in prototype: hardcoded hexes outside `:root` (`#121619`, `#171C20`, `#000`) — promote to tokens (`--panel-hover`, `--track`, `--tip-bg`) or grant reference-file exception? | awaiting human decision |

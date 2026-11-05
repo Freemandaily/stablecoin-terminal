@@ -6,11 +6,11 @@
                         ┌─────────────────────────────────────────────┐
    SOURCES (free)       │                INGESTION (Python)          │
                         │                                             │
-  stablecoins.llama.fi ─┼─► defillama.py ──► data/landing/defillama/*.json │
-   S1 metadata          │        (daily supply, hourly prices,        │
-   S2 per-coin history  │         cache-if-exists, idempotent)        │
+  stablecoins.llama.fi ─┼─► defillama.py ──► loaders.py ──► Postgres raw_*  │
+   S1 metadata          │        (fetch → parse → upsert in one pass, │
+   S2 per-coin history  │         in memory — B-D16, idempotent)      │
    S4 prices            │                                             │
-                        │        loaders.py ──► Postgres stg_*        │
+                        │                                             │
   BigQuery              │                                             │
    crypto_ethereum      ├─► bigquery_transfers.py ─► stg_transfers    │
    .token_transfers     │     (48h daily incr. + 30d backfill,        │
@@ -56,7 +56,7 @@
 ## Key design rules
 
 1. **Idempotent loads** — every job re-runnable for the same day (upsert/dedupe).
-2. **Landing is immutable** — raw JSON kept per date (gitignored), staging derived from it.
+2. **Raw layer = `raw_*` tables** — upserted directly from source payloads (B-D16: no file landing zone); `stg_*` + marts are dbt-derived and rebuildable any time.
 3. **Cost guard** — BigQuery queries always filter token_address + date;
    dry-run aborts above `BQ_MAX_BYTES_BILLED` (default 50 GB).
 4. **Reconciliation** — chain-derived net issuance must agree with DeFiLlama

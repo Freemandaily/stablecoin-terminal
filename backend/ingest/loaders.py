@@ -1,27 +1,22 @@
-"""Landing → Postgres loaders for Phase 1 (P1.2).
+"""Postgres loaders for Phase 1 (P1.2) — DeFiLlama payloads → raw_* upserts.
 
-Loads whatever today's landing files contain:
+Called by backend.ingest.defillama (fetch → parse → upsert in one pass, B-D16 —
+payloads stay in memory, no landing files):
   S1 assets  → raw_assets + raw_chain_current
   S2 history → raw_supply_daily (chain='ALL' totals + per-chain rows)
+  S3 market  → raw_market_daily (full-market daily totals)
   S4 prices  → raw_price_daily (daily history, date=0 junk row skipped)
 
 All loads are idempotent upserts — re-running never duplicates rows (§3 rule 4).
-
-Run:  uv run python -m backend.ingest.loaders
 """
 
 from __future__ import annotations
 
-import sys
 from datetime import UTC, datetime
 from typing import Any
 
 import psycopg
 
-from .config import LANDING
-from .db import get_conn
-from .defillama import K_ASSETS, K_MARKET, K_PRICES
-from .http import has_landed, load_landing
 from .logging_setup import get_logger
 
 log = get_logger("loaders")
@@ -215,42 +210,3 @@ def load_market(c: psycopg.Connection, rows: list) -> int:
         )
     log.info("raw_market_daily upserted: %d rows", len(out))
     return len(out)
-
-
-# ── CLI: load everything landed today ────────────────────────────────
-
-def main() -> int:
-    if not has_landed(K_ASSETS):
-        log.error("no landing file for %s — run: python -m backend.ingest.defillama", K_ASSETS)
-        return 1
-
-    assets = load_landing(K_ASSETS)
-    gecko_to_id = {
-        a["gecko_id"]: str(a["id"]) for a in assets["peggedAssets"] if a.get("gecko_id")
-    }
-
-    with get_conn() as c:
-        total = 0
-        total += load_assets(c, assets)
-        total += load_chain_current(c, assets)
-
-        if has_landed(K_PRICES):
-            total += load_prices(c, load_landing(K_PRICES), gecko_to_id)
-
-        if has_landed(K_MARKET):
-            total += load_market(c, load_landing(K_MARKET))
-
-        # every landed coin history: landing/defillama/coin_<id>/<today>.json
-        from .http import today as _today
-
-        day = _today()
-        coin_files = sorted((LANDING / "defillama").glob(f"coin_*/{day}.json"))
-        for f in coin_files:
-            coin_id = f.parent.name.removeprefix("coin_")
-            total += load_coin_history(c, coin_id, load_landing(f"defillama/coin_{coin_id}"))
-        log.info("load complete: %d total rows touched", total)
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

@@ -38,12 +38,10 @@ dbt-test: ## run dbt tests
 ingest-check: ## smoke-test data source connectivity
 	uv run python -m backend.ingest.check
 
-ingest-supply: ## DeFiLlama supply ingest: fetch (S1-S4) + load to Postgres
+ingest-supply: ## DeFiLlama ingest (S1-S4 + core coin histories) → raw_* tables
 	uv run python -m backend.ingest.defillama --coins
-	uv run python -m backend.ingest.loaders
-ingest-prices: ## DeFiLlama price snapshot (hourly; cache-aware, reuses today's files)
+ingest-prices: ## DeFiLlama snapshot (S1/S3/S4) → raw_* tables, no coin histories
 	uv run python -m backend.ingest.defillama
-	uv run python -m backend.ingest.loaders
 ingest-transfers: ## BigQuery transfers (daily, P2.4)
 	@echo "TODO P2.4: transfers extractor not built yet" && exit 1
 
