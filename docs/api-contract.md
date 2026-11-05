@@ -45,7 +45,7 @@ Feeds the prototype's Overview / Peg / Flows tabs (exact `data.js` shape).
   "asof": "2026-11-05 10:03 UTC",
   "source": "api: marts.mart_market_overview · public.raw_assets · marts.mart_peg_daily",
   "market": {
-    "total": 294636447220.13,        // total supply USD
+    "total": 294636447220.13,        // market cap USD (full market; = DeFiLlama "Market Cap")
     "d1": -492017998.87, "d7": -5441984744.87, "d30": -12200000000.0,
     "share90": { "USDT": 60.4, "USDC": 24.0 }   // % of full market
   },

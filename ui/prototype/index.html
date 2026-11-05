@@ -211,7 +211,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
   <!-- ══ VIEW: OVERVIEW ══ -->
   <section class="view on" id="v-ov">
     <div class="panel">
-      <div class="phead"><span class="t">Total Circulating Supply</span>
+      <div class="phead"><span class="t">Market Cap</span>
         <span class="chip">365D</span><span class="m">USD-PEGGED · ALL CHAINS · DEFI LLAMA</span></div>
       <div class="chartbox"><div id="supplytip" class="tip"></div><div id="supplychart"></div></div>
     </div>
@@ -222,7 +222,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
       <div class="tscroll wide"><table id="coinstable">
         <thead><tr>
           <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
-          <th data-k="supply">Circulating</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
+          <th data-k="supply">Market cap</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
           <th data-k="d30">30D</th><th data-k="price">Peg&nbsp;$</th><th data-k="dev">Dev&nbsp;bps</th>
           <th data-k="share">Share</th>
         </tr></thead>
@@ -335,7 +335,7 @@ $('#footn').textContent = 'SEED FETCHED '+D.asof;
 /* ── ticker strip ──────────────────────── */
 const pegBad = D.peg.rows.filter(r=>Math.abs(r.dev_bps)>50).length;
 $('#strip').innerHTML = [
-  ['Total supply',  fmtUSD(M.total),  'USDT+USDC+TOP-10 · ALL CHAINS', ''],
+  ['Market cap',  fmtUSD(M.total),  'USDT+USDC+TOP-10 · ALL CHAINS', ''],
   ['24h net iss.',  sgn(M.d1),        'vs yesterday',                  cls(M.d1)],
   ['7d net iss.',   sgn(M.d7),        'contraction'  ,                 cls(M.d7)],
   ['30d net iss.',  sgn(M.d30),       'contraction',                   cls(M.d30)],
