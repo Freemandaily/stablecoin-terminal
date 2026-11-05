@@ -113,7 +113,7 @@ svg{display:block;width:100%}
 table{width:100%;border-collapse:collapse}
 .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tscroll table{min-width:540px}
-.tscroll.wide table{min-width:900px}
+.tscroll.wide table{min-width:840px}
 .tscroll.tall{max-height:min(70vh,640px);overflow-y:auto}
 .tscroll.tall thead th{position:sticky;top:0;z-index:1}
 td.nw{white-space:nowrap}
@@ -214,7 +214,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <thead><tr>
           <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
           <th data-k="supply">Market cap</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
-          <th data-k="d30">30D</th><th data-k="price">Price</th><th data-k="dev">Dev&nbsp;bps</th>
+          <th data-k="d30">30D</th><th data-k="price">Price</th>
           <th data-k="share">Share</th>
         </tr></thead>
         <tbody></tbody>
@@ -401,7 +401,7 @@ $('#strip').innerHTML = [
 
 /* ── coins table (sortable) ────────────── */
 const rows = ALL.map((c,i)=>({rank:i+1, ...c,
-  dev:(c.price-1)*10000, share:c.supply/M.total*100,
+  share:c.supply/M.total*100,
   p1:rel(c.d1,c.supply), p7:rel(c.d7,c.supply), p30:rel(c.d30,c.supply)}));
 let sortK='supply', sortDir=-1;
 function drawTable(){
@@ -418,7 +418,6 @@ function drawTable(){
       <td class="${cls(r.d7)} nw">${sgn(r.d7)}<span class="p2">${pct(r.p7)}</span></td>
       <td class="${cls(r.d30)} nw">${sgn(r.d30)}<span class="p2">${pct(r.p30)}</span></td>
       <td>${r.price? r.price.toFixed(4):'—'}</td>
-      <td class="${Math.abs(r.dev)>50?'down':Math.abs(r.dev)>20?'':''}">${r.price? bps(r.dev):'—'}</td>
       <td><div class="sharebar"><span class="dim">${r.share.toFixed(1)}%</span>
         <span class="tr"><i class="fl ${r.share===maxSh?'hi':''}" style="width:${r.share/maxSh*100}%"></i></span></div></td>
     </tr>`).join('');
