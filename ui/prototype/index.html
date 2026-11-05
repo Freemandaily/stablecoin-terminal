@@ -333,15 +333,16 @@ $('#asof').textContent = 'AS OF '+D.asof.toUpperCase();
 $('#footn').textContent = 'SEED FETCHED '+D.asof;
 
 /* ── ticker strip ──────────────────────── */
-const pegBad = D.peg.rows.filter(r=>Math.abs(r.dev_bps)>50).length;
 $('#strip').innerHTML = [
-  ['Market cap',  '$'+fmtUSD(M.total),  'USDT+USDC+TOP-10 · ALL CHAINS', ''],
-  ['24h net iss.',  sgn(M.d1),        'vs yesterday',                  cls(M.d1)],
-  ['7d net iss.',   sgn(M.d7),        'contraction'  ,                 cls(M.d7)],
-  ['30d net iss.',  sgn(M.d30),       'contraction',                   cls(M.d30)],
+  ['Market cap',  '$'+fmtUSD(M.total),  'FULL MARKET · ALL CHAINS', ''],
+  ...D.coins.slice(0, 4).map((c, i) => [
+    c.sym,                                       // label: USDT, USDC, …
+    (c.supply / M.total * 100).toFixed(1) + '%', // dominance = coin cap / market cap
+    `#${i+1} by cap · $${fmtUSD(c.supply)}`,
+    ''
+  ]),
   ['Top-2 share',   M.share90.USDT+M.share90.USDC+'%',
                     'USDT '+M.share90.USDT+'% · USDC '+M.share90.USDC+'%', ''],
-  ['Peg events',    pegBad+' / 12',   pegBad? 'beyond ±50 bps':'all within ±50 bps', pegBad?'down':'up', true],
 ].map(([l,v,s,c,sample])=>`<div class="cell${sample?'':''}">
     <div class="lbl">${l}</div><div class="v mono ${c}">${v}</div>
     <div class="d dim" style="font-size:10.5px">${s}</div></div>`).join('');
