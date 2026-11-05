@@ -237,7 +237,7 @@ zero dependencies. Fonts: Inter + IBM Plex Mono (system fallbacks).
 
 - Wiring to the backend = replace `window.SF` with
   `fetch('/api/...').then(r => r.json())` — **keep the same JSON shape**
-  (contract: `docs/api-contract.md`, to be created).
+  (contract: `docs/api-contract.md`).
 - **Framework port (React/Svelte) is allowed only when ≥2 of:**
   websocket-driven live views · 5+ routed interactive views · user-editable
   state (alerts, watchlists) · multi-contributor UI work · prototype size

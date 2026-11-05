@@ -427,11 +427,13 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   *Accept:* `SELECT type, COUNT(*) FROM fct_events GROUP BY 1` shows all types;
   no duplicate `(ts, type, tx_hash)`.
 
-- [ ] **P2.8 Metabase views E, F, G**
+- [ ] **P2.8 Views E, F, G (API endpoints + UI tabs, B-D13)**
   E (activity feed table, filterable by type/token/label, tx link out),
   F (mint/burn bars + net issuance compare + mint-to-exchange lag),
   G (top-10 exchange netflow, z-score chart with threshold, CEX balance trend).
-  *Accept:* 3 dashboards render; exports committed to `dashboard/metabase/`.
+  Routes already exist as 501 stubs — contract: `docs/api-contract.md` §5–7.
+  *Accept:* `/api/events`, `/api/flows/*` return live data (501 removed);
+  3 UI tabs render without SAMPLE chips.
 
 - [ ] **P2.9 Alerts (view H)**
   `alerts/dispatcher.py`: poll `fct_events` for undelivered rows since last run

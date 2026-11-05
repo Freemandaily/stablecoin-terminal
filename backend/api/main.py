@@ -182,6 +182,246 @@ def overview() -> JSONResponse:
         )
 
 
+def _peg() -> dict:
+    """View C: deviation board (all live peggedUSD coins) + depeg events + contraction alarms."""
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        latest = cur.execute("select max(date) d from marts.mart_peg_daily").fetchone()["d"]
+
+        board = [
+            {
+                "id": r["asset_id"], "sym": r["symbol"], "name": r["name"],
+                "price": _f(r["price_usd"]), "dev_bps": _f(r["dev_bps"]),
+                "avg30_bps": _f(r["rolling_30d_avg_bps"]),
+                "max30_bps": _f(r["rolling_30d_max_bps"]),
+                "depeg": bool(r["is_depeg_event"]),
+            }
+            for r in cur.execute(
+                """
+                select p.asset_id, a.symbol, a.name, p.price_usd, p.dev_bps,
+                       p.rolling_30d_avg_bps, p.rolling_30d_max_bps, p.is_depeg_event
+                from marts.mart_peg_daily p
+                join staging.stg_assets a on a.id = p.asset_id
+                where p.date = %s and a.peg_type = 'peggedUSD'
+                  and a.circulating_usd > 0
+                order by p.dev_abs_bps desc
+                """,
+                (latest,),
+            ).fetchall()
+        ]
+
+        events = [
+            {"d": r["date"].isoformat(), "sym": r["symbol"],
+             "price": _f(r["price_usd"]), "dev_bps": _f(r["dev_bps"])}
+            for r in cur.execute(
+                """
+                select p.date, a.symbol, p.price_usd, p.dev_bps
+                from marts.mart_peg_daily p
+                join staging.stg_assets a on a.id = p.asset_id
+                where p.is_depeg_event and p.date >= %s
+                  and a.peg_type = 'peggedUSD' and a.circulating_usd > 0
+                order by p.date desc, p.dev_abs_bps desc
+                limit 50
+                """,
+                (latest - timedelta(days=90) if latest else None,),
+            ).fetchall()
+        ]
+
+        alarms = [
+            {"sym": r["symbol"], "pct_7d": _f(r["pct_7d"]),
+             "d7_usd": _f(r["net_issuance_7d"])}
+            for r in cur.execute(
+                """
+                select a.symbol, s.pct_7d, s.net_issuance_7d
+                from marts.mart_supply_daily s
+                join staging.stg_assets a on a.id = s.asset_id
+                where s.date = (select max(date) from marts.mart_supply_daily)
+                  and s.pct_7d <= -5 and a.circulating_usd > 0
+                order by s.pct_7d asc
+                """
+            ).fetchall()
+        ]
+
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: marts.mart_peg_daily · staging.stg_assets",
+        "latest": latest.isoformat() if latest else None,
+        "board": board,
+        "events": events,
+        "alarms": alarms,
+        "max_abs_bps": max((abs(r["dev_bps"]) for r in board), default=0),
+    }
+
+
+def _coin(asset_id: str) -> dict | None:
+    """View B: per-coin detail — supply + issuance, 365d history, peg, chain split."""
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        meta = cur.execute(
+            """
+            select id, name, symbol, price, peg_mechanism, n_chains, circulating_usd
+            from staging.stg_assets where id = %s
+            """,
+            (asset_id,),
+        ).fetchone()
+        if meta is None:
+            return None
+
+        sup = cur.execute(
+            """
+            select total_usd, net_issuance_1d, net_issuance_7d, net_issuance_30d,
+                   pct_7d, pct_30d, share_of_market
+            from marts.mart_supply_daily
+            where asset_id = %s order by date desc limit 1
+            """,
+            (asset_id,),
+        ).fetchone()
+
+        hist = [
+            {"d": r["date"].isoformat(), "v": _f(r["total_usd"])}
+            for r in cur.execute(
+                """
+                select date, total_usd from marts.mart_supply_daily
+                where asset_id = %s order by date desc limit 365
+                """,
+                (asset_id,),
+            ).fetchall()
+        ]
+        hist.reverse()
+
+        peg = cur.execute(
+            """
+            select price_usd, dev_bps, rolling_30d_avg_bps, rolling_30d_max_bps,
+                   is_depeg_event
+            from marts.mart_peg_daily
+            where asset_id = %s order by date desc limit 1
+            """,
+            (asset_id,),
+        ).fetchone()
+
+        chains = [
+            {"chain": r["chain"], "usd": _f(r["amount_usd"]),
+             "share": _f(r["chain_share"]), "d30": _f(r["share_delta_30d"])}
+            for r in cur.execute(
+                """
+                select chain, amount_usd, chain_share, share_delta_30d
+                from marts.mart_supply_chain
+                where asset_id = %s
+                  and date = (select max(date) from marts.mart_supply_chain
+                              where asset_id = %s)
+                order by amount_usd desc
+                """,
+                (asset_id, asset_id),
+            ).fetchall()
+        ]
+
+        # full-market denominator (mart_supply_daily.share_of_market divides by the
+        # 7-coin core set only — View B wants share of the whole stablecoin market)
+        mkt = cur.execute(
+            "select total_supply_usd from marts.mart_market_overview "
+            "order by date desc limit 1"
+        ).fetchone()
+
+    total_market = _f(mkt["total_supply_usd"]) if mkt else 0.0
+    supply = (
+        {
+            "v": _f(sup["total_usd"]), "d1": _f(sup["net_issuance_1d"]),
+            "d7": _f(sup["net_issuance_7d"]), "d30": _f(sup["net_issuance_30d"]),
+            "pct7": _f(sup["pct_7d"]), "pct30": _f(sup["pct_30d"]),
+            "share": _f(sup["total_usd"]) / total_market * 100 if total_market else None,
+        }
+        if sup
+        else {  # coin without S2 history — honest zeros, share unknown
+            "v": _f(meta["circulating_usd"]), "d1": 0.0, "d7": 0.0, "d30": 0.0,
+            "pct7": 0.0, "pct30": 0.0, "share": None,
+        }
+    )
+    peg_out = (
+        {
+            "price": _f(peg["price_usd"]), "dev_bps": _f(peg["dev_bps"]),
+            "avg30_bps": _f(peg["rolling_30d_avg_bps"]),
+            "max30_bps": _f(peg["rolling_30d_max_bps"]),
+            "depeg": bool(peg["is_depeg_event"]),
+        }
+        if peg
+        else {"price": None, "dev_bps": None, "avg30_bps": None,
+              "max30_bps": None, "depeg": False}
+    )
+
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: marts.mart_supply_daily · mart_peg_daily · mart_supply_chain",
+        "meta": {
+            "id": meta["id"], "name": meta["name"], "symbol": meta["symbol"],
+            "price": _f(meta["price"]) if meta["price"] is not None else None,
+            "peg": meta["peg_mechanism"] or "", "n_chains": meta["n_chains"],
+            "circulating_usd": _f(meta["circulating_usd"]),
+        },
+        "supply": supply,
+        "hist": hist,
+        "peg": peg_out,
+        "chains": chains,
+    }
+
+
+# ── Phase 2 routes: designed in docs/api-contract.md, 501 until built ──
+_PHASE2_BLOCKED = {
+    "/api/events": "P2.7 (fct_events)",
+    "/api/flows/mintburn": "P2.7/P2.8 (fct_daily_flows)",
+    "/api/flows/exchanges": "P2.8 (fct_daily_flows)",
+    "/api/alerts": "P2.9 (alerts dispatcher)",
+}
+
+
+def _phase2(path: str) -> JSONResponse:
+    return JSONResponse(
+        {"error": "not implemented yet", "blocked_by": _PHASE2_BLOCKED[path],
+         "spec": "docs/api-contract.md"},
+        status_code=501,
+    )
+
+
+@app.get("/api/peg")
+def peg() -> JSONResponse:
+    """View C payload — deviation board, depeg events (90d), contraction alarms."""
+    try:
+        return JSONResponse(_peg())
+    except psycopg.OperationalError as e:
+        return JSONResponse({"error": "database unreachable", "detail": str(e)},
+                            status_code=503)
+
+
+@app.get("/api/coin/{asset_id}")
+def coin(asset_id: str) -> JSONResponse:
+    """View B payload — per-coin supply, history, peg stats, chain breakdown."""
+    try:
+        payload = _coin(asset_id)
+    except psycopg.OperationalError as e:
+        return JSONResponse({"error": "database unreachable", "detail": str(e)},
+                            status_code=503)
+    if payload is None:
+        return JSONResponse({"error": "unknown asset", "id": asset_id}, status_code=404)
+    return JSONResponse(payload)
+
+
+@app.get("/api/events")
+def events() -> JSONResponse:
+    return _phase2("/api/events")
+
+
+@app.get("/api/flows/mintburn")
+def flows_mintburn() -> JSONResponse:
+    return _phase2("/api/flows/mintburn")
+
+
+@app.get("/api/flows/exchanges")
+def flows_exchanges() -> JSONResponse:
+    return _phase2("/api/flows/exchanges")
+
+
+@app.get("/api/alerts")
+def alerts() -> JSONResponse:
+    return _phase2("/api/alerts")
+
+
 @app.get("/api/health")
 def health() -> dict:
     try:
