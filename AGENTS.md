@@ -223,7 +223,9 @@ Centralize in helpers (prototype: `fmtUSD`, `sgn`, `bps`, `cls`, `fmt`):
 2. **Live vs sample is always visible**: `SAMPLE` chip (amber) on any panel
    not yet fed by real pipeline data. Remove the chip only when the backing
    model ships (P2.x) — that removal *is* the acceptance criterion.
-3. **As-of timestamp** in header (UTC) + seed/fetch note in footer.
+3. **As-of timestamp** visible in UTC on every view + seed/fetch note
+   (footer carries both — the header status strip was removed per B-D23;
+   freshness must never disappear entirely from a view).
 4. **No fabricated precision** — if data is 6h stale, show the age.
 5. Status language: `STREAM OK` / `SYNCING` / `DEGRADED` / `OFFLINE`
    (green / amber / amber / red dot) — never a cheerful "All good! 😊".
@@ -288,4 +290,4 @@ it is a downgrade and must be rejected — regardless of code quality.
 | `backend/api/main.py` | FastAPI endpoint serving `/api/overview` (JSON = `data.js` shape) |
 
 *Amendments to this spec require: a `docs/decisions.md` entry + human approval.
-Last updated: 2026-11-05 (B-D20: mobile breakpoints added to §11).
+Last updated: 2026-11-05 (B-D20 mobile breakpoints §11; B-D23 header status strip removed from §9).

@@ -33,10 +33,6 @@ nav button{height:100%;padding:0 16px;background:none;border:none;border-bottom:
   color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer}
 nav button:hover{color:var(--txt)}
 nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
-.hright{margin-left:auto;display:flex;gap:18px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--dim)}
-.hright .live{display:flex;align-items:center;gap:6px;color:var(--up)}
-.hright .live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--up);animation:pulse 2s infinite}
-@keyframes pulse{50%{opacity:.35}}
 
 /* ── ticker strip ───────────────────────── */
 .strip{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--line2);background:var(--panel2)}
@@ -74,13 +70,10 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   .cell:nth-last-child(-n+3){border-bottom:none}
 }
 @media(max-width:768px){
-  /* header → 2 rows: [logo | asof] then a full-width tab bar */
+  /* header → 2 rows: [logo] then a full-width tab bar */
   header{flex-wrap:wrap;height:auto;padding:0 10px}
   .logo{order:1;height:44px;font-size:13px}
   .logo .sub{display:none}
-  .hright{order:2;height:44px;gap:12px;font-size:10px}
-  .hright .live{display:none}
-  .hright span:last-child{display:none}
   nav{order:3;flex-basis:100%;height:40px;margin-left:0;border-top:1px solid var(--line)}
   nav button{flex:1;padding:0 8px;font-size:10px;letter-spacing:.06em}
   .railhead{top:84px}
@@ -102,7 +95,6 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 }
 @media(max-width:480px){
   .logo{font-size:12px}
-  .hright{font-size:9px;gap:8px}
   nav button{font-size:9px;letter-spacing:.04em;padding:0 4px}
   .cell{padding:8px}
   td{font-size:11.5px}
@@ -196,11 +188,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
     <button data-v="peg">PEG&nbsp;HEALTH</button>
     <button data-v="fl">FLOWS</button>
   </nav>
-  <div class="hright">
-    <span id="asof">—</span>
-    <span class="live">STREAM OK</span>
-    <span style="color:var(--dim2)">V0.1-PROTOTYPE</span>
-  </div>
 </header>
 
 <div class="strip" id="strip"></div>
@@ -329,7 +316,6 @@ const bps = v => (v>0?'+':'')+v.toFixed(1);
 const cls = v => v>0?'up':v<0?'down':'dim';
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const NOW = new Date(D.asof.replace(' UTC','')+'Z');
-$('#asof').textContent = 'AS OF '+D.asof.toUpperCase();
 $('#footn').textContent = 'SEED FETCHED '+D.asof;
 
 /* ── ticker strip ──────────────────────── */
