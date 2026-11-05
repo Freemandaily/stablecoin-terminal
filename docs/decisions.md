@@ -41,6 +41,8 @@ The only place exceptions to `implementation.md` / `AGENTS.md` are recorded.
 | 2026-11-04 | B-D14 | **P1.8 (Telegram digest) deferred** — revisit with P2.9 alerts as one messaging integration | user decision: not now |
 | 2026-11-04 | B-D15 | **Directory reorganization:** all server code under `backend/` (api, ingest, transform, migrations, jobs, labels, alerts, scheduling), UI at `ui/prototype/`, runtime files at `data/` (landing, logs) | root had ~12 mixed top-level dirs; imports now `backend.ingest.*`; paths updated in config, Makefile, crontab, docs |
 | 2026-11-05 | B-D16 | **No JSON landing zone** — ingest = fetch → parse → upsert `raw_*` in one pass; `data/landing/` removed, loaders no longer read/write files | user decision: save directly to Postgres; avoids ~67 MB/day of redundant full-history snapshots; raw layer = `raw_*` tables (idempotent upserts), dbt rebuilds marts from there |
+| 2026-11-05 | B-D17 | **Reverses B-D10:** dbt models grouped into their own schemas — `staging` (6 views) + `marts` (4 views); `raw_*` tables stay in `public` | user decision: stg and marts each grouped in one schema in the DB; `generate_schema_name` macro keeps names unprefixed; API SQL now schema-qualified |
+| 2026-11-05 | B-D18 | **Backend runs in Docker** (`sf-backend` container: API + UI, one process); **host port 8081** (B-D2 amended — 8080 held by user's static `http.server`) | user decision: containerized backend; `make up` = postgres + backend; PGHOST=postgres via compose |
 | Topic | Status |
 |---|---|
 | AGENTS.md E4 deviation in prototype: hardcoded hexes outside `:root` (`#121619`, `#171C20`, `#000`) — promote to tokens (`--panel-hover`, `--track`, `--tip-bg`) or grant reference-file exception? | awaiting human decision |

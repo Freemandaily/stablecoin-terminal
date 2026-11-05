@@ -16,8 +16,12 @@ clean-targets: ["target", "dbt_packages"]
 models:
   stableflow:
     +materialized: view
-    # No custom schemas (decisions B-D10): everything in `public` keeps psql,
-    # Metabase and ad-hoc SQL simple for a single-user project.
+    # Schemas: staging + marts live in their own physical schemas (B-D17, reverses
+    # B-D10) — the generate_schema_name macro keeps names exact (no public_ prefix).
+    staging:
+      +schema: staging
+    marts:
+      +schema: marts
     intermediate:
       +materialized: ephemeral
 

@@ -37,8 +37,8 @@
               ┌────────────────────────────────┼───────────────────────┐
               ▼                                ▼                       ▼
       FastAPI /api/overview           alerts/dispatcher        ui/prototype
-      (views A–C JSON contract,        Telegram: large mint,     terminal UI at :8080,
-       serves UI at :8080 — B-D13)     z>2, peg break,           AGENTS.md spec — B-D13)
+      (views A–C JSON contract,        Telegram: large mint,     terminal UI at :8081,
+       serves UI at :8081 (Docker, B-D18))     z>2, peg break,           AGENTS.md spec — B-D13)
                                       contraction
 ```
 

@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup lint test up down migrate dbt-run dbt-test \
+.PHONY: help setup lint test up down backend-logs migrate dbt-run dbt-test \
         ingest-supply ingest-prices ingest-transfers ingest-check \
         labels-check bq-dryrun serve digest verify
 
@@ -21,10 +21,12 @@ test: ## pytest
 	uv run pytest
 
 # ── infra (P0.2) ──────────────────────────────
-up: ## start postgres (docker compose)
-	docker compose up -d postgres
+up: ## start postgres + backend API/UI (docker compose, http://localhost:8081)
+	docker compose up -d --build postgres backend
 down: ## stop containers
 	docker compose down
+backend-logs: ## follow backend container logs
+	docker compose logs -f backend
 migrate: ## apply SQL migrations in order
 	uv run python backend/jobs/migrate.py
 

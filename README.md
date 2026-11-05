@@ -38,8 +38,9 @@ make test        # pytest
 make lint        # ruff
 make dbt-run && make dbt-test
 
-# 4. API + UI together (live data from Postgres)
-make serve       # http://localhost:8080  → UI at /, API at /api/overview
+# 4. API + UI together in Docker (live data from Postgres)
+make up          # http://localhost:8081  → UI at /, API at /api/overview
+make backend-logs  # follow the backend container
 ```
 
 Postgres: `localhost:5432` (user/pass/db = `stableflow`)
@@ -48,7 +49,7 @@ Postgres: `localhost:5432` (user/pass/db = `stableflow`)
 
 ```
 backend/        all server-side code
-  api/          FastAPI: /api/overview + serves the UI
+  api/          FastAPI: /api/overview + serves the UI (Docker: sf-backend, :8081)
   ingest/       data source clients + loaders (Python)
   transform/    dbt project: stg_ → int_ → fct_/mart_
   migrations/   SQL migrations (tracked in schema_migrations)

@@ -18369,3 +18369,2183 @@ parsing.
 [0m17:01:31.896597 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e4b59796af0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e4b59685590>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e4b59685090>]}
 [0m17:01:31.898734 [debug] [MainThread]: Flushing usage events
 [0m17:01:33.251143 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m10:43:56.299892 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacd0aede80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf383ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf383b10>]}
+
+
+============================== 10:43:56.472876 | 7299a26c-b371-44a1-8d2a-6e471bd448e6 ==============================
+[0m10:43:56.472876 [info ] [MainThread]: Running with dbt=1.12.6
+[0m10:43:56.475047 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'introspect': 'True', 'invocation_command': 'dbt run --profiles-dir .', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'version_check': 'True', 'no_print': 'None', 'empty': 'False', 'profiles_dir': '.', 'maximum_seed_size_mib': '1', 'log_cache_events': 'False', 'cache_selected_only': 'False', 'send_anonymous_usage_stats': 'True', 'indirect_selection': 'eager', 'warn_error': 'None', 'target_path': 'None', 'debug': 'False', 'use_colors': 'True', 'partial_parse': 'True', 'static_parser': 'True', 'log_format': 'default', 'quiet': 'False', 'write_json': 'True', 'use_experimental_parser': 'False', 'log_path': '/home/freeman/stablecoin-flow/backend/transform/logs', 'fail_fast': 'False', 'hints_enabled': 'True'}
+[0m10:43:58.443521 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacd06383e0>]}
+[0m10:44:00.625036 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf7a3ce0>]}
+[0m10:44:00.676221 [info ] [MainThread]: Registered adapter: postgres=1.11.0
+[0m10:44:01.586302 [debug] [MainThread]: checksum: 00e49e0611acbd563071cffb2f83560f7f7ab4e970b1d33c6837ccedbb3d8cb7, vars: {}, profile: stableflow, target: dev, version: 1.12.6
+[0m10:44:03.633400 [info ] [MainThread]: Unable to do partial parsing because a project config has changed
+[0m10:44:03.636739 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacce328850>]}
+[0m10:44:10.989481 [warn ] [MainThread]: [[33mWARNING[0m][MissingArgumentsPropertyInGenericTestDeprecation]: Deprecated
+functionality
+Found top-level arguments to test `dbt_utils.expression_is_true` defined on
+'mart_supply_daily' in package 'stableflow' (models/marts/schema.yml). Arguments
+to generic tests should be nested under the `arguments` property.
+[0m10:44:10.991040 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'deprecation', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'property_': 'warn', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf0408c0>]}
+[0m10:44:12.009114 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.stableflow.intermediate
+[0m10:44:12.017867 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf0952b0>]}
+[0m10:44:12.440758 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/backend/transform/target/manifest.json
+[0m10:44:12.448291 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/backend/transform/target/semantic_manifest.json
+[0m10:44:12.578073 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/backend/transform/target/osi_document.json
+[0m10:44:12.676259 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacccf87ee0>]}
+[0m10:44:12.677442 [info ] [MainThread]: Found 10 models, 27 data tests, 6 sources, 594 macros
+[0m10:44:12.678607 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccd39d250>]}
+[0m10:44:12.692316 [info ] [MainThread]: 
+[0m10:44:12.693274 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m10:44:12.694006 [info ] [MainThread]: 
+[0m10:44:12.695348 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m10:44:12.715317 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow'
+[0m10:44:12.717330 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow'
+[0m10:44:13.051423 [debug] [ThreadPool]: Using postgres connection "list_stableflow"
+[0m10:44:13.055346 [debug] [ThreadPool]: On list_stableflow: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m10:44:13.060208 [debug] [ThreadPool]: Using postgres connection "list_stableflow"
+[0m10:44:13.062825 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m10:44:13.066634 [debug] [ThreadPool]: On list_stableflow: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m10:44:13.072079 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m10:44:13.204686 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.133 seconds
+[0m10:44:13.223040 [debug] [ThreadPool]: On list_stableflow: Close
+[0m10:44:13.267387 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.205 seconds
+[0m10:44:13.271574 [debug] [ThreadPool]: On list_stableflow: Close
+[0m10:44:13.278229 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_stableflow, now create_stableflow_marts)
+[0m10:44:13.286810 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_stableflow, now create_stableflow_staging)
+[0m10:44:13.288351 [debug] [ThreadPool]: Creating schema "database: "stableflow"
+schema: "marts"
+"
+[0m10:44:13.290332 [debug] [ThreadPool]: Creating schema "database: "stableflow"
+schema: "staging"
+"
+[0m10:44:13.310344 [debug] [ThreadPool]: Using postgres connection "create_stableflow_staging"
+[0m10:44:13.318598 [debug] [ThreadPool]: Using postgres connection "create_stableflow_marts"
+[0m10:44:13.325509 [debug] [ThreadPool]: On create_stableflow_marts: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "create_stableflow_marts"} */
+create schema if not exists "marts"
+[0m10:44:13.321954 [debug] [ThreadPool]: On create_stableflow_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "create_stableflow_staging"} */
+create schema if not exists "staging"
+[0m10:44:13.328089 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m10:44:13.326609 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m10:44:13.423953 [debug] [ThreadPool]: SQL status: CREATE SCHEMA in 0.096 seconds
+[0m10:44:13.427625 [debug] [ThreadPool]: On create_stableflow_staging: COMMIT
+[0m10:44:13.433425 [debug] [ThreadPool]: Using postgres connection "create_stableflow_staging"
+[0m10:44:13.442498 [debug] [ThreadPool]: On create_stableflow_staging: COMMIT
+[0m10:44:13.460008 [debug] [ThreadPool]: SQL status: CREATE SCHEMA in 0.133 seconds
+[0m10:44:13.463726 [debug] [ThreadPool]: On create_stableflow_marts: COMMIT
+[0m10:44:13.469658 [debug] [ThreadPool]: SQL status: COMMIT in 0.019 seconds
+[0m10:44:13.488870 [debug] [ThreadPool]: On create_stableflow_staging: Close
+[0m10:44:13.475891 [debug] [ThreadPool]: Using postgres connection "create_stableflow_marts"
+[0m10:44:13.496153 [debug] [ThreadPool]: On create_stableflow_marts: COMMIT
+[0m10:44:13.515429 [debug] [ThreadPool]: SQL status: COMMIT in 0.018 seconds
+[0m10:44:13.516245 [debug] [ThreadPool]: On create_stableflow_marts: Close
+[0m10:44:13.532477 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly create_stableflow_marts, now list_stableflow_staging)
+[0m10:44:13.539889 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly create_stableflow_staging, now list_stableflow_marts)
+[0m10:44:13.596545 [debug] [ThreadPool]: Using postgres connection "list_stableflow_marts"
+[0m10:44:13.599010 [debug] [ThreadPool]: Using postgres connection "list_stableflow_staging"
+[0m10:44:13.609027 [debug] [ThreadPool]: On list_stableflow_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_staging"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'staging'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'staging'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'staging'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'staging'
+  
+[0m10:44:13.604183 [debug] [ThreadPool]: On list_stableflow_marts: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_marts"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'marts'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'marts'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'marts'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'marts'
+  
+[0m10:44:13.613174 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m10:44:13.615326 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m10:44:13.792058 [debug] [ThreadPool]: SQL status: SELECT 0 in 0.179 seconds
+[0m10:44:13.803358 [debug] [ThreadPool]: On list_stableflow_staging: ROLLBACK
+[0m10:44:13.813649 [debug] [ThreadPool]: SQL status: SELECT 0 in 0.198 seconds
+[0m10:44:13.822205 [debug] [ThreadPool]: On list_stableflow_staging: Close
+[0m10:44:13.821089 [debug] [ThreadPool]: On list_stableflow_marts: ROLLBACK
+[0m10:44:13.831750 [debug] [ThreadPool]: On list_stableflow_marts: Close
+[0m10:44:13.847803 [debug] [MainThread]: Using postgres connection "master"
+[0m10:44:13.855271 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "master"} */
+select distinct
+        dependent_namespace.nspname as dependent_schema,
+        dependent_class.relname as dependent_name,
+        referenced_namespace.nspname as referenced_schema,
+        referenced_class.relname as referenced_name
+
+    -- Query for views: views are entries in pg_class with an entry in pg_rewrite, but we avoid
+    -- a seq scan on pg_rewrite by leveraging the fact there is an "internal" row in pg_depend for
+    -- the view...
+    from pg_class as dependent_class
+    join pg_namespace as dependent_namespace on dependent_namespace.oid = dependent_class.relnamespace
+    join pg_depend as dependent_depend on dependent_depend.refobjid = dependent_class.oid
+        and dependent_depend.classid = 'pg_rewrite'::regclass
+        and dependent_depend.refclassid = 'pg_class'::regclass
+        and dependent_depend.deptype = 'i'
+
+    -- ... and via pg_depend (that has a row per column, hence the need for "distinct" above, and
+    -- making sure to exclude the internal row to avoid a view appearing to depend on itself)...
+    join pg_depend as joining_depend on joining_depend.objid = dependent_depend.objid
+        and joining_depend.classid = 'pg_rewrite'::regclass
+        and joining_depend.refclassid = 'pg_class'::regclass
+        and joining_depend.refobjid != dependent_depend.refobjid
+
+    -- ... we can find the tables they query from in pg_class, but excluding system tables. Note we
+    -- don't need need to exclude _dependent_ system tables, because they only query from other
+    -- system tables, and so are automatically excluded by excluding _referenced_ system tables
+    join pg_class as referenced_class on referenced_class.oid = joining_depend.refobjid
+    join pg_namespace as referenced_namespace on referenced_namespace.oid = referenced_class.relnamespace
+        and referenced_namespace.nspname != 'information_schema'
+        and referenced_namespace.nspname not like 'pg\_%'
+
+    order by
+        dependent_schema, dependent_name, referenced_schema, referenced_name;
+[0m10:44:13.863529 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m10:44:13.987430 [debug] [MainThread]: SQL status: SELECT 13 in 0.124 seconds
+[0m10:44:13.991459 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccd387b70>]}
+[0m10:44:13.997118 [debug] [MainThread]: On master: ROLLBACK
+[0m10:44:14.000102 [debug] [MainThread]: On master: COMMIT
+[0m10:44:14.000725 [debug] [MainThread]: Using postgres connection "master"
+[0m10:44:14.003009 [debug] [MainThread]: On master: COMMIT
+[0m10:44:14.006463 [debug] [MainThread]: SQL status: COMMIT in 0.003 seconds
+[0m10:44:14.007208 [debug] [MainThread]: On master: Close
+[0m10:44:14.047637 [debug] [Thread-3 (]: Began running node model.stableflow.stg_load_log
+[0m10:44:14.048487 [info ] [Thread-3 (]: 3 of 10 START sql view model staging.stg_load_log .............................. [RUN]
+[0m10:44:14.049492 [debug] [Thread-3 (]: Acquiring new postgres connection 'model.stableflow.stg_load_log'
+[0m10:44:14.050071 [debug] [Thread-3 (]: Began compiling node model.stableflow.stg_load_log
+[0m10:44:14.055648 [debug] [Thread-2 (]: Began running node model.stableflow.stg_chain_current
+[0m10:44:14.057186 [debug] [Thread-1 (]: Began running node model.stableflow.stg_assets
+[0m10:44:14.063151 [debug] [Thread-4 (]: Began running node model.stableflow.stg_market_daily
+[0m10:44:14.071212 [info ] [Thread-2 (]: 2 of 10 START sql view model staging.stg_chain_current ......................... [RUN]
+[0m10:44:14.091069 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly list_stableflow_staging, now model.stableflow.stg_chain_current)
+[0m10:44:14.081141 [info ] [Thread-1 (]: 1 of 10 START sql view model staging.stg_assets ................................ [RUN]
+[0m10:44:14.097720 [debug] [Thread-3 (]: Writing injected SQL for node "model.stableflow.stg_load_log"
+[0m10:44:14.089414 [info ] [Thread-4 (]: 4 of 10 START sql view model staging.stg_market_daily .......................... [RUN]
+[0m10:44:14.092200 [debug] [Thread-2 (]: Began compiling node model.stableflow.stg_chain_current
+[0m10:44:14.102434 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_stableflow_marts, now model.stableflow.stg_assets)
+[0m10:44:14.106346 [debug] [Thread-4 (]: Acquiring new postgres connection 'model.stableflow.stg_market_daily'
+[0m10:44:14.115316 [debug] [Thread-4 (]: Began compiling node model.stableflow.stg_market_daily
+[0m10:44:14.114092 [debug] [Thread-1 (]: Began compiling node model.stableflow.stg_assets
+[0m10:44:14.112863 [debug] [Thread-2 (]: Writing injected SQL for node "model.stableflow.stg_chain_current"
+[0m10:44:14.129013 [debug] [Thread-3 (]: Began executing node model.stableflow.stg_load_log
+[0m10:44:14.127661 [debug] [Thread-4 (]: Writing injected SQL for node "model.stableflow.stg_market_daily"
+[0m10:44:14.169487 [debug] [Thread-4 (]: Began executing node model.stableflow.stg_market_daily
+[0m10:44:14.132998 [debug] [Thread-1 (]: Writing injected SQL for node "model.stableflow.stg_assets"
+[0m10:44:14.144468 [debug] [Thread-2 (]: Began executing node model.stableflow.stg_chain_current
+[0m10:44:14.178137 [debug] [Thread-1 (]: Began executing node model.stableflow.stg_assets
+[0m10:44:14.559550 [debug] [Thread-4 (]: Writing runtime sql for node "model.stableflow.stg_market_daily"
+[0m10:44:14.577042 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.stg_market_daily"
+[0m10:44:14.562732 [debug] [Thread-1 (]: Writing runtime sql for node "model.stableflow.stg_assets"
+[0m10:44:14.579616 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_market_daily"} */
+
+  create view "stableflow"."staging"."stg_market_daily__dbt_tmp"
+    
+    
+  as (
+    -- P1.4: staging view over raw_market_daily (S3 full-market totals, all coins).
+select
+    date,
+    total_usd,
+    minted_usd,
+    bridged_usd
+from "stableflow"."public"."raw_market_daily"
+  );
+[0m10:44:14.583824 [debug] [Thread-3 (]: Writing runtime sql for node "model.stableflow.stg_load_log"
+[0m10:44:14.575239 [debug] [Thread-2 (]: Writing runtime sql for node "model.stableflow.stg_chain_current"
+[0m10:44:14.584643 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m10:44:14.598127 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_assets"
+[0m10:44:14.604637 [debug] [Thread-1 (]: On model.stableflow.stg_assets: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_assets"} */
+
+  create view "stableflow"."staging"."stg_assets__dbt_tmp"
+    
+    
+  as (
+    -- P1.3: staging view over raw_assets (S1 metadata + current supply).
+-- Cleaning: null-guard money columns, normalize blank mechanism to 'unknown'.
+select
+    id,
+    name,
+    symbol,
+    peg_type,
+    coalesce(nullif(peg_mechanism, ''), 'unknown') as peg_mechanism,
+    price,
+    gecko_id,
+    coalesce(circulating_usd, 0)                    as circulating_usd,
+    coalesce(prev_day_usd, 0)                       as prev_day_usd,
+    coalesce(prev_week_usd, 0)                      as prev_week_usd,
+    coalesce(prev_month_usd, 0)                     as prev_month_usd,
+    n_chains,
+    ingested_at
+from "stableflow"."public"."raw_assets"
+  );
+[0m10:44:14.601801 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m10:44:14.592379 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_chain_current"
+[0m10:44:14.617191 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_chain_current"} */
+
+  create view "stableflow"."staging"."stg_chain_current__dbt_tmp"
+    
+    
+  as (
+    -- P1.3: staging view over raw_chain_current (S1 per-chain split + prev deltas).
+select
+    asset_id,
+    chain,
+    coalesce(amount_usd, 0)     as amount_usd,
+    coalesce(prev_day_usd, 0)   as prev_day_usd,
+    coalesce(prev_week_usd, 0)  as prev_week_usd,
+    coalesce(prev_month_usd, 0) as prev_month_usd
+from "stableflow"."public"."raw_chain_current"
+  );
+[0m10:44:14.617756 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m10:44:14.606483 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:14.612169 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+
+  create view "stableflow"."staging"."stg_load_log__dbt_tmp"
+    
+    
+  as (
+    -- P0.3 stub model: operational heartbeat.
+-- Real staging models arrive in P1.3; this proves the dbt → postgres path
+-- and gives dbt-test something meaningful to check on day one.
+select
+    job,
+    status,
+    started_at,
+    finished_at,
+    rows_loaded
+from "stableflow"."public"."load_log"
+  );
+[0m10:44:14.623693 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m10:44:14.824974 [debug] [Thread-1 (]: SQL status: CREATE VIEW in 0.219 seconds
+[0m10:44:14.840473 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_assets"
+[0m10:44:14.843065 [debug] [Thread-1 (]: On model.stableflow.stg_assets: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_assets"} */
+alter table "stableflow"."staging"."stg_assets__dbt_tmp" rename to "stg_assets"
+[0m10:44:14.849875 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.002 seconds
+[0m10:44:14.871851 [debug] [Thread-4 (]: SQL status: CREATE VIEW in 0.287 seconds
+[0m10:44:14.907454 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.stg_market_daily"
+[0m10:44:14.945365 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_market_daily"} */
+alter table "stableflow"."staging"."stg_market_daily__dbt_tmp" rename to "stg_market_daily"
+[0m10:44:14.923269 [debug] [Thread-3 (]: SQL status: CREATE VIEW in 0.293 seconds
+[0m10:44:14.940524 [debug] [Thread-2 (]: SQL status: CREATE VIEW in 0.322 seconds
+[0m10:44:14.938444 [debug] [Thread-1 (]: On model.stableflow.stg_assets: COMMIT
+[0m10:44:14.975418 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.029 seconds
+[0m10:44:14.954207 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m10:44:14.982121 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_chain_current"
+[0m10:44:14.986438 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_assets"
+[0m10:44:14.996660 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+alter table "stableflow"."staging"."stg_load_log__dbt_tmp" rename to "stg_load_log"
+[0m10:44:15.001810 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: COMMIT
+[0m10:44:15.026132 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.stg_market_daily"
+[0m10:44:15.022006 [debug] [Thread-1 (]: On model.stableflow.stg_assets: COMMIT
+[0m10:44:15.027216 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: COMMIT
+[0m10:44:15.014051 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_chain_current"} */
+alter table "stableflow"."staging"."stg_chain_current__dbt_tmp" rename to "stg_chain_current"
+[0m10:44:15.042957 [debug] [Thread-1 (]: SQL status: COMMIT in 0.014 seconds
+[0m10:44:15.071155 [debug] [Thread-2 (]: SQL status: ALTER TABLE in 0.036 seconds
+[0m10:44:15.074829 [debug] [Thread-3 (]: SQL status: ALTER TABLE in 0.049 seconds
+[0m10:44:15.075821 [debug] [Thread-4 (]: SQL status: COMMIT in 0.041 seconds
+[0m10:44:15.119775 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: COMMIT
+[0m10:44:15.153599 [debug] [Thread-4 (]: Applying DROP to: "stableflow"."staging"."stg_market_daily__dbt_backup"
+[0m10:44:15.155828 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: COMMIT
+[0m10:44:15.150365 [debug] [Thread-1 (]: Applying DROP to: "stableflow"."staging"."stg_assets__dbt_backup"
+[0m10:44:15.157173 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_chain_current"
+[0m10:44:15.168162 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m10:44:15.191228 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: COMMIT
+[0m10:44:15.187540 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_assets"
+[0m10:44:15.190483 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.stg_market_daily"
+[0m10:44:15.195795 [debug] [Thread-1 (]: On model.stableflow.stg_assets: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_assets"} */
+drop view if exists "stableflow"."staging"."stg_assets__dbt_backup" cascade
+[0m10:44:15.194290 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: COMMIT
+[0m10:44:15.197389 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_market_daily"} */
+drop view if exists "stableflow"."staging"."stg_market_daily__dbt_backup" cascade
+[0m10:44:15.203550 [debug] [Thread-2 (]: SQL status: COMMIT in 0.008 seconds
+[0m10:44:15.205595 [debug] [Thread-1 (]: SQL status: DROP VIEW in 0.007 seconds
+[0m10:44:15.206683 [debug] [Thread-3 (]: SQL status: COMMIT in 0.004 seconds
+[0m10:44:15.219520 [debug] [Thread-2 (]: Applying DROP to: "stableflow"."staging"."stg_chain_current__dbt_backup"
+[0m10:44:15.226078 [debug] [Thread-4 (]: SQL status: DROP VIEW in 0.020 seconds
+[0m10:44:15.230210 [debug] [Thread-1 (]: On model.stableflow.stg_assets: Close
+[0m10:44:15.236010 [debug] [Thread-3 (]: Applying DROP to: "stableflow"."staging"."stg_load_log__dbt_backup"
+[0m10:44:15.245516 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_chain_current"
+[0m10:44:15.251306 [debug] [Thread-4 (]: On model.stableflow.stg_market_daily: Close
+[0m10:44:15.266297 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_chain_current"} */
+drop view if exists "stableflow"."staging"."stg_chain_current__dbt_backup" cascade
+[0m10:44:15.257184 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.stg_load_log"
+[0m10:44:15.272629 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_load_log"} */
+drop view if exists "stableflow"."staging"."stg_load_log__dbt_backup" cascade
+[0m10:44:15.273680 [debug] [Thread-2 (]: SQL status: DROP VIEW in 0.001 seconds
+[0m10:44:15.276892 [debug] [Thread-3 (]: SQL status: DROP VIEW in 0.003 seconds
+[0m10:44:15.281423 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc3f7890>]}
+[0m10:44:15.287634 [debug] [Thread-2 (]: On model.stableflow.stg_chain_current: Close
+[0m10:44:15.288061 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacccbf9a30>]}
+[0m10:44:15.293099 [debug] [Thread-3 (]: On model.stableflow.stg_load_log: Close
+[0m10:44:15.296999 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc777450>]}
+[0m10:44:15.294892 [info ] [Thread-1 (]: 1 of 10 OK created sql view model staging.stg_assets ........................... [[32mCREATE VIEW[0m in 1.16s]
+[0m10:44:15.299915 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccd3dde80>]}
+[0m10:44:15.301509 [debug] [Thread-1 (]: Finished running node model.stableflow.stg_assets
+[0m10:44:15.298769 [info ] [Thread-4 (]: 4 of 10 OK created sql view model staging.stg_market_daily ..................... [[32mCREATE VIEW[0m in 1.17s]
+[0m10:44:15.300760 [info ] [Thread-2 (]: 2 of 10 OK created sql view model staging.stg_chain_current .................... [[32mCREATE VIEW[0m in 1.21s]
+[0m10:44:15.313699 [debug] [Thread-2 (]: Finished running node model.stableflow.stg_chain_current
+[0m10:44:15.307701 [info ] [Thread-3 (]: 3 of 10 OK created sql view model staging.stg_load_log ......................... [[32mCREATE VIEW[0m in 1.25s]
+[0m10:44:15.310929 [debug] [Thread-1 (]: Began running node model.stableflow.stg_price_daily
+[0m10:44:15.312528 [debug] [Thread-4 (]: Finished running node model.stableflow.stg_market_daily
+[0m10:44:15.314284 [debug] [Thread-2 (]: Began running node model.stableflow.stg_supply_daily
+[0m10:44:15.315409 [debug] [Thread-3 (]: Finished running node model.stableflow.stg_load_log
+[0m10:44:15.316737 [info ] [Thread-1 (]: 5 of 10 START sql view model staging.stg_price_daily ........................... [RUN]
+[0m10:44:15.323235 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_assets, now model.stableflow.stg_price_daily)
+[0m10:44:15.318358 [info ] [Thread-2 (]: 6 of 10 START sql view model staging.stg_supply_daily .......................... [RUN]
+[0m10:44:15.324404 [debug] [Thread-1 (]: Began compiling node model.stableflow.stg_price_daily
+[0m10:44:15.325599 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_chain_current, now model.stableflow.stg_supply_daily)
+[0m10:44:15.330939 [debug] [Thread-2 (]: Began compiling node model.stableflow.stg_supply_daily
+[0m10:44:15.330267 [debug] [Thread-1 (]: Writing injected SQL for node "model.stableflow.stg_price_daily"
+[0m10:44:15.335992 [debug] [Thread-1 (]: Began executing node model.stableflow.stg_price_daily
+[0m10:44:15.333838 [debug] [Thread-2 (]: Writing injected SQL for node "model.stableflow.stg_supply_daily"
+[0m10:44:15.343294 [debug] [Thread-1 (]: Writing runtime sql for node "model.stableflow.stg_price_daily"
+[0m10:44:15.348235 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_price_daily"
+[0m10:44:15.344724 [debug] [Thread-2 (]: Began executing node model.stableflow.stg_supply_daily
+[0m10:44:15.349540 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_price_daily"} */
+
+  create view "stableflow"."staging"."stg_price_daily__dbt_tmp"
+    
+    
+  as (
+    -- P1.3: staging view over raw_price_daily (S4 daily price history, from 2020).
+select
+    date,
+    asset_id,
+    price_usd,
+    source
+from "stableflow"."public"."raw_price_daily"
+  );
+[0m10:44:15.359544 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:15.360614 [debug] [Thread-2 (]: Writing runtime sql for node "model.stableflow.stg_supply_daily"
+[0m10:44:15.363485 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_supply_daily"
+[0m10:44:15.367005 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_supply_daily"} */
+
+  create view "stableflow"."staging"."stg_supply_daily__dbt_tmp"
+    
+    
+  as (
+    -- P1.3: staging view over raw_supply_daily (S2 history; chain='ALL' = coin total).
+select
+    date,
+    asset_id,
+    chain,
+    coalesce(amount_usd, 0)     as amount_usd,
+    coalesce(minted_usd, 0)     as minted_usd,
+    coalesce(unreleased_usd, 0) as unreleased_usd,
+    (chain = 'ALL')             as is_total_row
+from "stableflow"."public"."raw_supply_daily"
+  );
+[0m10:44:15.368786 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m10:44:15.431953 [debug] [Thread-1 (]: SQL status: CREATE VIEW in 0.073 seconds
+[0m10:44:15.439447 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_price_daily"
+[0m10:44:15.440282 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_price_daily"} */
+alter table "stableflow"."staging"."stg_price_daily__dbt_tmp" rename to "stg_price_daily"
+[0m10:44:15.442090 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.001 seconds
+[0m10:44:15.445726 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: COMMIT
+[0m10:44:15.446576 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_price_daily"
+[0m10:44:15.447219 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: COMMIT
+[0m10:44:15.455583 [debug] [Thread-2 (]: SQL status: CREATE VIEW in 0.087 seconds
+[0m10:44:15.458068 [debug] [Thread-1 (]: SQL status: COMMIT in 0.010 seconds
+[0m10:44:15.469271 [debug] [Thread-1 (]: Applying DROP to: "stableflow"."staging"."stg_price_daily__dbt_backup"
+[0m10:44:15.465272 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_supply_daily"
+[0m10:44:15.474976 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_supply_daily"} */
+alter table "stableflow"."staging"."stg_supply_daily__dbt_tmp" rename to "stg_supply_daily"
+[0m10:44:15.474293 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.stg_price_daily"
+[0m10:44:15.477633 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_price_daily"} */
+drop view if exists "stableflow"."staging"."stg_price_daily__dbt_backup" cascade
+[0m10:44:15.479986 [debug] [Thread-1 (]: SQL status: DROP VIEW in 0.001 seconds
+[0m10:44:15.482149 [debug] [Thread-2 (]: SQL status: ALTER TABLE in 0.005 seconds
+[0m10:44:15.488553 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: COMMIT
+[0m10:44:15.484950 [debug] [Thread-1 (]: On model.stableflow.stg_price_daily: Close
+[0m10:44:15.496708 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc3971d0>]}
+[0m10:44:15.489289 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_supply_daily"
+[0m10:44:15.498832 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: COMMIT
+[0m10:44:15.500067 [info ] [Thread-1 (]: 5 of 10 OK created sql view model staging.stg_price_daily ...................... [[32mCREATE VIEW[0m in 0.17s]
+[0m10:44:15.501935 [debug] [Thread-1 (]: Finished running node model.stableflow.stg_price_daily
+[0m10:44:15.506229 [debug] [Thread-4 (]: Began running node model.stableflow.mart_peg_daily
+[0m10:44:15.514251 [debug] [Thread-2 (]: SQL status: COMMIT in 0.013 seconds
+[0m10:44:15.513677 [info ] [Thread-4 (]: 7 of 10 START sql view model marts.mart_peg_daily .............................. [RUN]
+[0m10:44:15.517384 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_market_daily, now model.stableflow.mart_peg_daily)
+[0m10:44:15.517910 [debug] [Thread-4 (]: Began compiling node model.stableflow.mart_peg_daily
+[0m10:44:15.516597 [debug] [Thread-2 (]: Applying DROP to: "stableflow"."staging"."stg_supply_daily__dbt_backup"
+[0m10:44:15.546721 [debug] [Thread-4 (]: Writing injected SQL for node "model.stableflow.mart_peg_daily"
+[0m10:44:15.548046 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.stg_supply_daily"
+[0m10:44:15.550876 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.stg_supply_daily"} */
+drop view if exists "stableflow"."staging"."stg_supply_daily__dbt_backup" cascade
+[0m10:44:15.549352 [debug] [Thread-4 (]: Began executing node model.stableflow.mart_peg_daily
+[0m10:44:15.552547 [debug] [Thread-2 (]: SQL status: DROP VIEW in 0.001 seconds
+[0m10:44:15.560907 [debug] [Thread-2 (]: On model.stableflow.stg_supply_daily: Close
+[0m10:44:15.564548 [debug] [Thread-4 (]: Writing runtime sql for node "model.stableflow.mart_peg_daily"
+[0m10:44:15.569515 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc395250>]}
+[0m10:44:15.576567 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.mart_peg_daily"
+[0m10:44:15.580055 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_peg_daily"} */
+
+  create view "stableflow"."marts"."mart_peg_daily__dbt_tmp"
+    
+    
+  as (
+    -- P1.5 (View C): daily peg deviation per USD-pegged coin + rolling 30d stats.
+--
+-- Scope: peg_type='peggedUSD' only — deviation vs $1.0000 is meaningful only
+-- for USD pegs (EUR-pegged coins price with EURUSD, they'd false-alarm).
+-- Event flag: |dev| > 50 bps on that day (first-cut day-level detection;
+-- hourly refinement is backlog B6).
+with priced as (
+
+    select
+        p.date,
+        p.asset_id,
+        p.price_usd
+    from "stableflow"."staging"."stg_price_daily" p
+    join "stableflow"."staging"."stg_assets" a on a.id = p.asset_id
+    where a.peg_type = 'peggedUSD'
+
+),
+
+dev as (
+
+    select
+        date,
+        asset_id,
+        price_usd,
+        (price_usd - 1) * 10000                          as dev_bps,
+        abs(price_usd - 1) * 10000                       as dev_abs_bps,
+        avg(abs(price_usd - 1) * 10000) over w           as rolling_30d_avg_bps,
+        max(abs(price_usd - 1) * 10000) over w           as rolling_30d_max_bps
+    from priced
+    window w as (
+        partition by asset_id
+        order by date
+        rows between 29 preceding and current row
+    )
+
+)
+
+select
+    date,
+    asset_id,
+    price_usd,
+    dev_bps,
+    dev_abs_bps,
+    rolling_30d_avg_bps,
+    rolling_30d_max_bps,
+    (dev_abs_bps > 50) as is_depeg_event
+from dev
+  );
+[0m10:44:15.580615 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m10:44:15.579156 [info ] [Thread-2 (]: 6 of 10 OK created sql view model staging.stg_supply_daily ..................... [[32mCREATE VIEW[0m in 0.24s]
+[0m10:44:15.587757 [debug] [Thread-2 (]: Finished running node model.stableflow.stg_supply_daily
+[0m10:44:15.591223 [debug] [Thread-2 (]: Began running node model.stableflow.mart_supply_daily
+[0m10:44:15.595363 [debug] [Thread-3 (]: Began running node model.stableflow.mart_market_overview
+[0m10:44:15.596619 [debug] [Thread-1 (]: Began running node model.stableflow.mart_supply_chain
+[0m10:44:15.597755 [info ] [Thread-2 (]: 10 of 10 START sql view model marts.mart_supply_daily .......................... [RUN]
+[0m10:44:15.605747 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_supply_daily, now model.stableflow.mart_supply_daily)
+[0m10:44:15.611882 [debug] [Thread-2 (]: Began compiling node model.stableflow.mart_supply_daily
+[0m10:44:15.599146 [info ] [Thread-3 (]: 8 of 10 START sql view model marts.mart_market_overview ........................ [RUN]
+[0m10:44:15.601719 [info ] [Thread-1 (]: 9 of 10 START sql view model marts.mart_supply_chain ........................... [RUN]
+[0m10:44:15.624775 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_price_daily, now model.stableflow.mart_supply_chain)
+[0m10:44:15.625250 [debug] [Thread-1 (]: Began compiling node model.stableflow.mart_supply_chain
+[0m10:44:15.624019 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly model.stableflow.stg_load_log, now model.stableflow.mart_market_overview)
+[0m10:44:15.618106 [debug] [Thread-2 (]: Writing injected SQL for node "model.stableflow.mart_supply_daily"
+[0m10:44:15.634492 [debug] [Thread-3 (]: Began compiling node model.stableflow.mart_market_overview
+[0m10:44:15.635791 [debug] [Thread-2 (]: Began executing node model.stableflow.mart_supply_daily
+[0m10:44:15.633280 [debug] [Thread-1 (]: Writing injected SQL for node "model.stableflow.mart_supply_chain"
+[0m10:44:15.652052 [debug] [Thread-1 (]: Began executing node model.stableflow.mart_supply_chain
+[0m10:44:15.654332 [debug] [Thread-3 (]: Writing injected SQL for node "model.stableflow.mart_market_overview"
+[0m10:44:15.659521 [debug] [Thread-3 (]: Began executing node model.stableflow.mart_market_overview
+[0m10:44:15.649376 [debug] [Thread-2 (]: Writing runtime sql for node "model.stableflow.mart_supply_daily"
+[0m10:44:15.658491 [debug] [Thread-1 (]: Writing runtime sql for node "model.stableflow.mart_supply_chain"
+[0m10:44:15.666203 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.mart_supply_daily"
+[0m10:44:15.663864 [debug] [Thread-3 (]: Writing runtime sql for node "model.stableflow.mart_market_overview"
+[0m10:44:15.669512 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.mart_supply_chain"
+[0m10:44:15.673495 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_chain"} */
+
+  create view "stableflow"."marts"."mart_supply_chain__dbt_tmp"
+    
+    
+  as (
+    -- P1.4 (View A): per-coin per-chain supply + chain share + 30d migration delta.
+-- chain-share migration is the "money moves chains" signal (View A).
+with chain_rows as (
+
+    select date, asset_id, chain, amount_usd
+    from "stableflow"."staging"."stg_supply_daily"
+    where chain <> 'ALL'
+
+),
+
+asset_totals as (
+
+    select date, asset_id, sum(amount_usd) as asset_total
+    from chain_rows
+    group by 1, 2
+
+),
+
+with_share as (
+
+    select
+        c.date,
+        c.asset_id,
+        c.chain,
+        c.amount_usd,
+        c.amount_usd / nullif(a.asset_total, 0) as chain_share,
+        lag(c.amount_usd / nullif(a.asset_total, 0), 30)
+            over (partition by c.asset_id, c.chain order by c.date) as share_30d_ago
+    from chain_rows c
+    join asset_totals a using (date, asset_id)
+
+)
+
+select
+    date,
+    asset_id,
+    chain,
+    amount_usd,
+    100 * chain_share                          as chain_share,
+    100 * (chain_share - share_30d_ago)        as share_delta_30d
+from with_share
+  );
+[0m10:44:15.670535 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_daily"} */
+
+  create view "stableflow"."marts"."mart_supply_daily__dbt_tmp"
+    
+    
+  as (
+    -- P1.4 (View A/B): per-coin daily supply + issuance deltas + market share.
+-- Source: chain='ALL' total rows only (chain rows live in mart_supply_chain).
+with totals as (
+
+    select date, asset_id, amount_usd
+    from "stableflow"."staging"."stg_supply_daily"
+    where chain = 'ALL'
+
+),
+
+windowed as (
+
+    select
+        date,
+        asset_id,
+        amount_usd,
+        lag(amount_usd, 1)  over w as prev_1d,
+        lag(amount_usd, 7)  over w as prev_7d,
+        lag(amount_usd, 30) over w as prev_30d
+    from totals
+    window w as (partition by asset_id order by date)
+
+),
+
+market as (
+
+    select date, sum(amount_usd) as market_total
+    from totals
+    group by date
+
+)
+
+select
+    w.date,
+    w.asset_id,
+    w.amount_usd                                                       as total_usd,
+    w.amount_usd - w.prev_1d                                           as net_issuance_1d,
+    w.amount_usd - w.prev_7d                                           as net_issuance_7d,
+    w.amount_usd - w.prev_30d                                          as net_issuance_30d,
+    100 * (w.amount_usd - w.prev_7d)  / nullif(w.prev_7d,  0)          as pct_7d,
+    100 * (w.amount_usd - w.prev_30d) / nullif(w.prev_30d, 0)          as pct_30d,
+    100 * w.amount_usd / nullif(m.market_total, 0)                     as share_of_market
+from windowed w
+join market m using (date)
+  );
+[0m10:44:15.674715 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m10:44:15.672600 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.mart_market_overview"
+[0m10:44:15.675818 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_market_overview"} */
+
+  create view "stableflow"."marts"."mart_market_overview__dbt_tmp"
+    
+    
+  as (
+    -- P1.4 (View A): market-level daily overview — one row per date.
+--
+-- total_supply_usd = FULL market (S3, all ~435 tracked coins) — this is the
+-- headline number. Core-7 coverage is exposed explicitly (coverage_pct) so no
+-- view ever implies core-7 IS the market (AGENTS.md §9 honesty rule).
+-- Coin shares = core coin supply / full market total.
+with market as (
+
+    select
+        date,
+        total_usd,
+        total_usd - lag(total_usd, 7) over (order by date) as supply_delta_7d
+    from "stableflow"."staging"."stg_market_daily"
+
+),
+
+core_daily as (
+
+    select date, asset_id, amount_usd
+    from "stableflow"."staging"."stg_supply_daily"
+    where chain = 'ALL'
+
+),
+
+core_per_date as (
+
+    select date, sum(amount_usd) as core_total
+    from core_daily
+    group by date
+
+),
+
+per_coin as (
+
+    select
+        c.date,
+        c.asset_id,
+        100 * c.amount_usd / nullif(m.total_usd, 0) as share
+    from core_daily c
+    join market m using (date)
+
+),
+
+ranked as (
+
+    select date, share, row_number() over (partition by date order by share desc) as rn
+    from per_coin
+
+),
+
+top3 as (
+
+    select date, sum(share) as top3_share
+    from ranked
+    where rn <= 3
+    group by date
+
+),
+
+named_shares as (
+
+    select
+        p.date,
+        max(case when a.symbol = 'USDT' then p.share end) as usdt_share,
+        max(case when a.symbol = 'USDC' then p.share end) as usdc_share
+    from per_coin p
+    join "stableflow"."staging"."stg_assets" a on a.id = p.asset_id
+    where a.symbol in ('USDT', 'USDC')
+    group by p.date
+
+),
+
+chain_shares as (
+
+    -- core-coin chain amounts as a share of the FULL market
+    select
+        date,
+        100 * sum(amount_usd) filter (where chain = 'Ethereum')
+            / nullif((select max(total_usd) from market m where m.date = s.date), 0) as eth_share,
+        100 * sum(amount_usd) filter (where chain = 'Tron')
+            / nullif((select max(total_usd) from market m where m.date = s.date), 0) as tron_share
+    from "stableflow"."staging"."stg_supply_daily" s
+    where chain <> 'ALL'
+    group by date
+
+)
+
+select
+    m.date,
+    m.total_usd                                        as total_supply_usd,
+    m.supply_delta_7d,
+    c.core_total                                       as core7_supply_usd,
+    100 * c.core_total / nullif(m.total_usd, 0)        as coverage_pct,
+    n.usdt_share,
+    n.usdc_share,
+    t.top3_share,
+    ch.eth_share,
+    ch.tron_share
+from market m
+left join core_per_date c using (date)
+left join named_shares n using (date)
+left join top3 t using (date)
+left join chain_shares ch using (date)
+  );
+[0m10:44:15.676489 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:15.674173 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:15.758334 [debug] [Thread-1 (]: SQL status: CREATE VIEW in 0.084 seconds
+[0m10:44:15.766140 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.mart_supply_chain"
+[0m10:44:15.768237 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_chain"} */
+alter table "stableflow"."marts"."mart_supply_chain__dbt_tmp" rename to "mart_supply_chain"
+[0m10:44:15.775311 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.005 seconds
+[0m10:44:15.782484 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: COMMIT
+[0m10:44:15.784205 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.mart_supply_chain"
+[0m10:44:15.785980 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: COMMIT
+[0m10:44:15.801118 [debug] [Thread-1 (]: SQL status: COMMIT in 0.014 seconds
+[0m10:44:15.815399 [debug] [Thread-1 (]: Applying DROP to: "stableflow"."marts"."mart_supply_chain__dbt_backup"
+[0m10:44:15.827554 [debug] [Thread-1 (]: Using postgres connection "model.stableflow.mart_supply_chain"
+[0m10:44:15.835034 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_chain"} */
+drop view if exists "stableflow"."marts"."mart_supply_chain__dbt_backup" cascade
+[0m10:44:15.852986 [debug] [Thread-1 (]: SQL status: DROP VIEW in 0.013 seconds
+[0m10:44:15.857662 [debug] [Thread-1 (]: On model.stableflow.mart_supply_chain: Close
+[0m10:44:15.862057 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccdfd0230>]}
+[0m10:44:15.863436 [info ] [Thread-1 (]: 9 of 10 OK created sql view model marts.mart_supply_chain ...................... [[32mCREATE VIEW[0m in 0.24s]
+[0m10:44:15.873005 [debug] [Thread-1 (]: Finished running node model.stableflow.mart_supply_chain
+[0m10:44:15.907428 [debug] [Thread-4 (]: SQL status: CREATE VIEW in 0.327 seconds
+[0m10:44:15.913651 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.mart_peg_daily"
+[0m10:44:15.915635 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_peg_daily"} */
+alter table "stableflow"."marts"."mart_peg_daily__dbt_tmp" rename to "mart_peg_daily"
+[0m10:44:15.923188 [debug] [Thread-2 (]: SQL status: CREATE VIEW in 0.248 seconds
+[0m10:44:15.927326 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.mart_supply_daily"
+[0m10:44:15.928513 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_daily"} */
+alter table "stableflow"."marts"."mart_supply_daily__dbt_tmp" rename to "mart_supply_daily"
+[0m10:44:15.931503 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.007 seconds
+[0m10:44:15.941341 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: COMMIT
+[0m10:44:15.942946 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.mart_peg_daily"
+[0m10:44:15.944473 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: COMMIT
+[0m10:44:15.947311 [debug] [Thread-3 (]: SQL status: CREATE VIEW in 0.271 seconds
+[0m10:44:15.949689 [debug] [Thread-2 (]: SQL status: ALTER TABLE in 0.019 seconds
+[0m10:44:15.960386 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: COMMIT
+[0m10:44:15.962230 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.mart_supply_daily"
+[0m10:44:15.956930 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.mart_market_overview"
+[0m10:44:15.964994 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_market_overview"} */
+alter table "stableflow"."marts"."mart_market_overview__dbt_tmp" rename to "mart_market_overview"
+[0m10:44:15.963494 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: COMMIT
+[0m10:44:15.975875 [debug] [Thread-4 (]: SQL status: COMMIT in 0.030 seconds
+[0m10:44:15.986709 [debug] [Thread-4 (]: Applying DROP to: "stableflow"."marts"."mart_peg_daily__dbt_backup"
+[0m10:44:15.989153 [debug] [Thread-4 (]: Using postgres connection "model.stableflow.mart_peg_daily"
+[0m10:44:15.990607 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_peg_daily"} */
+drop view if exists "stableflow"."marts"."mart_peg_daily__dbt_backup" cascade
+[0m10:44:15.992459 [debug] [Thread-4 (]: SQL status: DROP VIEW in 0.001 seconds
+[0m10:44:15.997035 [debug] [Thread-4 (]: On model.stableflow.mart_peg_daily: Close
+[0m10:44:16.000014 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc397650>]}
+[0m10:44:16.001630 [debug] [Thread-2 (]: SQL status: COMMIT in 0.035 seconds
+[0m10:44:16.004022 [info ] [Thread-4 (]: 7 of 10 OK created sql view model marts.mart_peg_daily ......................... [[32mCREATE VIEW[0m in 0.48s]
+[0m10:44:16.023050 [debug] [Thread-3 (]: SQL status: ALTER TABLE in 0.057 seconds
+[0m10:44:16.024683 [debug] [Thread-4 (]: Finished running node model.stableflow.mart_peg_daily
+[0m10:44:16.009562 [debug] [Thread-2 (]: Applying DROP to: "stableflow"."marts"."mart_supply_daily__dbt_backup"
+[0m10:44:16.041067 [debug] [Thread-2 (]: Using postgres connection "model.stableflow.mart_supply_daily"
+[0m10:44:16.037034 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: COMMIT
+[0m10:44:16.051114 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.mart_market_overview"
+[0m10:44:16.043503 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_supply_daily"} */
+drop view if exists "stableflow"."marts"."mart_supply_daily__dbt_backup" cascade
+[0m10:44:16.053381 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: COMMIT
+[0m10:44:16.073373 [debug] [Thread-2 (]: SQL status: DROP VIEW in 0.018 seconds
+[0m10:44:16.088639 [debug] [Thread-2 (]: On model.stableflow.mart_supply_daily: Close
+[0m10:44:16.091658 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc396450>]}
+[0m10:44:16.094035 [info ] [Thread-2 (]: 10 of 10 OK created sql view model marts.mart_supply_daily ..................... [[32mCREATE VIEW[0m in 0.49s]
+[0m10:44:16.096857 [debug] [Thread-2 (]: Finished running node model.stableflow.mart_supply_daily
+[0m10:44:16.099345 [debug] [Thread-3 (]: SQL status: COMMIT in 0.043 seconds
+[0m10:44:16.104176 [debug] [Thread-3 (]: Applying DROP to: "stableflow"."marts"."mart_market_overview__dbt_backup"
+[0m10:44:16.106966 [debug] [Thread-3 (]: Using postgres connection "model.stableflow.mart_market_overview"
+[0m10:44:16.108456 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "model.stableflow.mart_market_overview"} */
+drop view if exists "stableflow"."marts"."mart_market_overview__dbt_backup" cascade
+[0m10:44:16.120444 [debug] [Thread-3 (]: SQL status: DROP VIEW in 0.011 seconds
+[0m10:44:16.129689 [debug] [Thread-3 (]: On model.stableflow.mart_market_overview: Close
+[0m10:44:16.131278 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7299a26c-b371-44a1-8d2a-6e471bd448e6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccc79b2f0>]}
+[0m10:44:16.135812 [info ] [Thread-3 (]: 8 of 10 OK created sql view model marts.mart_market_overview ................... [[32mCREATE VIEW[0m in 0.51s]
+[0m10:44:16.139762 [debug] [Thread-3 (]: Finished running node model.stableflow.mart_market_overview
+[0m10:44:16.150390 [debug] [MainThread]: On master: COMMIT
+[0m10:44:16.151144 [debug] [MainThread]: Using postgres connection "master"
+[0m10:44:16.151652 [debug] [MainThread]: On master: COMMIT
+[0m10:44:16.152234 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m10:44:16.196766 [debug] [MainThread]: SQL status: COMMIT in 0.044 seconds
+[0m10:44:16.197925 [debug] [MainThread]: On master: Close
+[0m10:44:16.201768 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m10:44:16.206978 [debug] [MainThread]: Connection 'model.stableflow.mart_supply_daily' was properly closed.
+[0m10:44:16.207791 [debug] [MainThread]: Connection 'model.stableflow.mart_supply_chain' was properly closed.
+[0m10:44:16.208499 [debug] [MainThread]: Connection 'model.stableflow.mart_market_overview' was properly closed.
+[0m10:44:16.209135 [debug] [MainThread]: Connection 'model.stableflow.mart_peg_daily' was properly closed.
+[0m10:44:16.210324 [info ] [MainThread]: 
+[0m10:44:16.212007 [info ] [MainThread]: Finished running 10 view models in 0 hours 0 minutes and 3.52 seconds (3.52s).
+[0m10:44:16.233716 [debug] [MainThread]: Command end result
+[0m10:44:16.539298 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/backend/transform/target/manifest.json
+[0m10:44:16.550065 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/backend/transform/target/semantic_manifest.json
+[0m10:44:16.556758 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/backend/transform/target/osi_document.json
+[0m10:44:16.615233 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/freeman/stablecoin-flow/backend/transform/target/run_results.json
+[0m10:44:16.617767 [info ] [MainThread]: 
+[0m10:44:16.621243 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m10:44:16.621993 [info ] [MainThread]: 
+[0m10:44:16.630449 [info ] [MainThread]: Done. PASS=10 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=10
+[0m10:44:16.636308 [warn ] [MainThread]: [[33mWARNING[0m][DeprecationsSummary]: Deprecated functionality
+Summary of encountered deprecations:
+- MissingArgumentsPropertyInGenericTestDeprecation: 13 occurrences
+To see all deprecation instances instead of just the first occurrence of each,
+run command again with the `--show-all-deprecations` flag. You may also need to
+run with `--no-partial-parse` as some deprecations are only encountered during
+parsing.
+[0m10:44:16.642015 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 18.918285, "process_in_blocks": "0", "process_kernel_time": 6.870252, "process_mem_max_rss": "163668", "process_out_blocks": "0", "process_user_time": 17.773981}
+[0m10:44:16.645902 [debug] [MainThread]: Command `dbt run` succeeded at 10:44:16.645554 after 18.92 seconds
+[0m10:44:16.653558 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacd1a1d910>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eaccf055430>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7eacccf398b0>]}
+[0m10:44:16.654451 [debug] [MainThread]: Flushing usage events
+[0m10:44:18.269607 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m10:44:43.121480 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bee85be0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bd95fed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bd95f9d0>]}
+
+
+============================== 10:44:43.131150 | 91998e19-d449-463c-9a52-9b3d85ab8b7a ==============================
+[0m10:44:43.131150 [info ] [MainThread]: Running with dbt=1.12.6
+[0m10:44:43.132589 [debug] [MainThread]: running dbt with arguments {'cache_selected_only': 'False', 'log_cache_events': 'False', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'printer_width': '80', 'profiles_dir': '.', 'maximum_seed_size_mib': '1', 'fail_fast': 'False', 'use_colors': 'True', 'log_path': '/home/freeman/stablecoin-flow/backend/transform/logs', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'indirect_selection': 'eager', 'hints_enabled': 'True', 'introspect': 'True', 'no_print': 'None', 'debug': 'False', 'target_path': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt test --profiles-dir .', 'warn_error': 'None', 'version_check': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'static_parser': 'True', 'write_json': 'True'}
+[0m10:44:43.566507 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bebbe190>]}
+[0m10:44:43.970080 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bdaf1370>]}
+[0m10:44:43.971258 [info ] [MainThread]: Registered adapter: postgres=1.11.0
+[0m10:44:44.234492 [debug] [MainThread]: checksum: 00e49e0611acbd563071cffb2f83560f7f7ab4e970b1d33c6837ccedbb3d8cb7, vars: {}, profile: stableflow, target: dev, version: 1.12.6
+[0m10:44:44.859760 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m10:44:44.860913 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m10:44:44.861703 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m10:44:44.893978 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.stableflow.intermediate
+[0m10:44:44.910095 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bbffdc50>]}
+[0m10:44:45.803594 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/backend/transform/target/manifest.json
+[0m10:44:45.832983 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/backend/transform/target/semantic_manifest.json
+[0m10:44:45.947244 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/backend/transform/target/osi_document.json
+[0m10:44:46.916679 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bb7f1400>]}
+[0m10:44:46.926923 [info ] [MainThread]: Found 10 models, 27 data tests, 6 sources, 594 macros
+[0m10:44:46.936482 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080ba9f9ef0>]}
+[0m10:44:46.963514 [info ] [MainThread]: 
+[0m10:44:46.969293 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m10:44:46.973417 [info ] [MainThread]: 
+[0m10:44:46.977461 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m10:44:47.042257 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow_staging'
+[0m10:44:47.060107 [debug] [ThreadPool]: Acquiring new postgres connection 'list_stableflow_marts'
+[0m10:44:47.464307 [debug] [ThreadPool]: Using postgres connection "list_stableflow_marts"
+[0m10:44:47.465390 [debug] [ThreadPool]: Using postgres connection "list_stableflow_staging"
+[0m10:44:47.471436 [debug] [ThreadPool]: On list_stableflow_staging: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_staging"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'staging'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'staging'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'staging'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'staging'
+  
+[0m10:44:47.476298 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m10:44:47.466411 [debug] [ThreadPool]: On list_stableflow_marts: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "list_stableflow_marts"} */
+select
+      'stableflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'marts'
+    union all
+    select
+      'stableflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'marts'
+    union all
+    select
+      'stableflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'marts'
+    union all
+    select distinct
+     'stableflow' as database,
+     proname as name,
+     ns.nspname as schema,
+     'function' as type
+    from pg_proc
+     join pg_namespace as ns on pronamespace = ns.oid
+    where ns.nspname ilike 'marts'
+  
+[0m10:44:47.485111 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m10:44:47.589886 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.105 seconds
+[0m10:44:47.599787 [debug] [ThreadPool]: On list_stableflow_marts: ROLLBACK
+[0m10:44:47.602232 [debug] [ThreadPool]: On list_stableflow_marts: Close
+[0m10:44:47.622242 [debug] [ThreadPool]: SQL status: SELECT 6 in 0.146 seconds
+[0m10:44:47.633574 [debug] [ThreadPool]: On list_stableflow_staging: ROLLBACK
+[0m10:44:47.636134 [debug] [ThreadPool]: On list_stableflow_staging: Close
+[0m10:44:47.652921 [debug] [MainThread]: Using postgres connection "master"
+[0m10:44:47.659835 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "connection_name": "master"} */
+select distinct
+        dependent_namespace.nspname as dependent_schema,
+        dependent_class.relname as dependent_name,
+        referenced_namespace.nspname as referenced_schema,
+        referenced_class.relname as referenced_name
+
+    -- Query for views: views are entries in pg_class with an entry in pg_rewrite, but we avoid
+    -- a seq scan on pg_rewrite by leveraging the fact there is an "internal" row in pg_depend for
+    -- the view...
+    from pg_class as dependent_class
+    join pg_namespace as dependent_namespace on dependent_namespace.oid = dependent_class.relnamespace
+    join pg_depend as dependent_depend on dependent_depend.refobjid = dependent_class.oid
+        and dependent_depend.classid = 'pg_rewrite'::regclass
+        and dependent_depend.refclassid = 'pg_class'::regclass
+        and dependent_depend.deptype = 'i'
+
+    -- ... and via pg_depend (that has a row per column, hence the need for "distinct" above, and
+    -- making sure to exclude the internal row to avoid a view appearing to depend on itself)...
+    join pg_depend as joining_depend on joining_depend.objid = dependent_depend.objid
+        and joining_depend.classid = 'pg_rewrite'::regclass
+        and joining_depend.refclassid = 'pg_class'::regclass
+        and joining_depend.refobjid != dependent_depend.refobjid
+
+    -- ... we can find the tables they query from in pg_class, but excluding system tables. Note we
+    -- don't need need to exclude _dependent_ system tables, because they only query from other
+    -- system tables, and so are automatically excluded by excluding _referenced_ system tables
+    join pg_class as referenced_class on referenced_class.oid = joining_depend.refobjid
+    join pg_namespace as referenced_namespace on referenced_namespace.oid = referenced_class.relnamespace
+        and referenced_namespace.nspname != 'information_schema'
+        and referenced_namespace.nspname not like 'pg\_%'
+
+    order by
+        dependent_schema, dependent_name, referenced_schema, referenced_name;
+[0m10:44:47.662461 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m10:44:47.729859 [debug] [MainThread]: SQL status: SELECT 26 in 0.067 seconds
+[0m10:44:47.741577 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '91998e19-d449-463c-9a52-9b3d85ab8b7a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bafacfc0>]}
+[0m10:44:47.745567 [debug] [MainThread]: On master: ROLLBACK
+[0m10:44:47.747968 [debug] [MainThread]: On master: COMMIT
+[0m10:44:47.749759 [debug] [MainThread]: Using postgres connection "master"
+[0m10:44:47.751293 [debug] [MainThread]: On master: COMMIT
+[0m10:44:47.756952 [debug] [MainThread]: SQL status: COMMIT in 0.004 seconds
+[0m10:44:47.757922 [debug] [MainThread]: On master: Close
+[0m10:44:47.762718 [debug] [Thread-1 (]: Began running node test.stableflow.assert_total_supply_nonnegative
+[0m10:44:47.763350 [debug] [Thread-3 (]: Began running node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb
+[0m10:44:47.767211 [debug] [Thread-2 (]: Began running node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597
+[0m10:44:47.777654 [info ] [Thread-2 (]: 2 of 27 START test dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001  [RUN]
+[0m10:44:47.764919 [info ] [Thread-1 (]: 1 of 27 START test assert_total_supply_nonnegative ............................. [RUN]
+[0m10:44:47.773832 [info ] [Thread-3 (]: 3 of 27 START test dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0  [RUN]
+[0m10:44:47.771368 [debug] [Thread-4 (]: Began running node test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20
+[0m10:44:47.798693 [info ] [Thread-4 (]: 4 of 27 START test dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0 . [RUN]
+[0m10:44:47.785704 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_stableflow_staging, now test.stableflow.assert_total_supply_nonnegative)
+[0m10:44:47.788427 [debug] [Thread-3 (]: Acquiring new postgres connection 'test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb'
+[0m10:44:47.802949 [debug] [Thread-4 (]: Acquiring new postgres connection 'test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20'
+[0m10:44:47.782139 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly list_stableflow_marts, now test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597)
+[0m10:44:47.804100 [debug] [Thread-1 (]: Began compiling node test.stableflow.assert_total_supply_nonnegative
+[0m10:44:47.806783 [debug] [Thread-4 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20
+[0m10:44:47.805355 [debug] [Thread-3 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb
+[0m10:44:47.807983 [debug] [Thread-2 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597
+[0m10:44:48.085505 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.assert_total_supply_nonnegative"
+[0m10:44:48.164093 [debug] [Thread-1 (]: Began executing node test.stableflow.assert_total_supply_nonnegative
+[0m10:44:48.228048 [debug] [Thread-2 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597"
+[0m10:44:48.244467 [debug] [Thread-4 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20"
+[0m10:44:48.247280 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb"
+[0m10:44:48.260487 [debug] [Thread-2 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597
+[0m10:44:48.300946 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.assert_total_supply_nonnegative"
+[0m10:44:48.314013 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.assert_total_supply_nonnegative"
+[0m10:44:48.263739 [debug] [Thread-4 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20
+[0m10:44:48.310050 [debug] [Thread-2 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597"
+[0m10:44:48.303243 [debug] [Thread-3 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb
+[0m10:44:48.314931 [debug] [Thread-1 (]: On test.stableflow.assert_total_supply_nonnegative: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.assert_total_supply_nonnegative"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  -- Invariant: a coin's TOTAL supply can never be negative (decisions B-D8).
+-- Chain-level rows CAN go negative in DeFiLlama data (bridged accounting
+-- artifact: USDC/Arbitrum 2025-03-26 = −$125.9M) — raw truth is kept in
+-- staging; the invariant applies to chain='ALL' total rows only.
+select *
+from "stableflow"."staging"."stg_supply_daily"
+where chain = 'ALL'
+  and amount_usd < 0
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.319938 [debug] [Thread-4 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20"
+[0m10:44:48.330351 [debug] [Thread-2 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597"
+[0m10:44:48.333832 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:48.335619 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb"
+[0m10:44:48.341119 [debug] [Thread-4 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20"
+[0m10:44:48.338743 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."marts"."mart_market_overview"
+
+where not(top3_share > 0 and top3_share <= 100.001)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.351149 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m10:44:48.344960 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb"
+[0m10:44:48.354048 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."marts"."mart_market_overview"
+
+where not(total_supply_usd > 0)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.349841 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."marts"."mart_peg_daily"
+
+where not(dev_abs_bps >= 0)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.357268 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m10:44:48.355707 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m10:44:48.605159 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.250 seconds
+[0m10:44:48.665264 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb: ROLLBACK
+[0m10:44:48.701075 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb: Close
+[0m10:44:48.708782 [info ] [Thread-3 (]: 3 of 27 PASS dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0  [[32mPASS[0m in 0.92s]
+[0m10:44:48.714208 [debug] [Thread-3 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb
+[0m10:44:48.719464 [debug] [Thread-3 (]: Began running node test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584
+[0m10:44:48.722006 [info ] [Thread-3 (]: 5 of 27 START test dbt_utils_expression_is_true_mart_supply_daily_total_usd___0  [RUN]
+[0m10:44:48.723713 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_mart_market_overview_total_supply_usd___0.40a0a2e1fb, now test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584)
+[0m10:44:48.724230 [debug] [Thread-3 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584
+[0m10:44:48.772304 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584"
+[0m10:44:48.773093 [debug] [Thread-3 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584
+[0m10:44:48.805858 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584"
+[0m10:44:48.811230 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584"
+[0m10:44:48.812323 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."marts"."mart_supply_daily"
+
+where not(total_usd >= 0)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.813241 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:48.855032 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.521 seconds
+[0m10:44:48.860106 [debug] [Thread-1 (]: On test.stableflow.assert_total_supply_nonnegative: ROLLBACK
+[0m10:44:48.863088 [debug] [Thread-1 (]: On test.stableflow.assert_total_supply_nonnegative: Close
+[0m10:44:48.871127 [info ] [Thread-1 (]: 1 of 27 PASS assert_total_supply_nonnegative ................................... [[32mPASS[0m in 1.08s]
+[0m10:44:48.873227 [debug] [Thread-1 (]: Finished running node test.stableflow.assert_total_supply_nonnegative
+[0m10:44:48.875229 [debug] [Thread-1 (]: Began running node test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e
+[0m10:44:48.877053 [info ] [Thread-1 (]: 6 of 27 START test dbt_utils_expression_is_true_stg_assets_circulating_usd___0 . [RUN]
+[0m10:44:48.882447 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.assert_total_supply_nonnegative, now test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e)
+[0m10:44:48.888286 [debug] [Thread-1 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e
+[0m10:44:48.914535 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e"
+[0m10:44:48.920709 [debug] [Thread-1 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e
+[0m10:44:48.926066 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e"
+[0m10:44:48.932594 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e"
+[0m10:44:48.934444 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."staging"."stg_assets"
+
+where not(circulating_usd >= 0)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:48.935371 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:49.119054 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.184 seconds
+[0m10:44:49.125764 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e: ROLLBACK
+[0m10:44:49.136420 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e: Close
+[0m10:44:49.137645 [info ] [Thread-1 (]: 6 of 27 PASS dbt_utils_expression_is_true_stg_assets_circulating_usd___0 ....... [[32mPASS[0m in 0.26s]
+[0m10:44:49.145430 [debug] [Thread-1 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e
+[0m10:44:49.148010 [debug] [Thread-1 (]: Began running node test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b
+[0m10:44:49.151501 [info ] [Thread-1 (]: 7 of 27 START test dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000  [RUN]
+[0m10:44:49.153297 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_stg_assets_circulating_usd___0.882b958b6e, now test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b)
+[0m10:44:49.155230 [debug] [Thread-1 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b
+[0m10:44:49.197597 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b"
+[0m10:44:49.199937 [debug] [Thread-1 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b
+[0m10:44:49.206700 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b"
+[0m10:44:49.211412 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b"
+[0m10:44:49.213057 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."staging"."stg_chain_current"
+
+where not(amount_usd >= -1000000000000)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:49.214139 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:49.415940 [debug] [Thread-4 (]: SQL status: SELECT 1 in 1.059 seconds
+[0m10:44:49.418587 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20: ROLLBACK
+[0m10:44:49.423758 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20: Close
+[0m10:44:49.425423 [info ] [Thread-4 (]: 4 of 27 PASS dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0 ....... [[32mPASS[0m in 1.63s]
+[0m10:44:49.433061 [debug] [Thread-4 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20
+[0m10:44:49.433715 [debug] [Thread-4 (]: Began running node test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d
+[0m10:44:49.435180 [info ] [Thread-4 (]: 8 of 27 START test dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50  [RUN]
+[0m10:44:49.436093 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_mart_peg_daily_dev_abs_bps___0.5666a1aa20, now test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d)
+[0m10:44:49.436612 [debug] [Thread-4 (]: Began compiling node test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d
+[0m10:44:49.492191 [debug] [Thread-4 (]: Writing injected SQL for node "test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d"
+[0m10:44:49.493737 [debug] [Thread-4 (]: Began executing node test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d
+[0m10:44:49.497578 [debug] [Thread-4 (]: Writing runtime sql for node "test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d"
+[0m10:44:49.501197 [debug] [Thread-4 (]: Using postgres connection "test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d"
+[0m10:44:49.501905 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+select
+    1
+from "stableflow"."staging"."stg_price_daily"
+
+where not(price_usd >= 0 and price_usd < 50)
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:49.502542 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m10:44:49.503926 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.290 seconds
+[0m10:44:49.512551 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b: ROLLBACK
+[0m10:44:49.517801 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b: Close
+[0m10:44:49.519419 [info ] [Thread-1 (]: 7 of 27 PASS dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000  [[32mPASS[0m in 0.37s]
+[0m10:44:49.521397 [debug] [Thread-1 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b
+[0m10:44:49.524293 [debug] [Thread-1 (]: Began running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1
+[0m10:44:49.529173 [info ] [Thread-1 (]: 9 of 27 START test dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id  [RUN]
+[0m10:44:49.530267 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_stg_chain_current_amount_usd___1000000000000.08a57d5e4b, now test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1)
+[0m10:44:49.531057 [debug] [Thread-1 (]: Began compiling node test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1
+[0m10:44:49.596630 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1"
+[0m10:44:49.606290 [debug] [Thread-1 (]: Began executing node test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1
+[0m10:44:49.619536 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1"
+[0m10:44:49.627593 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1"
+[0m10:44:49.636860 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        date, asset_id
+    from "stableflow"."marts"."mart_peg_daily"
+    group by date, asset_id
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:49.638301 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:49.666781 [debug] [Thread-2 (]: SQL status: SELECT 1 in 1.316 seconds
+[0m10:44:49.668546 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597: ROLLBACK
+[0m10:44:49.694078 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.881 seconds
+[0m10:44:49.698218 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597: Close
+[0m10:44:49.700817 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584: ROLLBACK
+[0m10:44:49.703303 [info ] [Thread-2 (]: 2 of 27 PASS dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001  [[32mPASS[0m in 1.92s]
+[0m10:44:49.708773 [debug] [Thread-2 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597
+[0m10:44:49.715697 [debug] [Thread-2 (]: Began running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2
+[0m10:44:49.728430 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584: Close
+[0m10:44:49.732242 [info ] [Thread-2 (]: 10 of 27 START test dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain  [RUN]
+[0m10:44:49.734459 [info ] [Thread-3 (]: 5 of 27 PASS dbt_utils_expression_is_true_mart_supply_daily_total_usd___0 ...... [[32mPASS[0m in 1.01s]
+[0m10:44:49.749332 [debug] [Thread-3 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584
+[0m10:44:49.750011 [debug] [Thread-3 (]: Began running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77
+[0m10:44:49.741198 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_mart_market_overview_top3_share___0_and_top3_share_100_001.22432d8597, now test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2)
+[0m10:44:49.757440 [debug] [Thread-2 (]: Began compiling node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2
+[0m10:44:49.756260 [info ] [Thread-3 (]: 11 of 27 START test dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id  [RUN]
+[0m10:44:49.770087 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_mart_supply_daily_total_usd___0.29106fe584, now test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77)
+[0m10:44:49.771738 [debug] [Thread-3 (]: Began compiling node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77
+[0m10:44:49.870510 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77"
+[0m10:44:49.868471 [debug] [Thread-2 (]: Writing injected SQL for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2"
+[0m10:44:49.874786 [debug] [Thread-3 (]: Began executing node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77
+[0m10:44:49.875826 [debug] [Thread-2 (]: Began executing node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2
+[0m10:44:49.906239 [debug] [Thread-2 (]: Writing runtime sql for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2"
+[0m10:44:49.890966 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77"
+[0m10:44:49.925350 [debug] [Thread-2 (]: Using postgres connection "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2"
+[0m10:44:49.940577 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        date, asset_id, chain
+    from "stableflow"."marts"."mart_supply_chain"
+    group by date, asset_id, chain
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:49.941546 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m10:44:49.955519 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77"
+[0m10:44:49.958518 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        date, asset_id
+    from "stableflow"."marts"."mart_supply_daily"
+    group by date, asset_id
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:49.960519 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:49.987884 [debug] [Thread-4 (]: SQL status: SELECT 1 in 0.485 seconds
+[0m10:44:49.996261 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d: ROLLBACK
+[0m10:44:50.016954 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d: Close
+[0m10:44:50.023221 [info ] [Thread-4 (]: 8 of 27 PASS dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50  [[32mPASS[0m in 0.59s]
+[0m10:44:50.032075 [debug] [Thread-4 (]: Finished running node test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d
+[0m10:44:50.033100 [debug] [Thread-4 (]: Began running node test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc
+[0m10:44:50.039471 [info ] [Thread-4 (]: 12 of 27 START test dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain  [RUN]
+[0m10:44:50.041226 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_expression_is_true_stg_price_daily_price_usd___0_and_price_usd_50.335ae1436d, now test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc)
+[0m10:44:50.043042 [debug] [Thread-4 (]: Began compiling node test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc
+[0m10:44:50.061348 [debug] [Thread-4 (]: Writing injected SQL for node "test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc"
+[0m10:44:50.064591 [debug] [Thread-4 (]: Began executing node test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc
+[0m10:44:50.067631 [debug] [Thread-4 (]: Writing runtime sql for node "test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc"
+[0m10:44:50.076909 [debug] [Thread-4 (]: Using postgres connection "test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc"
+[0m10:44:50.077521 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        asset_id, chain
+    from "stableflow"."staging"."stg_chain_current"
+    group by asset_id, chain
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:50.077934 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m10:44:50.317535 [debug] [Thread-4 (]: SQL status: SELECT 1 in 0.240 seconds
+[0m10:44:50.325683 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc: ROLLBACK
+[0m10:44:50.347296 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc: Close
+[0m10:44:50.359954 [info ] [Thread-4 (]: 12 of 27 PASS dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain  [[32mPASS[0m in 0.32s]
+[0m10:44:50.368912 [debug] [Thread-4 (]: Finished running node test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc
+[0m10:44:50.382046 [debug] [Thread-4 (]: Began running node test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864
+[0m10:44:50.383464 [info ] [Thread-4 (]: 13 of 27 START test dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain  [RUN]
+[0m10:44:50.384862 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_unique_combination_of_columns_stg_chain_current_asset_id__chain.ecf67b3acc, now test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864)
+[0m10:44:50.385785 [debug] [Thread-4 (]: Began compiling node test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864
+[0m10:44:50.413631 [debug] [Thread-4 (]: Writing injected SQL for node "test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864"
+[0m10:44:50.415615 [debug] [Thread-4 (]: Began executing node test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864
+[0m10:44:50.427264 [debug] [Thread-4 (]: Writing runtime sql for node "test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864"
+[0m10:44:50.428805 [debug] [Thread-4 (]: Using postgres connection "test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864"
+[0m10:44:50.430615 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        date, asset_id, chain
+    from "stableflow"."staging"."stg_supply_daily"
+    group by date, asset_id, chain
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:50.433787 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m10:44:51.284932 [debug] [Thread-3 (]: SQL status: SELECT 1 in 1.324 seconds
+[0m10:44:51.289930 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77: ROLLBACK
+[0m10:44:51.301227 [debug] [Thread-3 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77: Close
+[0m10:44:51.304130 [info ] [Thread-3 (]: 11 of 27 PASS dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id  [[32mPASS[0m in 1.53s]
+[0m10:44:51.309183 [debug] [Thread-3 (]: Finished running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77
+[0m10:44:51.310537 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b
+[0m10:44:51.313557 [info ] [Thread-3 (]: 14 of 27 START test not_null_mart_market_overview_date ......................... [RUN]
+[0m10:44:51.323346 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_daily_date__asset_id.4491fd0c77, now test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b)
+[0m10:44:51.324546 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b
+[0m10:44:51.396344 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b"
+[0m10:44:51.410618 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b
+[0m10:44:51.419844 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b"
+[0m10:44:51.429074 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b"
+[0m10:44:51.430039 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select date
+from "stableflow"."marts"."mart_market_overview"
+where date is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:51.431629 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:53.285690 [debug] [Thread-3 (]: SQL status: SELECT 1 in 1.855 seconds
+[0m10:44:53.288584 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b: ROLLBACK
+[0m10:44:53.311072 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b: Close
+[0m10:44:53.315919 [info ] [Thread-3 (]: 14 of 27 PASS not_null_mart_market_overview_date ............................... [[32mPASS[0m in 1.99s]
+[0m10:44:53.318318 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b
+[0m10:44:53.322189 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701
+[0m10:44:53.340002 [info ] [Thread-3 (]: 15 of 27 START test not_null_mart_market_overview_total_supply_usd ............. [RUN]
+[0m10:44:53.346480 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_mart_market_overview_date.e19d0e7d7b, now test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701)
+[0m10:44:53.351371 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701
+[0m10:44:53.584250 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701"
+[0m10:44:53.586212 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701
+[0m10:44:53.682258 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701"
+[0m10:44:53.683821 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701"
+[0m10:44:53.685089 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select total_supply_usd
+from "stableflow"."marts"."mart_market_overview"
+where total_supply_usd is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:53.686166 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:53.860012 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.174 seconds
+[0m10:44:53.885662 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701: ROLLBACK
+[0m10:44:53.887965 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701: Close
+[0m10:44:53.902607 [info ] [Thread-3 (]: 15 of 27 PASS not_null_mart_market_overview_total_supply_usd ................... [[32mPASS[0m in 0.56s]
+[0m10:44:53.927688 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701
+[0m10:44:53.929802 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a
+[0m10:44:53.941214 [info ] [Thread-3 (]: 16 of 27 START test not_null_mart_peg_daily_price_usd .......................... [RUN]
+[0m10:44:53.947744 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_mart_market_overview_total_supply_usd.8251638701, now test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a)
+[0m10:44:53.950281 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a
+[0m10:44:54.038896 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a"
+[0m10:44:54.044189 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a
+[0m10:44:54.117297 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a"
+[0m10:44:54.136108 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a"
+[0m10:44:54.137866 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select price_usd
+from "stableflow"."marts"."mart_peg_daily"
+where price_usd is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:54.157041 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:54.244197 [debug] [Thread-1 (]: SQL status: SELECT 1 in 4.606 seconds
+[0m10:44:54.259955 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1: ROLLBACK
+[0m10:44:54.266425 [debug] [Thread-1 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1: Close
+[0m10:44:54.291030 [info ] [Thread-1 (]: 9 of 27 PASS dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id  [[32mPASS[0m in 4.75s]
+[0m10:44:54.324882 [debug] [Thread-1 (]: Finished running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1
+[0m10:44:54.326242 [debug] [Thread-1 (]: Began running node test.stableflow.not_null_mart_supply_daily_date.50760e786c
+[0m10:44:54.343438 [info ] [Thread-1 (]: 17 of 27 START test not_null_mart_supply_daily_date ............................ [RUN]
+[0m10:44:54.344762 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.dbt_utils_unique_combination_of_columns_mart_peg_daily_date__asset_id.cc6b7c9bf1, now test.stableflow.not_null_mart_supply_daily_date.50760e786c)
+[0m10:44:54.345822 [debug] [Thread-1 (]: Began compiling node test.stableflow.not_null_mart_supply_daily_date.50760e786c
+[0m10:44:54.435354 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.not_null_mart_supply_daily_date.50760e786c"
+[0m10:44:54.436851 [debug] [Thread-1 (]: Began executing node test.stableflow.not_null_mart_supply_daily_date.50760e786c
+[0m10:44:54.449653 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.not_null_mart_supply_daily_date.50760e786c"
+[0m10:44:54.460498 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.not_null_mart_supply_daily_date.50760e786c"
+[0m10:44:54.461527 [debug] [Thread-1 (]: On test.stableflow.not_null_mart_supply_daily_date.50760e786c: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_mart_supply_daily_date.50760e786c"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select date
+from "stableflow"."marts"."mart_supply_daily"
+where date is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:54.466140 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:55.229165 [debug] [Thread-3 (]: SQL status: SELECT 1 in 1.072 seconds
+[0m10:44:55.248563 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a: ROLLBACK
+[0m10:44:55.267804 [debug] [Thread-3 (]: On test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a: Close
+[0m10:44:55.274094 [info ] [Thread-3 (]: 16 of 27 PASS not_null_mart_peg_daily_price_usd ................................ [[32mPASS[0m in 1.33s]
+[0m10:44:55.285663 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a
+[0m10:44:55.287272 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_stg_assets_id.e3ccb63a4f
+[0m10:44:55.289007 [info ] [Thread-3 (]: 18 of 27 START test not_null_stg_assets_id ..................................... [RUN]
+[0m10:44:55.290367 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_mart_peg_daily_price_usd.de20bfb92a, now test.stableflow.not_null_stg_assets_id.e3ccb63a4f)
+[0m10:44:55.291643 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_stg_assets_id.e3ccb63a4f
+[0m10:44:55.342324 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_stg_assets_id.e3ccb63a4f"
+[0m10:44:55.374740 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_stg_assets_id.e3ccb63a4f
+[0m10:44:55.416395 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_stg_assets_id.e3ccb63a4f"
+[0m10:44:55.420276 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_stg_assets_id.e3ccb63a4f"
+[0m10:44:55.448644 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_id.e3ccb63a4f: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_assets_id.e3ccb63a4f"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select id
+from "stableflow"."staging"."stg_assets"
+where id is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:55.450450 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:55.794323 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.344 seconds
+[0m10:44:55.800491 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_id.e3ccb63a4f: ROLLBACK
+[0m10:44:55.802149 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_id.e3ccb63a4f: Close
+[0m10:44:55.804233 [info ] [Thread-3 (]: 18 of 27 PASS not_null_stg_assets_id ........................................... [[32mPASS[0m in 0.51s]
+[0m10:44:55.813046 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_stg_assets_id.e3ccb63a4f
+[0m10:44:55.817951 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44
+[0m10:44:55.820685 [info ] [Thread-3 (]: 19 of 27 START test not_null_stg_assets_peg_type ............................... [RUN]
+[0m10:44:55.822456 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_assets_id.e3ccb63a4f, now test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44)
+[0m10:44:55.824017 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44
+[0m10:44:55.835260 [debug] [Thread-1 (]: SQL status: SELECT 1 in 1.369 seconds
+[0m10:44:55.885726 [debug] [Thread-1 (]: On test.stableflow.not_null_mart_supply_daily_date.50760e786c: ROLLBACK
+[0m10:44:55.932767 [debug] [Thread-1 (]: On test.stableflow.not_null_mart_supply_daily_date.50760e786c: Close
+[0m10:44:55.927141 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44"
+[0m10:44:55.940739 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44
+[0m10:44:55.937233 [info ] [Thread-1 (]: 17 of 27 PASS not_null_mart_supply_daily_date .................................. [[32mPASS[0m in 1.59s]
+[0m10:44:55.951595 [debug] [Thread-1 (]: Finished running node test.stableflow.not_null_mart_supply_daily_date.50760e786c
+[0m10:44:55.955701 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44"
+[0m10:44:55.971421 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44"
+[0m10:44:55.962117 [debug] [Thread-1 (]: Began running node test.stableflow.not_null_stg_assets_symbol.a857b2293e
+[0m10:44:55.975915 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select peg_type
+from "stableflow"."staging"."stg_assets"
+where peg_type is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:55.982586 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:55.977082 [info ] [Thread-1 (]: 20 of 27 START test not_null_stg_assets_symbol ................................. [RUN]
+[0m10:44:55.988070 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_mart_supply_daily_date.50760e786c, now test.stableflow.not_null_stg_assets_symbol.a857b2293e)
+[0m10:44:55.988779 [debug] [Thread-1 (]: Began compiling node test.stableflow.not_null_stg_assets_symbol.a857b2293e
+[0m10:44:56.037713 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.not_null_stg_assets_symbol.a857b2293e"
+[0m10:44:56.043405 [debug] [Thread-1 (]: Began executing node test.stableflow.not_null_stg_assets_symbol.a857b2293e
+[0m10:44:56.049266 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.not_null_stg_assets_symbol.a857b2293e"
+[0m10:44:56.055101 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.not_null_stg_assets_symbol.a857b2293e"
+[0m10:44:56.056552 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_assets_symbol.a857b2293e: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_assets_symbol.a857b2293e"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select symbol
+from "stableflow"."staging"."stg_assets"
+where symbol is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:56.057847 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:56.067096 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.085 seconds
+[0m10:44:56.071038 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44: ROLLBACK
+[0m10:44:56.083154 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44: Close
+[0m10:44:56.096151 [info ] [Thread-3 (]: 19 of 27 PASS not_null_stg_assets_peg_type ..................................... [[32mPASS[0m in 0.27s]
+[0m10:44:56.100443 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44
+[0m10:44:56.105579 [debug] [Thread-3 (]: Began running node test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d
+[0m10:44:56.116372 [info ] [Thread-3 (]: 21 of 27 START test not_null_stg_price_daily_price_usd ......................... [RUN]
+[0m10:44:56.132775 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_assets_peg_type.d5c8d53e44, now test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d)
+[0m10:44:56.134027 [debug] [Thread-3 (]: Began compiling node test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d
+[0m10:44:56.173696 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.116 seconds
+[0m10:44:56.172998 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d"
+[0m10:44:56.197143 [debug] [Thread-3 (]: Began executing node test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d
+[0m10:44:56.207313 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d"
+[0m10:44:56.193946 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_assets_symbol.a857b2293e: ROLLBACK
+[0m10:44:56.216140 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_assets_symbol.a857b2293e: Close
+[0m10:44:56.221704 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d"
+[0m10:44:56.227512 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select price_usd
+from "stableflow"."staging"."stg_price_daily"
+where price_usd is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:56.226051 [info ] [Thread-1 (]: 20 of 27 PASS not_null_stg_assets_symbol ....................................... [[32mPASS[0m in 0.24s]
+[0m10:44:56.232536 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:56.234790 [debug] [Thread-1 (]: Finished running node test.stableflow.not_null_stg_assets_symbol.a857b2293e
+[0m10:44:56.253976 [debug] [Thread-1 (]: Began running node test.stableflow.not_null_stg_supply_daily_date.2eefd9c740
+[0m10:44:56.256114 [info ] [Thread-1 (]: 22 of 27 START test not_null_stg_supply_daily_date ............................. [RUN]
+[0m10:44:56.258852 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_assets_symbol.a857b2293e, now test.stableflow.not_null_stg_supply_daily_date.2eefd9c740)
+[0m10:44:56.259457 [debug] [Thread-1 (]: Began compiling node test.stableflow.not_null_stg_supply_daily_date.2eefd9c740
+[0m10:44:56.340220 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.not_null_stg_supply_daily_date.2eefd9c740"
+[0m10:44:56.343052 [debug] [Thread-1 (]: Began executing node test.stableflow.not_null_stg_supply_daily_date.2eefd9c740
+[0m10:44:56.347119 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.not_null_stg_supply_daily_date.2eefd9c740"
+[0m10:44:56.349382 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.not_null_stg_supply_daily_date.2eefd9c740"
+[0m10:44:56.362102 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_supply_daily_date.2eefd9c740: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.not_null_stg_supply_daily_date.2eefd9c740"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select date
+from "stableflow"."staging"."stg_supply_daily"
+where date is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:56.367278 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:56.569349 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.337 seconds
+[0m10:44:56.574001 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d: ROLLBACK
+[0m10:44:56.587184 [debug] [Thread-3 (]: On test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d: Close
+[0m10:44:56.592268 [info ] [Thread-3 (]: 21 of 27 PASS not_null_stg_price_daily_price_usd ............................... [[32mPASS[0m in 0.46s]
+[0m10:44:56.609039 [debug] [Thread-3 (]: Finished running node test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d
+[0m10:44:56.627342 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.260 seconds
+[0m10:44:56.630002 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_supply_daily_date.2eefd9c740: ROLLBACK
+[0m10:44:56.612513 [debug] [Thread-3 (]: Began running node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m10:44:56.631713 [info ] [Thread-3 (]: 23 of 27 START test source_accepted_values_raw_load_log_status__running__success__failed  [RUN]
+[0m10:44:56.640785 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_price_daily_price_usd.a181d8149d, now test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc)
+[0m10:44:56.644401 [debug] [Thread-3 (]: Began compiling node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m10:44:56.655979 [debug] [Thread-1 (]: On test.stableflow.not_null_stg_supply_daily_date.2eefd9c740: Close
+[0m10:44:56.663573 [info ] [Thread-1 (]: 22 of 27 PASS not_null_stg_supply_daily_date ................................... [[32mPASS[0m in 0.40s]
+[0m10:44:56.676017 [debug] [Thread-1 (]: Finished running node test.stableflow.not_null_stg_supply_daily_date.2eefd9c740
+[0m10:44:56.704254 [debug] [Thread-1 (]: Began running node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m10:44:56.705424 [info ] [Thread-1 (]: 24 of 27 START test source_not_null_raw_load_log_job ........................... [RUN]
+[0m10:44:56.715493 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.not_null_stg_supply_daily_date.2eefd9c740, now test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd)
+[0m10:44:56.723089 [debug] [Thread-1 (]: Began compiling node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m10:44:56.823201 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m10:44:56.837279 [debug] [Thread-1 (]: Began executing node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m10:44:56.842141 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m10:44:56.875677 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"
+[0m10:44:56.903390 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select job
+from "stableflow"."public"."load_log"
+where job is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:56.915240 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:56.927451 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m10:44:56.934506 [debug] [Thread-3 (]: Began executing node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m10:44:56.949627 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m10:44:56.959417 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"
+[0m10:44:56.984309 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+with all_values as (
+
+    select
+        status as value_field,
+        count(*) as n_records
+
+    from "stableflow"."public"."load_log"
+    group by status
+
+)
+
+select *
+from all_values
+where value_field not in (
+    'running','success','failed'
+)
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:56.995413 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:57.104383 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.199 seconds
+[0m10:44:57.154940 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: ROLLBACK
+[0m10:44:57.164944 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.164 seconds
+[0m10:44:57.204478 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: ROLLBACK
+[0m10:44:57.211145 [debug] [Thread-3 (]: On test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc: Close
+[0m10:44:57.213921 [debug] [Thread-1 (]: On test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd: Close
+[0m10:44:57.213006 [info ] [Thread-3 (]: 23 of 27 PASS source_accepted_values_raw_load_log_status__running__success__failed  [[32mPASS[0m in 0.57s]
+[0m10:44:57.223899 [debug] [Thread-3 (]: Finished running node test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc
+[0m10:44:57.226042 [debug] [Thread-3 (]: Began running node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m10:44:57.215693 [info ] [Thread-1 (]: 24 of 27 PASS source_not_null_raw_load_log_job ................................. [[32mPASS[0m in 0.50s]
+[0m10:44:57.238115 [debug] [Thread-1 (]: Finished running node test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd
+[0m10:44:57.230824 [info ] [Thread-3 (]: 25 of 27 START test source_not_null_raw_load_log_status ........................ [RUN]
+[0m10:44:57.239679 [debug] [Thread-1 (]: Began running node test.stableflow.unique_mart_market_overview_date.76c07f8f34
+[0m10:44:57.243718 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.source_accepted_values_raw_load_log_status__running__success__failed.adebee7bcc, now test.stableflow.source_not_null_raw_load_log_status.953965e13b)
+[0m10:44:57.245037 [info ] [Thread-1 (]: 26 of 27 START test unique_mart_market_overview_date ........................... [RUN]
+[0m10:44:57.274101 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.stableflow.source_not_null_raw_load_log_job.a45f5b7fcd, now test.stableflow.unique_mart_market_overview_date.76c07f8f34)
+[0m10:44:57.297127 [debug] [Thread-1 (]: Began compiling node test.stableflow.unique_mart_market_overview_date.76c07f8f34
+[0m10:44:57.247380 [debug] [Thread-3 (]: Began compiling node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m10:44:57.381835 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m10:44:57.385321 [debug] [Thread-1 (]: Writing injected SQL for node "test.stableflow.unique_mart_market_overview_date.76c07f8f34"
+[0m10:44:57.397649 [debug] [Thread-1 (]: Began executing node test.stableflow.unique_mart_market_overview_date.76c07f8f34
+[0m10:44:57.401342 [debug] [Thread-3 (]: Began executing node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m10:44:57.423464 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m10:44:57.425690 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.source_not_null_raw_load_log_status.953965e13b"
+[0m10:44:57.405811 [debug] [Thread-1 (]: Writing runtime sql for node "test.stableflow.unique_mart_market_overview_date.76c07f8f34"
+[0m10:44:57.439999 [debug] [Thread-1 (]: Using postgres connection "test.stableflow.unique_mart_market_overview_date.76c07f8f34"
+[0m10:44:57.438265 [debug] [Thread-3 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.source_not_null_raw_load_log_status.953965e13b"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select status
+from "stableflow"."public"."load_log"
+where status is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:57.443696 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:57.441349 [debug] [Thread-1 (]: On test.stableflow.unique_mart_market_overview_date.76c07f8f34: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.unique_mart_market_overview_date.76c07f8f34"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+select
+    date as unique_field,
+    count(*) as n_records
+
+from "stableflow"."marts"."mart_market_overview"
+where date is not null
+group by date
+having count(*) > 1
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:57.446176 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m10:44:57.649253 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.206 seconds
+[0m10:44:57.667573 [debug] [Thread-3 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: ROLLBACK
+[0m10:44:57.689234 [debug] [Thread-3 (]: On test.stableflow.source_not_null_raw_load_log_status.953965e13b: Close
+[0m10:44:57.706576 [info ] [Thread-3 (]: 25 of 27 PASS source_not_null_raw_load_log_status .............................. [[32mPASS[0m in 0.46s]
+[0m10:44:57.722240 [debug] [Thread-3 (]: Finished running node test.stableflow.source_not_null_raw_load_log_status.953965e13b
+[0m10:44:57.727265 [debug] [Thread-3 (]: Began running node test.stableflow.unique_stg_assets_id.626265edaa
+[0m10:44:57.739805 [info ] [Thread-3 (]: 27 of 27 START test unique_stg_assets_id ....................................... [RUN]
+[0m10:44:57.744724 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.stableflow.source_not_null_raw_load_log_status.953965e13b, now test.stableflow.unique_stg_assets_id.626265edaa)
+[0m10:44:57.758477 [debug] [Thread-3 (]: Began compiling node test.stableflow.unique_stg_assets_id.626265edaa
+[0m10:44:57.800189 [debug] [Thread-3 (]: Writing injected SQL for node "test.stableflow.unique_stg_assets_id.626265edaa"
+[0m10:44:57.815919 [debug] [Thread-3 (]: Began executing node test.stableflow.unique_stg_assets_id.626265edaa
+[0m10:44:57.832420 [debug] [Thread-3 (]: Writing runtime sql for node "test.stableflow.unique_stg_assets_id.626265edaa"
+[0m10:44:57.835212 [debug] [Thread-3 (]: Using postgres connection "test.stableflow.unique_stg_assets_id.626265edaa"
+[0m10:44:57.843163 [debug] [Thread-3 (]: On test.stableflow.unique_stg_assets_id.626265edaa: /* {"app": "dbt", "dbt_version": "1.12.6", "profile_name": "stableflow", "target_name": "dev", "node_id": "test.stableflow.unique_stg_assets_id.626265edaa"} */
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+select
+    id as unique_field,
+    count(*) as n_records
+
+from "stableflow"."staging"."stg_assets"
+where id is not null
+group by id
+having count(*) > 1
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m10:44:57.848484 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m10:44:57.871273 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.425 seconds
+[0m10:44:57.874257 [debug] [Thread-1 (]: On test.stableflow.unique_mart_market_overview_date.76c07f8f34: ROLLBACK
+[0m10:44:57.911163 [debug] [Thread-1 (]: On test.stableflow.unique_mart_market_overview_date.76c07f8f34: Close
+[0m10:44:57.919738 [info ] [Thread-1 (]: 26 of 27 PASS unique_mart_market_overview_date ................................. [[32mPASS[0m in 0.65s]
+[0m10:44:57.942987 [debug] [Thread-1 (]: Finished running node test.stableflow.unique_mart_market_overview_date.76c07f8f34
+[0m10:44:58.053659 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.195 seconds
+[0m10:44:58.064532 [debug] [Thread-3 (]: On test.stableflow.unique_stg_assets_id.626265edaa: ROLLBACK
+[0m10:44:58.084669 [debug] [Thread-3 (]: On test.stableflow.unique_stg_assets_id.626265edaa: Close
+[0m10:44:58.093108 [info ] [Thread-3 (]: 27 of 27 PASS unique_stg_assets_id ............................................. [[32mPASS[0m in 0.35s]
+[0m10:44:58.101330 [debug] [Thread-3 (]: Finished running node test.stableflow.unique_stg_assets_id.626265edaa
+[0m10:44:58.374534 [debug] [Thread-4 (]: SQL status: SELECT 1 in 7.941 seconds
+[0m10:44:58.384037 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864: ROLLBACK
+[0m10:44:58.386824 [debug] [Thread-4 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864: Close
+[0m10:44:58.394085 [info ] [Thread-4 (]: 13 of 27 PASS dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain  [[32mPASS[0m in 8.01s]
+[0m10:44:58.411579 [debug] [Thread-4 (]: Finished running node test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864
+[0m10:45:00.739214 [debug] [Thread-2 (]: SQL status: SELECT 1 in 10.797 seconds
+[0m10:45:00.746774 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2: ROLLBACK
+[0m10:45:00.749665 [debug] [Thread-2 (]: On test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2: Close
+[0m10:45:00.753571 [info ] [Thread-2 (]: 10 of 27 PASS dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain  [[32mPASS[0m in 11.01s]
+[0m10:45:00.754848 [debug] [Thread-2 (]: Finished running node test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2
+[0m10:45:00.766961 [debug] [MainThread]: On master: COMMIT
+[0m10:45:00.768338 [debug] [MainThread]: Using postgres connection "master"
+[0m10:45:00.768909 [debug] [MainThread]: On master: COMMIT
+[0m10:45:00.769295 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m10:45:00.789652 [debug] [MainThread]: SQL status: COMMIT in 0.020 seconds
+[0m10:45:00.790449 [debug] [MainThread]: On master: Close
+[0m10:45:00.793831 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m10:45:00.796037 [debug] [MainThread]: Connection 'test.stableflow.unique_mart_market_overview_date.76c07f8f34' was properly closed.
+[0m10:45:00.796623 [debug] [MainThread]: Connection 'test.stableflow.dbt_utils_unique_combination_of_columns_mart_supply_chain_date__asset_id__chain.7d1fce8bf2' was properly closed.
+[0m10:45:00.797070 [debug] [MainThread]: Connection 'test.stableflow.unique_stg_assets_id.626265edaa' was properly closed.
+[0m10:45:00.799017 [debug] [MainThread]: Connection 'test.stableflow.dbt_utils_unique_combination_of_columns_stg_supply_daily_date__asset_id__chain.8b2efe0864' was properly closed.
+[0m10:45:00.799757 [info ] [MainThread]: 
+[0m10:45:00.800238 [info ] [MainThread]: Finished running 27 data tests in 0 hours 0 minutes and 13.82 seconds (13.82s).
+[0m10:45:00.815564 [debug] [MainThread]: Command end result
+[0m10:45:00.970021 [debug] [MainThread]: Wrote artifact WritableManifest to /home/freeman/stablecoin-flow/backend/transform/target/manifest.json
+[0m10:45:00.977072 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/freeman/stablecoin-flow/backend/transform/target/semantic_manifest.json
+[0m10:45:00.980701 [debug] [MainThread]: Wrote artifact OsiDocument to /home/freeman/stablecoin-flow/backend/transform/target/osi_document.json
+[0m10:45:01.003823 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/freeman/stablecoin-flow/backend/transform/target/run_results.json
+[0m10:45:01.008053 [info ] [MainThread]: 
+[0m10:45:01.008746 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m10:45:01.009963 [info ] [MainThread]: 
+[0m10:45:01.011836 [info ] [MainThread]: Done. PASS=27 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=27
+[0m10:45:01.014001 [debug] [MainThread]: Resource report: {"command_name": "test", "command_success": true, "command_wall_clock_time": 18.10049, "process_in_blocks": "0", "process_kernel_time": 1.783836, "process_mem_max_rss": "164108", "process_out_blocks": "0", "process_user_time": 8.382753}
+[0m10:45:01.016018 [debug] [MainThread]: Command `dbt test` succeeded at 10:45:01.015694 after 18.10 seconds
+[0m10:45:01.017234 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080bdb3db50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080ba9d8730>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7080ba9d90d0>]}
+[0m10:45:01.017919 [debug] [MainThread]: Flushing usage events
+[0m10:45:02.001164 [debug] [MainThread]: An error was encountered while trying to flush usage events

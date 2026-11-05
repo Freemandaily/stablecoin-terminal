@@ -1,0 +1,11 @@
+# build-context slimming — only pyproject/uv.lock + backend/ + ui/ are copied
+.git
+.venv
+**/__pycache__
+data/
+docs/
+backend/transform/
+backend/ingest/tests/
+*.md
+.env
+docker-compose.yml

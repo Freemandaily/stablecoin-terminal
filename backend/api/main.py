@@ -46,7 +46,7 @@ def _overview() -> dict:
                        lag(total_supply_usd, 7)  over (order by date) as p7,
                        lag(total_supply_usd, 30) over (order by date) as p30,
                        usdt_share, usdc_share
-                from mart_market_overview
+                from marts.mart_market_overview
             )
             select date, v, v - p1 as d1, v - p7 as d7, v - p30 as d30,
                    usdt_share, usdc_share
@@ -71,8 +71,8 @@ def _overview() -> dict:
             r["asset_id"]: _f(r["dev_bps"])
             for r in cur.execute(
                 """
-                select asset_id, dev_bps from mart_peg_daily
-                where date = (select max(date) from mart_peg_daily)
+                select asset_id, dev_bps from marts.mart_peg_daily
+                where date = (select max(date) from marts.mart_peg_daily)
                 """
             ).fetchall()
         }
@@ -94,12 +94,12 @@ def _overview() -> dict:
 
         # ── chain distribution (View A bars): now vs 7d ago, within core set ──
         latest = cur.execute(
-            "select max(date) d from stg_supply_daily where chain <> 'ALL'"
+            "select max(date) d from staging.stg_supply_daily where chain <> 'ALL'"
         ).fetchone()["d"]
         ref7 = latest - timedelta(days=7)
         d7date = cur.execute(
             """
-            select max(date) d from stg_supply_daily
+            select max(date) d from staging.stg_supply_daily
             where chain <> 'ALL' and date <= %s
             """,
             (ref7,),
@@ -110,7 +110,7 @@ def _overview() -> dict:
                 r["chain"]: _f(r["amt"])
                 for r in cur.execute(
                     """
-                    select chain, sum(amount_usd) as amt from stg_supply_daily
+                    select chain, sum(amount_usd) as amt from staging.stg_supply_daily
                     where date = %s and chain <> 'ALL' group by chain
                     """,
                     (day,),
@@ -153,7 +153,7 @@ def _overview() -> dict:
 
     return {
         "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
-        "source": "api: mart_market_overview · raw_assets · mart_peg_daily",
+        "source": "api: marts.mart_market_overview · public.raw_assets · marts.mart_peg_daily",
         "market": {
             "total": _f(m["v"]),
             "d1": _f(m["d1"]), "d7": _f(m["d7"]), "d30": _f(m["d30"]),
