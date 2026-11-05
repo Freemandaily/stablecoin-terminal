@@ -63,8 +63,52 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 .chip.s{border-color:var(--acc-dim);color:var(--acc)}
 .grid2{display:grid;grid-template-columns:1fr 1fr}
 .grid2>*:first-child{border-right:1px solid var(--line)}
-@media(max-width:1100px){.grid2{grid-template-columns:1fr}.grid2>*:first-child{border-right:none}
-  .wrap{grid-template-columns:1fr}.rail{border-top:1px solid var(--line2)}.strip{grid-template-columns:repeat(3,1fr)}}
+/* ── responsive: 1440 / ≤1100 / phones (AGENTS §11 + B-D20) ─────── */
+@media(max-width:1100px){
+  .grid2{grid-template-columns:1fr}
+  .grid2>*:first-child{border-right:none}
+  .wrap{grid-template-columns:1fr}
+  .rail{border-top:1px solid var(--line2)}
+  .strip{grid-template-columns:repeat(3,1fr)}
+  .cell{border-bottom:1px solid var(--line)}
+  .cell:nth-last-child(-n+3){border-bottom:none}
+}
+@media(max-width:768px){
+  /* header → 2 rows: [logo | asof] then a full-width tab bar */
+  header{flex-wrap:wrap;height:auto;padding:0 10px}
+  .logo{order:1;height:44px;font-size:13px}
+  .logo .sub{display:none}
+  .hright{order:2;height:44px;gap:12px;font-size:10px}
+  .hright .live{display:none}
+  .hright span:last-child{display:none}
+  nav{order:3;flex-basis:100%;height:40px;margin-left:0;border-top:1px solid var(--line)}
+  nav button{flex:1;padding:0 8px;font-size:10px;letter-spacing:.06em}
+  .railhead{top:84px}
+  /* strip → 2 columns */
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .cell{padding:8px 10px}
+  .cell:nth-last-child(-n+3){border-bottom:1px solid var(--line)}
+  .cell:nth-last-child(-n+2){border-bottom:none}
+  /* density */
+  .phead{padding:9px 10px;gap:8px;flex-wrap:wrap}
+  td,th{padding:7px 9px}
+  .chainrow{grid-template-columns:96px 1fr 74px 62px;gap:8px;padding:8px 10px;font-size:11px}
+  .pegrow{grid-template-columns:70px 1fr 76px;gap:10px;padding:8px 10px}
+  .notice{margin:10px}
+  .railhead{padding:9px 10px}
+  .railnote{padding:8px 10px}
+  .feed li{padding:9px 10px}
+  footer{padding:10px;gap:10px}
+}
+@media(max-width:480px){
+  .logo{font-size:12px}
+  .hright{font-size:9px;gap:8px}
+  nav button{font-size:9px;letter-spacing:.04em;padding:0 4px}
+  .cell{padding:8px}
+  td{font-size:11.5px}
+  .chainrow{grid-template-columns:84px 1fr 64px 56px;gap:6px;padding:8px;font-size:10.5px}
+  .pegrow{grid-template-columns:56px 1fr 64px;gap:8px;padding:8px;font-size:11px}
+}
 
 /* ── chart ──────────────────────────────── */
 .chartbox{position:relative;padding:14px 16px 8px}
@@ -75,6 +119,9 @@ svg{display:block;width:100%}
 
 /* ── tables ─────────────────────────────── */
 table{width:100%;border-collapse:collapse}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tscroll table{min-width:540px}
+.tscroll.wide table{min-width:760px}
 th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:500;
   text-align:right;padding:7px 16px;border-bottom:1px solid var(--line);background:var(--panel);
   cursor:pointer;user-select:none;white-space:nowrap}
@@ -172,7 +219,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
     <div class="panel">
       <div class="phead"><span class="t">Assets</span>
         <span class="chip">TOP 12 · CLICK HEADER TO SORT</span><span class="m" id="assetmeta"></span></div>
-      <table id="coinstable">
+      <div class="tscroll wide"><table id="coinstable">
         <thead><tr>
           <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
           <th data-k="supply">Circulating</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
@@ -180,7 +227,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
           <th data-k="share">Share</th>
         </tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </div>
 
     <div class="panel">
@@ -202,9 +249,9 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
       <div class="phead"><span class="t">Peg Events</span>
         <span class="chip s">DETECTION: |DEV| &gt; 50 BPS</span>
         <span class="m">FULL EVENT HISTORY → MART_PEG_DAILY (P1.5)</span></div>
-      <table><thead><tr>
+      <div class="tscroll"><table><thead><tr>
         <th class="l">Date</th><th class="l">Asset</th><th>Deviation</th><th class="l">Class</th><th class="l">Status</th>
-      </tr></thead><tbody id="pegevents"></tbody></table>
+      </tr></thead><tbody id="pegevents"></tbody></table></div>
       <div class="notice" id="pegnote"></div>
     </div>
   </section>
@@ -230,9 +277,9 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
     <div class="panel">
       <div class="phead"><span class="t">Exchange Flows — 24H</span>
         <span class="chip s">SAMPLE</span><span class="m">TOP EXCHANGES · USDT+USDC</span></div>
-      <table><thead><tr>
+      <div class="tscroll"><table><thead><tr>
         <th class="l">Exchange</th><th>Inflow</th><th>Outflow</th><th>Netflow</th><th class="l">Bar</th>
-      </tr></thead><tbody id="extable"></tbody></table>
+      </tr></thead><tbody id="extable"></tbody></table></div>
     </div>
   </section>
 
@@ -260,7 +307,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 (async () => {
 /* ── data source: live API first, seed file as fallback ───────── */
 const D = await (async () => {
-  for (const url of ['/api/overview', 'http://localhost:8080/api/overview']) {
+  for (const url of ['/api/overview', 'http://localhost:8081/api/overview']) {
     try {
       const r = await fetch(url, { cache: 'no-store' });
       if (r.ok) return await r.json();
@@ -270,6 +317,7 @@ const D = await (async () => {
 })();
 const M = D.market;
 const $ = s => document.querySelector(s);
+const MOBILE = matchMedia('(max-width:768px)').matches;
 const fmtUSD = v => { const a=Math.abs(v);
   if(a>=1e12) return (v/1e12).toFixed(2)+'T';
   if(a>=1e9)  return (v/1e9).toFixed(1)+'B';
@@ -300,7 +348,8 @@ $('#strip').innerHTML = [
 
 /* ── supply area chart (hand-rolled SVG) ─ */
 (function(){
-  const W=1000,H=250,PT=12,PB=26,PL=54,PR=14;
+  /* mobile: narrower viewBox keeps axis fonts legible at phone widths */
+  const W=MOBILE?460:1000,H=MOBILE?300:250,PT=12,PB=26,PL=MOBILE?48:54,PR=14;
   const pts=D.hist, vals=pts.map(p=>p.v);
   let lo=Math.min(...vals), hi=Math.max(...vals); const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
   const X=i=>PL+(i/(pts.length-1))*(W-PL-PR);
@@ -330,9 +379,10 @@ $('#strip').innerHTML = [
       <circle id="xd" r="3.5" fill="#E8B33C" opacity="0"/>
     </svg>`;
   const svg=$('#svgs'),tip=$('#supplytip'),xh=$('#xh'),xd=$('#xd');
-  svg.addEventListener('mousemove',e=>{ const r=svg.getBoundingClientRect();
-    const px=(e.clientX-r.left)/r.width*W;
-    if(px<PL||px>W-PR){ tip.style.display='none'; xh.setAttribute('opacity',0); xd.setAttribute('opacity',0); return; }
+  const hide=()=>{ tip.style.display='none'; xh.setAttribute('opacity',0); xd.setAttribute('opacity',0); };
+  const track=cx=>{ const r=svg.getBoundingClientRect();
+    const px=(cx-r.left)/r.width*W;
+    if(px<PL||px>W-PR){ hide(); return; }
     const i=Math.round((px-PL)/(W-PL-PR)*(pts.length-1));
     const x=X(i),y=Y(pts[i].v);
     xh.setAttribute('x1',x); xh.setAttribute('x2',x); xh.setAttribute('opacity',.5);
@@ -340,9 +390,12 @@ $('#strip').innerHTML = [
     tip.innerHTML=`<div class="dt">${pts[i].d}</div>${fmtUSD(pts[i].v)}`;
     tip.style.display='block';
     tip.style.left=Math.min(r.width-120,(x/W)*r.width+14)+'px';
-    tip.style.top=((y/H)*r.height)+'px'; });
-  svg.addEventListener('mouseleave',()=>{ tip.style.display='none';
-    xh.setAttribute('opacity',0); xd.setAttribute('opacity',0); });
+    tip.style.top=((y/H)*r.height)+'px'; };
+  svg.addEventListener('mousemove',e=>track(e.clientX));
+  svg.addEventListener('mouseleave',hide);
+  svg.addEventListener('touchstart',e=>track(e.touches[0].clientX),{passive:true});
+  svg.addEventListener('touchmove',e=>track(e.touches[0].clientX),{passive:true});
+  svg.addEventListener('touchend',hide);
 })();
 
 /* ── coins table (sortable) ────────────── */
@@ -420,7 +473,7 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
   let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
   return ((t^t>>>14)>>>0)/4294967296; }; }
 (function(){ // mint vs burn bars
-  const r=rng(42), days=30, W=1000,H=210,PT=10,PB=22,PL=54;
+  const r=rng(42), days=30, W=MOBILE?460:1000,H=MOBILE?240:210,PT=10,PB=22,PL=MOBILE?48:54;
   const series=[...Array(days)].map((_,i)=>{
     const m=(2+r()*6)*1e9*(i>20?1.35:1), b=m*(0.55+r()*0.95);
     return {m,b}; });
@@ -441,7 +494,7 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
       ▉ MINT (GREEN)  ▉ BURN (RED)</text></svg>`;
 })();
 (function(){ // z-score line
-  const r=rng(7), n=30, W=1000,H=190,PT=12,PB=22,PL=44;
+  const r=rng(7), n=30, W=MOBILE?460:1000,H=MOBILE?240:190,PT=12,PB=22,PL=44;
   let z=0.3; const zs=[...Array(n)].map(()=>{ z=Math.max(-2.8,Math.min(2.8,z+(r()-.48)*1.1)); return z; });
   zs[n-1]=2.24;
   const X=i=>PL+(i/(n-1))*(W-PL-14);

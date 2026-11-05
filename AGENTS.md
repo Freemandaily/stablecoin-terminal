@@ -265,7 +265,7 @@ Copy this checklist into the task/PR description and check every box:
 [ ] Charts: SVG, ≤4 gridlines, semantic colors, provenance in phead (§6)
 [ ] Sample/unbacked data carries a SAMPLE chip; live views show as-of time (§9)
 [ ] Hover/focus/error/loading states follow §8 (focus outline intact)
-[ ] Renders correctly at 1440px and collapses sensibly ≤1100px
+[ ] Renders correctly at 1440px, collapses ≤1100px, fully usable ≤768/≤480 (B-D20)
 [ ] Compared side-by-side with ui/prototype/index.html — no downgrade
     in density, alignment, or restraint
 ```
@@ -288,4 +288,4 @@ it is a downgrade and must be rejected — regardless of code quality.
 | `backend/api/main.py` | FastAPI endpoint serving `/api/overview` (JSON = `data.js` shape) |
 
 *Amendments to this spec require: a `docs/decisions.md` entry + human approval.
-Last updated: 2026-11-04.*
+Last updated: 2026-11-05 (B-D20: mobile breakpoints added to §11).
