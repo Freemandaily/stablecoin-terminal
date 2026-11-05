@@ -114,6 +114,8 @@ table{width:100%;border-collapse:collapse}
 .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tscroll table{min-width:540px}
 .tscroll.wide table{min-width:760px}
+.tscroll.tall{max-height:min(70vh,640px);overflow-y:auto}
+.tscroll.tall thead th{position:sticky;top:0;z-index:1}
 th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:500;
   text-align:right;padding:7px 16px;border-bottom:1px solid var(--line);background:var(--panel);
   cursor:pointer;user-select:none;white-space:nowrap}
@@ -206,7 +208,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
     <div class="panel">
       <div class="phead"><span class="t">Assets</span>
         <span class="chip">TOP 12 · CLICK HEADER TO SORT</span><span class="m" id="assetmeta"></span></div>
-      <div class="tscroll wide"><table id="coinstable">
+      <div class="tscroll wide tall"><table id="coinstable">
         <thead><tr>
           <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
           <th data-k="supply">Market cap</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
@@ -302,6 +304,14 @@ const D = await (async () => {
   }
   return window.SF;  // seed data (file:// or API down)
 })();
+/* full coin list for the Assets table — falls back to overview's top-12 */
+let ALL = D.coins;
+for (const url of ['/api/coins', 'http://localhost:8081/api/coins']) {
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (r.ok) { ALL = (await r.json()).coins; break; }
+  } catch (e) { /* next candidate */ }
+}
 const M = D.market;
 const $ = s => document.querySelector(s);
 const MOBILE = matchMedia('(max-width:768px)').matches;
@@ -386,7 +396,7 @@ $('#strip').innerHTML = [
 })();
 
 /* ── coins table (sortable) ────────────── */
-const rows = D.coins.map((c,i)=>({rank:i+1, ...c,
+const rows = ALL.map((c,i)=>({rank:i+1, ...c,
   dev:(c.price-1)*10000, share:c.supply/M.total*100}));
 let sortK='supply', sortDir=-1;
 function drawTable(){

@@ -66,6 +66,20 @@ Feeds the prototype's Overview / Peg / Flows tabs (exact `data.js` shape).
 }
 ```
 
+## 1b · `GET /api/coins` — LIVE (full Assets table)
+
+All live `peggedUSD` coins with supply > 0, **cap order, no limit** — same row
+objects as `overview.coins`. Added for the scrollable Assets table (B-D24);
+`/api/overview` keeps its documented top-12.
+
+```jsonc
+{
+  "asof": "...", "source": "api: public.raw_assets · marts.mart_peg_daily",
+  "count": 333,
+  "coins": [ { "sym":"USDT", ... } ]   // same shape as overview.coins[0]
+}
+```
+
 ## 2 · `GET /api/peg` — LIVE (View C)
 
 ```jsonc

@@ -34,6 +34,47 @@ def _f(v) -> float:
     return float(v) if v is not None else 0.0
 
 
+def _coins_list(cur, limit: int | None = None) -> list[dict]:
+    """Cap-ordered coin rows with latest peg dev — shared by
+    /api/overview (top-12, contract §1) and /api/coins (all, contract §1b)."""
+    sql = """
+        select id, symbol, name, circulating_usd, prev_day_usd, prev_week_usd,
+               prev_month_usd, price, peg_mechanism, n_chains
+        from raw_assets
+        where peg_type = 'peggedUSD' and circulating_usd > 0
+        order by circulating_usd desc
+    """
+    rows = (
+        cur.execute(sql + " limit %s", (limit,)).fetchall()
+        if limit
+        else cur.execute(sql).fetchall()
+    )
+    # latest peg deviation per asset (View C / dev column)
+    peg_dev = {
+        r["asset_id"]: _f(r["dev_bps"])
+        for r in cur.execute(
+            """
+            select asset_id, dev_bps from marts.mart_peg_daily
+            where date = (select max(date) from marts.mart_peg_daily)
+            """
+        ).fetchall()
+    }
+    return [
+        {
+            "sym": r["symbol"], "name": r["name"], "id": r["id"],
+            "supply": _f(r["circulating_usd"]),
+            "d1": _f(r["circulating_usd"]) - _f(r["prev_day_usd"]),
+            "d7": _f(r["circulating_usd"]) - _f(r["prev_week_usd"]),
+            "d30": _f(r["circulating_usd"]) - _f(r["prev_month_usd"]),
+            "price": _f(r["price"]) if r["price"] is not None else None,
+            "peg": r["peg_mechanism"] or "",
+            "chains": r["n_chains"],
+            "dev": peg_dev.get(r["id"]),
+        }
+        for r in rows
+    ]
+
+
 def _overview() -> dict:
     with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
         # ── market headline + issuance deltas (View A ticker) ──
@@ -54,43 +95,8 @@ def _overview() -> dict:
             """
         ).fetchone()
 
-        # ── top-12 coins (View B table) ──
-        coins_rows = cur.execute(
-            """
-            select id, symbol, name, circulating_usd, prev_day_usd, prev_week_usd,
-                   prev_month_usd, price, peg_mechanism, n_chains
-            from raw_assets
-            where peg_type = 'peggedUSD' and circulating_usd > 0
-            order by circulating_usd desc
-            limit 12
-            """
-        ).fetchall()
-
-        # peg deviation for those coins, latest day (View C)
-        peg_dev = {
-            r["asset_id"]: _f(r["dev_bps"])
-            for r in cur.execute(
-                """
-                select asset_id, dev_bps from marts.mart_peg_daily
-                where date = (select max(date) from marts.mart_peg_daily)
-                """
-            ).fetchall()
-        }
-
-        coins = [
-            {
-                "sym": r["symbol"], "name": r["name"], "id": r["id"],
-                "supply": _f(r["circulating_usd"]),
-                "d1": _f(r["circulating_usd"]) - _f(r["prev_day_usd"]),
-                "d7": _f(r["circulating_usd"]) - _f(r["prev_week_usd"]),
-                "d30": _f(r["circulating_usd"]) - _f(r["prev_month_usd"]),
-                "price": _f(r["price"]) if r["price"] is not None else None,
-                "peg": r["peg_mechanism"] or "",
-                "chains": r["n_chains"],
-                "dev": peg_dev.get(r["id"]),
-            }
-            for r in coins_rows
-        ]
+        # ── top-12 coins (View B table; all-coin list = GET /api/coins) ──
+        coins = _coins_list(cur, limit=12)
 
         # ── chain distribution (View A bars): now vs 7d ago, within core set ──
         latest = cur.execute(
@@ -175,6 +181,30 @@ def overview() -> JSONResponse:
     """Views A + B + C in one payload — same shape as data.js (the contract)."""
     try:
         return JSONResponse(_overview())
+    except psycopg.OperationalError as e:
+        return JSONResponse(
+            {"error": "database unreachable", "detail": str(e)},
+            status_code=503,
+        )
+
+
+def _coins() -> dict:
+    """All live peggedUSD coins with supply > 0, cap order (contract §1b)."""
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        coins = _coins_list(cur)
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: public.raw_assets · marts.mart_peg_daily",
+        "count": len(coins),
+        "coins": coins,
+    }
+
+
+@app.get("/api/coins")
+def coins_all() -> JSONResponse:
+    """Every stablecoin — same row shape as overview.coins, no limit."""
+    try:
+        return JSONResponse(_coins())
     except psycopg.OperationalError as e:
         return JSONResponse(
             {"error": "database unreachable", "detail": str(e)},
