@@ -335,7 +335,7 @@ $('#footn').textContent = 'SEED FETCHED '+D.asof;
 /* ── ticker strip ──────────────────────── */
 const pegBad = D.peg.rows.filter(r=>Math.abs(r.dev_bps)>50).length;
 $('#strip').innerHTML = [
-  ['Market cap',  fmtUSD(M.total),  'USDT+USDC+TOP-10 · ALL CHAINS', ''],
+  ['Market cap',  '$'+fmtUSD(M.total),  'USDT+USDC+TOP-10 · ALL CHAINS', ''],
   ['24h net iss.',  sgn(M.d1),        'vs yesterday',                  cls(M.d1)],
   ['7d net iss.',   sgn(M.d7),        'contraction'  ,                 cls(M.d7)],
   ['30d net iss.',  sgn(M.d30),       'contraction',                   cls(M.d30)],
@@ -374,7 +374,7 @@ $('#strip').innerHTML = [
       <path d="${area}" fill="url(#ag)"/>
       <path d="${line}" fill="none" stroke="${delta?'#4FB477':'#E0564E'}" stroke-width="1.6"/>
       <circle cx="${lx}" cy="${ly}" r="3" fill="${delta?'#4FB477':'#E0564E'}"/>
-      <text x="${lx-6}" y="${ly-9}" fill="#DBD8D2" font-size="11" font-family="IBM Plex Mono" text-anchor="end">${fmtUSD(M.total)}</text>
+      <text x="${lx-6}" y="${ly-9}" fill="#DBD8D2" font-size="11" font-family="IBM Plex Mono" text-anchor="end">$${fmtUSD(M.total)}</text>
       <line id="xh" y1="${PT}" y2="${H-PB}" stroke="#E8B33C" stroke-width="1" opacity="0"/>
       <circle id="xd" r="3.5" fill="#E8B33C" opacity="0"/>
     </svg>`;
@@ -411,7 +411,7 @@ function drawTable(){
     <tr>
       <td class="l rank">${String(r.rank).padStart(2,'0')}</td>
       <td class="l"><span class="sym">${esc(r.sym)}</span> <span class="nm">${esc(r.name)}</span></td>
-      <td>${fmtUSD(r.supply)}</td>
+      <td>$${fmtUSD(r.supply)}</td>
       <td class="${cls(r.d1)}">${sgn(r.d1)}</td>
       <td class="${cls(r.d7)}">${sgn(r.d7)}</td>
       <td class="${cls(r.d30)}">${sgn(r.d30)}</td>
@@ -420,7 +420,7 @@ function drawTable(){
       <td><div class="sharebar"><span class="dim">${r.share.toFixed(1)}%</span>
         <span class="tr"><i class="fl ${r.share===maxSh?'hi':''}" style="width:${r.share/maxSh*100}%"></i></span></div></td>
     </tr>`).join('');
-  $('#assetmeta').textContent=`AGGREGATE ${fmtUSD(M.total)} · ${rows.length} ASSETS`;
+  $('#assetmeta').textContent=`AGGREGATE $${fmtUSD(M.total)} · ${rows.length} ASSETS`;
 }
 document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('click',()=>{
   const k=th.dataset.k; sortDir = k===sortK ? -sortDir : (k==='sym'||k==='rank'?1:-1); sortK=k;
