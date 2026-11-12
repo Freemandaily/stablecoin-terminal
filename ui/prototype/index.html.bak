@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StableFlow — Stablecoin Circulation Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0D0E; --panel:#101315; --panel2:#14181B; --line:#1E2429; --line2:#2A3238;
+  --txt:#DBD8D2; --dim:#77818B; --dim2:#525C65;
+  --up:#4FB477; --down:#E0564E; --acc:#E8B33C; --acc-dim:#8A6A24;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;line-height:1.45}
+::selection{background:var(--acc);color:#000}
+a{color:var(--acc);text-decoration:none}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)} .dim{color:var(--dim)}
+.lbl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:500}
+
+/* ── header ─────────────────────────────── */
+header{display:flex;align-items:center;gap:16px;padding:0 16px;height:44px;
+  border-bottom:1px solid var(--line2);background:var(--panel);position:sticky;top:0;z-index:30}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:600;font-size:14px;letter-spacing:.04em}
+.logo .dot{width:7px;height:7px;background:var(--acc);border-radius:50%;box-shadow:0 0 6px var(--acc)}
+
+nav{display:flex;height:100%;margin-left:12px}
+nav button{height:100%;padding:0 16px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer}
+nav button:hover{color:var(--txt)}
+nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* ── ticker strip ───────────────────────── */
+.strip{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--line2);background:var(--panel2)}
+.cell{padding:10px 16px;border-right:1px solid var(--line)}
+.cell:last-child{border-right:none}
+.cell .v{font-family:var(--mono);font-size:21px;font-weight:500;letter-spacing:-.01em;margin-top:3px}
+.cell .v small{font-size:12px;color:var(--dim);font-weight:400}
+.cell .d{font-family:var(--mono);font-size:11px;margin-top:2px}
+.sample .v{color:var(--dim2)}
+
+/* ── layout ─────────────────────────────── */
+.wrap{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 44px - 74px)}
+.main{border-right:1px solid var(--line2);min-width:0}
+.rail{background:var(--panel);min-width:0}
+.view{display:none} .view.on{display:block}
+
+/* ── panels ─────────────────────────────── */
+.panel{border-bottom:1px solid var(--line2)}
+.phead{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.phead .t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.phead .m{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.05em}
+.chip{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 6px;border:1px solid var(--line2);
+  color:var(--dim);text-transform:uppercase}
+.chip.s{border-color:var(--acc-dim);color:var(--acc)}
+.grid2{display:grid;grid-template-columns:1fr 1fr}
+.grid2>*:first-child{border-right:1px solid var(--line)}
+/* ── responsive: 1440 / ≤1100 / phones (AGENTS §11 + B-D20) ─────── */
+@media(max-width:1100px){
+  .grid2{grid-template-columns:1fr}
+  .grid2>*:first-child{border-right:none}
+  .wrap{grid-template-columns:1fr}
+  .rail{border-top:1px solid var(--line2)}
+  .strip{grid-template-columns:repeat(3,1fr)}
+  .cell{border-bottom:1px solid var(--line)}
+  .cell:nth-last-child(-n+3){border-bottom:none}
+}
+@media(max-width:768px){
+  /* header → 2 rows: [logo] then a full-width tab bar */
+  header{flex-wrap:wrap;height:auto;padding:0 10px}
+  .logo{order:1;height:44px;font-size:13px}
+
+  nav{order:3;flex-basis:100%;height:40px;margin-left:0;border-top:1px solid var(--line)}
+  nav button{flex:1;padding:0 8px;font-size:10px;letter-spacing:.06em}
+  .railhead{top:84px}
+  /* strip → 2 columns */
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .cell{padding:8px 10px}
+  .cell:nth-last-child(-n+3){border-bottom:1px solid var(--line)}
+  .cell:nth-last-child(-n+2){border-bottom:none}
+  /* density */
+  .phead{padding:9px 10px;gap:8px;flex-wrap:wrap}
+  td,th{padding:7px 9px}
+  .chainrow{grid-template-columns:96px 1fr 74px 62px;gap:8px;padding:8px 10px;font-size:11px}
+  .pegrow{grid-template-columns:70px 1fr 76px;gap:10px;padding:8px 10px}
+  .notice{margin:10px}
+  .railhead{padding:9px 10px}
+  .railnote{padding:8px 10px}
+  .feed li{padding:9px 10px}
+  footer{padding:10px;gap:10px}
+}
+@media(max-width:480px){
+  .logo{font-size:12px}
+  nav button{font-size:9px;letter-spacing:.04em;padding:0 4px}
+  .cell{padding:8px}
+  td{font-size:11.5px}
+  .chainrow{grid-template-columns:84px 1fr 64px 56px;gap:6px;padding:8px;font-size:10.5px}
+  .pegrow{grid-template-columns:56px 1fr 64px;gap:8px;padding:8px;font-size:11px}
+}
+
+/* ── chart ──────────────────────────────── */
+.chartbox{position:relative;padding:14px 16px 8px}
+svg{display:block;width:100%}
+.tip{position:absolute;pointer-events:none;background:#000;border:1px solid var(--line2);
+  padding:5px 9px;font-family:var(--mono);font-size:11px;display:none;z-index:20;white-space:nowrap}
+.tip .dt{color:var(--dim);font-size:10px}
+
+/* ── tables ─────────────────────────────── */
+table{width:100%;border-collapse:collapse}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tscroll table{min-width:540px}
+.tscroll.wide table{min-width:840px}
+.tscroll.tall{max-height:min(70vh,640px);overflow-y:auto}
+.tscroll.tall thead th{position:sticky;top:0;z-index:1}
+td.nw{white-space:nowrap}
+td.nw .p2{margin-left:6px}
+th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:500;
+  text-align:right;padding:7px 16px;border-bottom:1px solid var(--line);background:var(--panel);
+  cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--txt)} th.l,td.l{text-align:left}
+th.sorted{color:var(--acc)}
+td{padding:7px 16px;border-bottom:1px solid var(--line);text-align:right;
+  font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:hover td{background:#121619}
+td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
+.sym{font-weight:600}
+.rank{color:var(--dim2);font-size:11px}
+.sharebar{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.sharebar .tr{width:72px;height:5px;background:#1A2024;position:relative}
+.sharebar .fl{position:absolute;left:0;top:0;bottom:0;background:var(--acc-dim)}
+.sharebar .fl.hi{background:var(--acc)}
+
+/* ── chain bars ─────────────────────────── */
+.chainrow{display:grid;grid-template-columns:110px 1fr 84px 74px;gap:12px;align-items:center;
+  padding:8px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
+.chainrow .bar{height:9px;background:#171C20;position:relative}
+.chainrow .bar i{position:absolute;inset:0 auto 0 0;background:var(--line2);display:block}
+.chainrow:hover .bar i{background:var(--acc-dim)}
+.chainrow .nm{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── peg board ──────────────────────────── */
+.pegrow{display:grid;grid-template-columns:88px 1fr 90px;gap:14px;align-items:center;
+  padding:8px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
+.pegtrack{position:relative;height:16px;background:
+  repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#161B1F 25%,transparent calc(25% + 1px))}
+.pegtrack .zero{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:var(--line2)}
+.pegtrack .thr{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--acc-dim)}
+.pegtrack .pin{position:absolute;top:50%;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--dim)}
+.pegtrack .pin.ok{background:var(--up)} .pegtrack .pin.bad{background:var(--down)}
+.pegtrack .pin.warn{background:var(--acc)}
+
+/* ── feed (right rail) ──────────────────── */
+.railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
+  background:var(--panel2);position:sticky;top:44px;z-index:10}
+.railhead .t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.feed{list-style:none}
+.feed li{display:grid;grid-template-columns:46px 1fr;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.feed .ts{font-family:var(--mono);font-size:10px;color:var(--dim2);padding-top:2px}
+.feed .ev{font-family:var(--mono);font-size:12px}
+.feed .ev .tag{display:inline-block;font-size:9px;letter-spacing:.08em;padding:1px 5px;
+  border:1px solid var(--line2);margin-right:6px;vertical-align:1px}
+.feed .ev .tag.mint{color:var(--up);border-color:#2A4A38}
+.feed .ev .tag.burn{color:var(--down);border-color:#4A2A28}
+.feed .ev .tag.ex{color:var(--acc);border-color:var(--acc-dim)}
+.feed .ev .tag.peg{color:#fff;background:var(--down);border-color:var(--down)}
+.feed .amt{font-weight:600}
+.feed .route{color:var(--dim);font-size:11px;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.feed .route b{color:var(--txt);font-weight:500}
+.feed .route .hl{color:var(--acc)}
+.railnote{padding:8px 14px;font-size:10.5px;color:var(--dim2);border-bottom:1px solid var(--line);.event-item{cursor:pointer}
+.event-detail{position:relative;margin-top:6px;padding:6px 8px;border:1px solid var(--line2);background:var(--panel);font-size:10px;color:var(--txt)}
+.detail-row{margin:3px 0}
+.detail-label{width:4em;display:inline-block;color:var(--dim);font-weight:500}
+.detail-value{display:inline-block;white-space:nowrap}
+.event-expander{height:20px;background:var(--panel)}
+.event-item.expanded .event-expander{height:auto;display:block}
+.event-item.expanded .event-detail{display:block}
+  font-family:var(--mono);letter-spacing:.02em}
+
+/* ── phase-2 placeholder ────────────────── */
+.notice{margin:16px;padding:11px 14px;border:1px dashed var(--line2);color:var(--dim);
+  font-family:var(--mono);font-size:11.5px;line-height:1.7}
+.notice b{color:var(--acc);font-weight:500}
+
+footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);font-family:var(--mono);
+  font-size:10.5px;display:flex;gap:20px;flex-wrap:wrap;background:var(--panel)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="dot"></span>STABLEFLOW TERMINAL</div>
+  <nav id="nav">
+    <button data-v="ov" class="on">OVERVIEW</button>
+    <button data-v="peg">PEG&nbsp;HEALTH</button>
+    <button data-v="fl">FLOWS</button>
+  </nav>
+</header>
+
+<div class="strip" id="strip"></div>
+
+<div class="wrap">
+<div class="main">
+
+  <!-- ══ VIEW: OVERVIEW ══ -->
+  <section class="view on" id="v-ov">
+    <div class="panel">
+      <div class="phead"><span class="t">Market Cap</span>
+        <span class="chip">365D</span><span class="m">USD-PEGGED · ALL CHAINS · DEFI LLAMA</span></div>
+      <div class="chartbox"><div id="supplytip" class="tip"></div><div id="supplychart"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="t">Assets</span><span class="m" id="assetmeta"></span></div>
+      <div class="tscroll wide tall"><table id="coinstable">
+        <thead><tr>
+          <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
+          <th data-k="supply">Market cap</th><th data-k="d1">1D</th><th data-k="d7">7D</th>
+          <th data-k="d30">30D</th><th data-k="price">Price</th>
+          <th data-k="share">Share</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+  </section>
+
+  <!-- ══ VIEW: PEG ══ -->
+  <section class="view" id="v-peg">
+    <div class="panel">
+      <div class="phead"><span class="t">Peg Deviation</span>
+        <span class="chip">TODAY · BPS FROM $1.0000</span>
+        <span class="m">±50 BPS = EVENT THRESHOLD</span></div>
+      <div style="padding:6px 0 0" id="pegboard"></div>
+    </div>
+    <div class="panel">
+      <div class="phead"><span class="t">Peg Events</span>
+        <span class="chip s">DETECTION: |DEV| &gt; 50 BPS</span>
+        <span class="m">FULL EVENT HISTORY → MART_PEG_DAILY (P1.5)</span></div>
+      <div class="tscroll"><table><thead><tr>
+        <th class="l">Date</th><th class="l">Asset</th><th>Deviation</th><th class="l">Class</th><th class="l">Status</th>
+      </tr></thead><tbody id="pegevents"></tbody></table></div>
+      <div class="notice" id="pegnote"></div>
+    </div>
+  </section>
+
+  <!-- ══ VIEW: FLOWS (Phase 2) ══ -->
+  <section class="view" id="v-fl">
+    <div class="notice"><b>PHASE 2 PANEL — SAMPLE DATA.</b> Mint/burn, exchange netflow and the z-score below
+      are generated placeholders illustrating views E–G. They populate from
+      <span style="color:var(--txt)">fct_daily_flows</span> once P2.3–P2.6 land (BigQuery ingest → dbt).</div>
+
+    <div class="panel">
+      <div class="phead"><span class="t">On-chain Mint vs Burn</span>
+        <span class="chip s">SAMPLE</span><span class="m">30D · USDT+USDC · ISSUER WALLETS</span></div>
+      <div class="chartbox"><div id="mbchart"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="t">Exchange Netflow — Z-Score (30D)</span>
+        <span class="chip s">SAMPLE</span><span class="m">|Z| &gt; 2 → ALERT</span></div>
+      <div class="chartbox"><div id="zchart"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="t">Exchange Flows — 24H</span>
+        <span class="chip s">SAMPLE</span><span class="m">TOP EXCHANGES · USDT+USDC</span></div>
+      <div class="tscroll"><table><thead><tr>
+        <th class="l">Exchange</th><th>Inflow</th><th>Outflow</th><th>Netflow</th><th class="l">Bar</th>
+      </tr></thead><tbody id="extable"></tbody></table></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══ RIGHT RAIL: ACTIVITY FEED ══ -->
+<aside class="rail">
+  <div class="railhead"><span class="t">Activity</span></div>
+  <ul class="feed" id="feed"></ul>
+</aside>
+</div>
+
+<footer>
+  <span>STABLEFLOW PROTOTYPE</span>
+  <span>SUPPLY/PEG: LIVE — STABLECOINS.LLAMA.FI</span>
+  <span>FLOWS: SAMPLE DATA (PHASE 2)</span>
+  <span id="footn"></span>
+</footer>
+
+<script src="data.js"></script>
+<script>
+(async () => {
+/* ── data source: live API first, seed file as fallback ───────── */
+const D = await (async () => {
+  for (const url of ['/api/overview', 'http://localhost:8081/api/overview']) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (r.ok) return await r.json();
+    } catch (e) { /* next candidate */ }
+  }
+  return window.SF;  // seed data (file:// or API down)
+})();
+/* full coin list for the Assets table — falls back to overview's top-12 */
+let ALL = D.coins;
+for (const url of ['/api/coins', 'http://localhost:8081/api/coins']) {
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (r.ok) { ALL = (await r.json()).coins; break; }
+  } catch (e) { /* next candidate */ }
+}
+const M = D.market;
+const $ = s => document.querySelector(s);
+const MOBILE = matchMedia('(max-width:768px)').matches;
+const fmtUSD = v => { const a=Math.abs(v);
+  if(a>=1e12) return (v/1e12).toFixed(2)+'T';
+  if(a>=1e9)  return (v/1e9).toFixed(1)+'B';
+  if(a>=1e6)  return (v/1e6).toFixed(1)+'M';
+  if(a>=1e3)  return (v/1e3).toFixed(0)+'K';
+  return v.toFixed(0); };
+const sgn = v => (v>0?'+':'')+fmtUSD(v);
+const bps = v => (v>0?'+':'')+v.toFixed(1);
+const pct = v => v==null ? '—' : (v>0?'+':'')+v.toFixed(2)+'%';
+const rel = (d, cur) => { const prev = cur - d; return prev > 0 ? d/prev*100 : null; };
+const cls = v => v>0?'up':v<0?'down':'dim';
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const NOW = new Date(D.asof.replace(' UTC','')+'Z');
+$('#footn').textContent = 'SEED FETCHED '+D.asof;
+
+/* ── ticker strip ──────────────────────── */
+$('#strip').innerHTML = [
+  ['Market cap',  '$'+fmtUSD(M.total),  'FULL MARKET · ALL CHAINS', ''],
+  ...D.coins.slice(0, 4).map((c, i) => [
+    c.sym,                                       // label: USDT, USDC, …
+    (c.supply / M.total * 100).toFixed(1) + '%', // dominance = coin cap / market cap
+    `#${i+1} by cap · $${fmtUSD(c.supply)}`,
+    ''
+  ]),
+  ['Top-2 share',   M.share90.USDT+M.share90.USDC+'%',
+                    'USDT '+M.share90.USDT+'% · USDC '+M.share90.USDC+'%', ''],
+].map(([l,v,s,c,sample])=>`<div class="cell${sample?'':''}">
+    <div class="lbl">${l}</div><div class="v mono ${c}">${v}</div>
+    <div class="d dim" style="font-size:10.5px">${s}</div></div>`).join('');
+
+/* ── supply area chart (hand-rolled SVG) ─ */
+(function(){
+  /* mobile: narrower viewBox keeps axis fonts legible at phone widths */
+  const W=MOBILE?460:1000,H=MOBILE?300:250,PT=12,PB=26,PL=MOBILE?48:54,PR=14;
+  const pts=D.hist, vals=pts.map(p=>p.v);
+  let lo=Math.min(...vals), hi=Math.max(...vals); const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  const X=i=>PL+(i/(pts.length-1))*(W-PL-PR);
+  const Y=v=>PT+(1-(v-lo)/(hi-lo))*(H-PT-PB);
+  let g='';
+  for(let k=0;k<=3;k++){ const v=lo+(hi-lo)*k/3, y=Y(v);
+    g+=`<line x1="${PL}" x2="${W-PR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#1A2024"/>
+        <text x="${PL-8}" y="${y+3.5}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${fmtUSD(v)}</text>`; }
+  [0,91,182,273,pts.length-1].forEach(i=>{ g+=
+    `<text x="${X(i)}" y="${H-8}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="${i===0?'start':i===pts.length-1?'end':'middle'}">${pts[i].d.slice(2)}</text>`; });
+  const line=pts.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(p.v).toFixed(1)}`).join('');
+  const area=`${line}L${X(pts.length-1)},${H-PB}L${PL},${H-PB}Z`;
+  const lx=X(pts.length-1), ly=Y(pts[pts.length-1].v);
+  const delta=M.d7>=0;
+  $('#supplychart').innerHTML=
+   `<svg viewBox="0 0 ${W} ${H}" id="svgs">
+      <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${delta?'#4FB477':'#E0564E'}" stop-opacity=".14"/>
+        <stop offset="1" stop-color="${delta?'#4FB477':'#E0564E'}" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${g}
+      <path d="${area}" fill="url(#ag)"/>
+      <path d="${line}" fill="none" stroke="${delta?'#4FB477':'#E0564E'}" stroke-width="1.6"/>
+      <circle cx="${lx}" cy="${ly}" r="3" fill="${delta?'#4FB477':'#E0564E'}"/>
+      <text x="${lx-6}" y="${ly-9}" fill="#DBD8D2" font-size="11" font-family="IBM Plex Mono" text-anchor="end">$${fmtUSD(M.total)}</text>
+      <line id="xh" y1="${PT}" y2="${H-PB}" stroke="#E8B33C" stroke-width="1" opacity="0"/>
+      <circle id="xd" r="3.5" fill="#E8B33C" opacity="0"/>
+    </svg>`;
+  const svg=$('#svgs'),tip=$('#supplytip'),xh=$('#xh'),xd=$('#xd');
+  const hide=()=>{ tip.style.display='none'; xh.setAttribute('opacity',0); xd.setAttribute('opacity',0); };
+  const track=cx=>{ const r=svg.getBoundingClientRect();
+    const px=(cx-r.left)/r.width*W;
+    if(px<PL||px>W-PR){ hide(); return; }
+    const i=Math.round((px-PL)/(W-PL-PR)*(pts.length-1));
+    const x=X(i),y=Y(pts[i].v);
+    xh.setAttribute('x1',x); xh.setAttribute('x2',x); xh.setAttribute('opacity',.5);
+    xd.setAttribute('cx',x); xd.setAttribute('cy',y); xd.setAttribute('opacity',1);
+    tip.innerHTML=`<div class="dt">${pts[i].d}</div>${fmtUSD(pts[i].v)}`;
+    tip.style.display='block';
+    tip.style.left=Math.min(r.width-120,(x/W)*r.width+14)+'px';
+    tip.style.top=((y/H)*r.height)+'px'; };
+  svg.addEventListener('mousemove',e=>track(e.clientX));
+  svg.addEventListener('mouseleave',hide);
+  svg.addEventListener('touchstart',e=>track(e.touches[0].clientX),{passive:true});
+  svg.addEventListener('touchmove',e=>track(e.touches[0].clientX),{passive:true});
+  svg.addEventListener('touchend',hide);
+})();
+
+/* ── coins table (sortable) ────────────── */
+const rows = ALL.map((c,i)=>({rank:i+1, ...c,
+  share:c.supply/M.total*100,
+  p1:rel(c.d1,c.supply), p7:rel(c.d7,c.supply), p30:rel(c.d30,c.supply)}));
+let sortK='supply', sortDir=-1;
+function drawTable(){
+  const sorted=[...rows].sort((a,b)=> sortK==='sym'||sortK==='sym'
+    ? sortDir*a.sym.localeCompare(b.sym)
+    : sortDir*((a[sortK])-(b[sortK])));
+  const maxSh=Math.max(...rows.map(r=>r.share));
+  $('#coinstable tbody').innerHTML = sorted.map(r=>`
+    <tr>
+      <td class="l rank">${String(r.rank).padStart(2,'0')}</td>
+      <td class="l"><span class="sym">${esc(r.sym)}</span> <span class="nm">${esc(r.name)}</span></td>
+      <td>$${fmtUSD(r.supply)}</td>
+      <td class="${cls(r.d1)} nw"><span class="p2">${pct(r.p1)}</span></td>
+      <td class="${cls(r.d7)} nw"><span class="p2">${pct(r.p7)}</span></td>
+      <td class="${cls(r.d30)} nw"><span class="p2">${pct(r.p30)}</span></td>
+      <td>${r.price? r.price.toFixed(4):'—'}</td>
+      <td><div class="sharebar"><span class="dim">${r.share.toFixed(1)}%</span>
+        <span class="tr"><i class="fl ${r.share===maxSh?'hi':''}" style="width:${r.share/maxSh*100}%"></i></span></div></td>
+    </tr>`).join('');
+}
+document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('click',()=>{
+  const k=th.dataset.k; sortDir = k===sortK ? -sortDir : (k==='sym'||k==='rank'?1:-1); sortK=k;
+  document.querySelectorAll('#coinstable th').forEach(t=>t.classList.toggle('sorted',t===th));
+  drawTable();
+}));
+drawTable();
+
+/* ── peg board ─────────────────────────── */
+(function(){
+  const rows=[...D.peg.rows].sort((a,b)=>Math.abs(b.dev_bps)-Math.abs(a.dev_bps));
+  const span=Math.max(...rows.map(r=>Math.abs(r.dev_bps)))*1.15;
+  const pos=v=>50+(v/span)*50;
+  $('#pegboard').innerHTML=rows.map(r=>{
+    const bad=Math.abs(r.dev_bps)>50, warn=Math.abs(r.dev_bps)>20;
+    return `<div class="pegrow">
+      <span>${esc(r.sym)}</span>
+      <span class="pegtrack">
+        <span class="zero"></span>
+        <span class="thr" style="left:${pos(50)}%"></span>
+        <span class="thr" style="left:${pos(-50)}%"></span>
+        <span class="pin ${bad?'bad':warn?'warn':'ok'}" style="left:${pos(r.dev_bps)}%"></span>
+      </span>
+      <span style="text-align:right" class="${bad?'down':warn?'':''}">${bps(r.dev_bps)}</span>
+    </div>`;}).join('');
+  const ev=rows.filter(r=>Math.abs(r.dev_bps)>50);
+  $('#pegevents').innerHTML = ev.length ? ev.map(r=>`
+    <tr><td class="l">${D.asof.slice(0,10)}</td><td class="l"><span class="sym">${r.sym}</span></td>
+    <td class="down">${bps(r.dev_bps)}</td><td class="l dim">deviation &gt; 50bps</td>
+    <td class="l"><span style="color:var(--acc)">●</span> <span class="dim">observed now</span></td></tr>`).join('')
+    : `<tr><td class="l dim" colspan="5">no coin beyond ±50 bps today</td></tr>`;
+  $('#pegnote').innerHTML=`Row-level event history (start, min price, duration, recovery) is built in
+    <b>P1.5 mart_peg_daily</b> from hourly prices — this prototype shows the live snapshot only.`;
+})();
+
+/* ── flows: sample series (deterministic) ─*/
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
+  let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+(function(){ // mint vs burn bars
+  const r=rng(42), days=30, W=MOBILE?460:1000,H=MOBILE?240:210,PT=10,PB=22,PL=MOBILE?48:54;
+  const series=[...Array(days)].map((_,i)=>{
+    const m=(2+r()*6)*1e9*(i>20?1.35:1), b=m*(0.55+r()*0.95);
+    return {m,b}; });
+  const hi=Math.max(...series.flatMap(s=>[s.m,s.b]))*1.1;
+  const gw=(W-PL-14)/days, bw=Math.min(9,gw/2.6);
+  let g='';
+  for(let k=0;k<=3;k++){ const v=hi*k/3, y=PT+(1-v/hi)*(H-PT-PB);
+    g+=`<line x1="${PL}" x2="${W-14}" y1="${y}" y2="${y}" stroke="#1A2024"/>
+        <text x="${PL-8}" y="${y+3.5}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${fmtUSD(v)}</text>`; }
+  const bars=series.map((s,i)=>{ const x=PL+i*gw+gw/2;
+    const hm=(s.m/hi)*(H-PT-PB), hb=(s.b/hi)*(H-PT-PB);
+    return `<rect x="${x-bw-1}" y="${H-PB-hm}" width="${bw}" height="${hm}" fill="#4FB477" opacity=".85"/>
+            <rect x="${x+1}"   y="${H-PB-hb}" width="${bw}" height="${hb}" fill="#E0564E" opacity=".85"/>`;}).join('');
+  const xl=[0,9,19,29].map(i=>`<text x="${PL+i*gw+gw/2}" y="${H-7}" fill="#525C65" font-size="10"
+      font-family="IBM Plex Mono" text-anchor="middle">D-${29-i}</text>`).join('');
+  $('#mbchart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}${bars}${xl}
+    <text x="${W-14}" y="${PT+2}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">
+      ▉ MINT (GREEN)  ▉ BURN (RED)</text></svg>`;
+})();
+(function(){ // z-score line
+  const r=rng(7), n=30, W=MOBILE?460:1000,H=MOBILE?240:190,PT=12,PB=22,PL=44;
+  let z=0.3; const zs=[...Array(n)].map(()=>{ z=Math.max(-2.8,Math.min(2.8,z+(r()-.48)*1.1)); return z; });
+  zs[n-1]=2.24;
+  const X=i=>PL+(i/(n-1))*(W-PL-14);
+  const Y=v=>PT+(1-(v+3)/6)*(H-PT-PB);
+  let g='';
+  [3,2,1,0,-1,-2,-3].forEach(v=>{ const y=Y(v);
+    const isT=Math.abs(v)===2;
+    g+=`<line x1="${PL}" x2="${W-14}" y1="${y}" y2="${y}" stroke="${isT?'#8A6A24':'#1A2024'}"
+          stroke-dasharray="${isT?'4 4':''}"/>
+        <text x="${PL-8}" y="${y+3.5}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${v>0?'+':''}${v}σ</text>`;});
+  const line=zs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  const lastX=X(n-1), lastY=Y(zs[n-1]);
+  const alert=zs[n-1]>2;
+  $('#zchart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}
+    <path d="${line}" fill="none" stroke="${alert?'#E8B33C':'#6FA8DC'}" stroke-width="1.6"/>
+    <circle cx="${lastX}" cy="${lastY}" r="3.5" fill="${alert?'#E8B33C':'#6FA8DC'}"/>
+    <text x="${lastX-8}" y="${lastY-9}" fill="${alert?'#E8B33C':'#DBD8D2'}" font-size="11"
+      font-family="IBM Plex Mono" text-anchor="end">Z ${zs[n-1]>0?'+':''}${zs[n-1].toFixed(2)}${alert?' — ALERT ARMED':''}</text>
+    <text x="${PL}" y="${Y(2)-5}" fill="#8A6A24" font-size="9.5" font-family="IBM Plex Mono">ALERT +2σ</text>
+    <text x="${PL}" y="${Y(-2)+12}" fill="#8A6A24" font-size="9.5" font-family="IBM Plex Mono">ALERT −2σ</text>
+    </svg>`;
+})();
+(function(){ // exchange table
+  const r=rng(99);
+  const ex=['Binance','Coinbase','OKX','Bybit','Kraken','Gate.io','Bitget','HTX'];
+  const rows=ex.map(e=>{ const i=(r()*2-1)*450e6;
+    return {e, inflow:Math.abs(i)*1.3+r()*150e6, outflow:Math.abs(i)*1.1+r()*150e6, net:i};});
+  rows.sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
+  const max=Math.max(...rows.map(x=>Math.abs(x.net)));
+  $('#extable').innerHTML=rows.map(x=>`
+    <tr><td class="l">${x.e}</td><td>${fmtUSD(x.inflow)}</td><td>${fmtUSD(x.outflow)}</td>
+    <td class="${cls(x.net)}">${sgn(x.net)}</td>
+    <td class="l" style="width:180px"><span style="position:relative;display:block;height:7px;background:#171C20">
+      <i style="position:absolute;left:50%;top:0;bottom:0;width:${Math.abs(x.net)/max*50}%;
+        background:${x.net>0?'#4FB477':'#E0564E'};${x.net<0?'transform:translateX(-100%)':''}"></i>
+      <i style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#2A3238"></i>
+    </span></td></tr>`).join('');
+})();
+
+/* ── activity feed (live from /api/events) ────────────── */
+(async () => {
+  const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
+  const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
+    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'ex' : 'peg';
+  const tagFor = t => t === 'MINT' ? 'MINT' : t === 'BURN' ? 'BURN' :
+    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'EXCHANGE' : 'PEG_BREAK';
+
+  let events = [];
+  try {
+    const r = await fetch('/api/events?limit=20', { cache: 'no-store' });
+    if (r.ok) events = (await r.json()).events || [];
+  } catch (e) { /* fall back to sample below */ }
+
+  if (!events.length) {
+    const ev=[
+      ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
+      ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
+      ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
+      ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
+      ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
+      ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
+      ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
+      ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
+      ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
+      ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
+      ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
+      ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
+      ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
+      ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
+    ];
+    events = ev.map(([ts,kind,tag,amt,unit,route])=>({
+      ts: `1970-01-01T${ts}:00Z`, type: tag, sym: unit, usd: amt.includes('−') ? -parseFloat(amt) : parseFloat(amt.replace(/[^0-9.]/g,'')),
+      from: null, to: null, label: route,
+    }));
+  }
+
+  // ── expand-on-click event detail ──────────────────────── */
+  const toggleEventDetail = li => {
+    li.classList.toggle('expanded')
+  }
+
+  const buildEventLi = e => {
+    const ts = e.ts ? e.ts.slice(11,16) : '--:--';
+    const kind = kindFor(e.type)
+    const tag = tagFor(e.type)
+    const amt = e.usd != null ? sgn(e.usd) : '—'
+    const unit = e.sym || ''
+    const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`
+    const txFull = e.tx || ''
+    const txDisplay = txFull ? `${txFull.slice(0,6)}…${txFull.slice(-6)}` : '—'
+    const hasDetail = !!txFull || e.from || e.to
+
+    // Detail block HTML (shown when expanded)
+    const detailHTML = hasDetail
+      ? `<div class="event-detail">
+          ${txFull
+            ? `<div class="detail-row"><span class="detail-label">Tx hash</span>
+                <span class="detail-value mono" title="${txFull}"
+                  onclick="navigator.clipboard && navigator.clipboard.writeText('${txFull}')"
+                  style="cursor:pointer;">${txFull.slice(0,6)}…${txFull.slice(-6)}</span>
+                <span class="detail-copy" style="cursor:pointer;font-size:90%;"
+                  onclick="event.stopPropagation();navigator.clipboard.writeText('${txFull}')">copy</span>`
+            : ''}
+          ${e.from ? `<div class="detail-row"><span class="detail-label">From</span>
+            <span class="detail-value mono dim">${fmtAddr(e.from)}</span></div>` : ''}
+          ${e.to ? `<div class="detail-row"><span class="detail-label">To</span>
+            <span class="detail-value mono dim">${fmtAddr(e.to)}</span></div>` : ''}
+          ${e.label ? `<div class="detail-row" style="color:var(--acc)"><span class="detail-label">Label</span>
+            <span class="detail-value">${esc(e.label)}</span></div>` : ''}
+        </div>`
+      : ''
+
+    // Main clickable area (always visible)
+    const mainHTML = `<span class="ts">${ts}</span>
+      <span class="ev">
+        <span class="tag ${kind}">${tag}</span>
+        <span class="amt">${amt}</span> <span class="dim">${unit}</span>
+        <div class="route">${route}</div>
+      </span>`
+
+    // Full li with expand toggle
+    return `<li class="event-item" onclick="toggleEventDetail(this)" style="cursor:pointer">
+      ${mainHTML}${hasDetail ? `<div class="event-expander" style="display:none"></div>` : ''}</li>`
+  }
+
+  $('#feed').innerHTML = events
+    .filter(e => e.type !== 'PEG_BREAK')
+    .map(buildEventLi)
+    .join('')
+
+  // Ensure expanders are attached after render
+  attachTxCopyHandlers()
+}
+
+/* ── tabs ──────────────────────────────── */
+
+/* ── copy transaction hash to clipboard ────────────────────── */
+function copyTxHash(el) {
+  const fullTx = el.title;
+  if (!fullTx || fullTx === '') return;
+  navigator.clipboard.writeText(fullTx).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'copied';
+    setTimeout(() => { el.textContent = orig; }, 1200);
+  });
+}
+
+/* ── attach copy handlers to tx-hash elements ──────────────── */
+function attachTxCopyHandlers() {
+  document.querySelectorAll('.tx-hash').forEach(span => {
+    span.addEventListener('click', (e) => copyTxHash(span));
+  });
+}
+
+/* ── tabs ──────────────────────────────── */
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
+}));
+})();
+</script>
+</body>
+</html>

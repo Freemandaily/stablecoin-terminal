@@ -278,9 +278,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 </div>
 
 <footer>
-  <span>STABLEFLOW PROTOTYPE</span>
-  <span>SUPPLY/PEG: LIVE — STABLECOINS.LLAMA.FI</span>
-  <span>FLOWS: SAMPLE DATA (PHASE 2)</span>
   <span id="footn"></span>
 </footer>
 
@@ -321,7 +318,6 @@ const rel = (d, cur) => { const prev = cur - d; return prev > 0 ? d/prev*100 : n
 const cls = v => v>0?'up':v<0?'down':'dim';
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const NOW = new Date(D.asof.replace(' UTC','')+'Z');
-$('#footn').textContent = 'SEED FETCHED '+D.asof;
 
 /* ── ticker strip ──────────────────────── */
 $('#strip').innerHTML = [
@@ -513,44 +509,35 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
     </span></td></tr>`).join('');
 })();
 
-/* ── activity feed (live from /api/events) ────────────── */
-(async () => {
+/* ── activity feed (sample data) ──────────────────────── */
   const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
   const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
     (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'ex' : 'peg';
   const tagFor = t => t === 'MINT' ? 'MINT' : t === 'BURN' ? 'BURN' :
     (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'EXCHANGE' : 'PEG_BREAK';
 
-  let events = [];
-  try {
-    const r = await fetch('/api/events?limit=20', { cache: 'no-store' });
-    if (r.ok) events = (await r.json()).events || [];
-  } catch (e) { /* fall back to sample below */ }
+  const ev=[
+    ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
+    ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
+    ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
+    ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
+    ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
+    ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
+    ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
+    ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
+    ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
+    ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
+    ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
+    ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
+    ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
+    ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
+  ];
+  events = ev.map(([ts,kind,tag,amt,unit,route])=>({
+    ts: `1970-01-01T${ts}:00Z`, type: tag, sym: unit, usd: amt.includes('−') ? -parseFloat(amt) : parseFloat(amt.replace(/[^0-9.]/g,'')),
+    from: null, to: null, label: route,
+  }));
 
-  if (!events.length) {
-    const ev=[
-      ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
-      ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
-      ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
-      ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
-      ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
-      ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
-      ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
-      ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
-      ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
-      ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
-      ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
-      ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
-      ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
-      ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
-    ];
-    events = ev.map(([ts,kind,tag,amt,unit,route])=>({
-      ts: `1970-01-01T${ts}:00Z`, type: tag, sym: unit, usd: amt.includes('−') ? -parseFloat(amt) : parseFloat(amt.replace(/[^0-9.]/g,'')),
-      from: null, to: null, label: route,
-    }));
-  }
-
-  $('#feed').innerHTML = events.map(e => {
+  $('#feed').innerHTML = events.filter(e => e.type === 'MINT' || e.type === 'BURN').map(e => {
     const ts = e.ts ? e.ts.slice(11,16) : '--:--';
     const kind = kindFor(e.type);
     const tag = tagFor(e.type);
@@ -563,7 +550,7 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
         <div class="route">${route}</div>
       </span></li>`;
   }).join('');
-})();
+
 
 /* ── tabs ──────────────────────────────── */
 document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
