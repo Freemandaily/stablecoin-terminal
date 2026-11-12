@@ -25,6 +25,8 @@ services:
       PGHOST: postgres          # in-compose DNS; overrides any host .env (load_dotenv never overrides)
     ports:
       - "8081:8080"             # host 8081 (B-D18; 8080 held by user's static server)
+    volumes:
+      - ./ui/prototype:/app/ui/prototype  # live-reload frontend edits
     depends_on:
       postgres:
         condition: service_healthy

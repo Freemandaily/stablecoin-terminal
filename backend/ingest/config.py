@@ -22,7 +22,8 @@ LLAMA_S1 = "https://stablecoins.llama.fi/stablecoins"            # metadata, all
 LLAMA_S2 = "https://stablecoins.llama.fi/stablecoin/{id}"        # per-coin + per-chain history
 LLAMA_S3 = "https://stablecoins.llama.fi/stablecoincharts/all"   # totals by peg currency
 LLAMA_S4 = "https://stablecoins.llama.fi/stablecoinprices"       # current prices, all coins
-LLAMA_COINGECKO = "https://api.coingecko.com/api/v3"  # backup (§6.4)
+LLAMA_COINGECKO = "https://api.coingecko.com/api/v3"  # backup prices (§6.4)
+COINGECKO_BASE = "https://api.coingecko.com/api/v3"    # coin metadata + images (logo_url)
 
 # ── Ingest scope (P1.2: resolve ids at runtime from S1; these seed the core set)
 CORE_COIN_SYMBOLS = ("USDT", "USDC", "DAI", "USDS", "USDe", "PYUSD", "RLUSD")
@@ -37,6 +38,10 @@ BQ_TOKEN_ADDRESSES = (  # USDT, USDC, DAI (mainnet, lowercase for BigQuery compa
     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",  # USDC
     "0x6b175474e89094c44da98b954eedeac495271d0f",  # DAI
 )
+
+# ── CryptoLabel address labels (P2.2) ──
+CRYPTOLABEL_BASE = "https://cryptolabel.io/api/v1"
+CRYPTOLABEL_API_KEY = os.getenv("CRYPTOLABEL_API_KEY", "")
 
 # ── Alerts
 TG_TOKEN = os.getenv("TG_TOKEN", "")

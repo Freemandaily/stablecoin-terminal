@@ -61,3 +61,38 @@ models:
           # tests/assert_total_supply_nonnegative.sql for the real invariant.
           - dbt_utils.expression_is_true:
               expression: ">= -1000000000000"
+
+  - name: stg_issuer_events
+    description: P2.2 issuer events (USDC/USDT mint·burn·blacklist), raw log payload dropped.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - transaction_hash
+            - log_index
+    columns:
+      - name: block_timestamp
+        tests:
+          - not_null
+      - name: token
+        tests:
+          - not_null
+      - name: event_type
+        tests:
+          - not_null
+      - name: amount_usd
+        tests:
+          # decode sanity: non-negative, below $1T per event — tripwire for a
+          # bad hex decode (real single events are nowhere near that bound)
+          - dbt_utils.expression_is_true:
+              expression: ">= 0 and amount_usd < 1000000000000"
+
+  - name: stg_address_labels
+    description: P2.2 CryptoLabel lookups for blacklisted addresses; has_label = real entity_name ('Unknown' = unlabeled, retried).
+    columns:
+      - name: address
+        tests:
+          - unique
+          - not_null
+      - name: has_label
+        tests:
+          - not_null

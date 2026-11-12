@@ -4,8 +4,8 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help setup lint test up down backend-logs migrate dbt-run dbt-test \
-        ingest-supply ingest-prices ingest-transfers ingest-check \
-        labels-check bq-dryrun serve digest verify
+        ingest-supply ingest-prices ingest-transfers ingest-check ingest-issuer-events \
+        enrich-labels labels-check bq-dryrun serve digest verify export-issuer-events
 
 help: ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -40,18 +40,33 @@ dbt-test: ## run dbt tests
 ingest-check: ## smoke-test data source connectivity
 	uv run python -m backend.ingest.check
 
-ingest-supply: ## DeFiLlama ingest (S1-S4 + core coin histories) → raw_* tables
+ingest-supply: ## DeFiLlama ingest (S1-S4 + ALL peggedUSD coin histories, ~10-20 min) → raw_*
 	uv run python -m backend.ingest.defillama --coins
+ingest-logos: ## CoinGecko logo fetch → raw_assets.logo_url (~2 API calls) (B-D26)
+	uv run python -m backend.ingest.logos
 ingest-prices: ## DeFiLlama snapshot (S1/S3/S4) → raw_* tables, no coin histories
 	uv run python -m backend.ingest.defillama
+ingest-issuer-events: ## BigQuery issuer events (USDC/USDT mint·burn·blacklist) → raw_issuer_events
+	uv run python -m indexer.bigquery.ingest
 ingest-transfers: ## BigQuery transfers (daily, P2.4)
 	@echo "TODO P2.4: transfers extractor not built yet" && exit 1
 
+extract-issuer-events: ## extract public.raw_issuer_events → Spark-ready Parquet (data/raw_issuer_events/)
+	uv run python backend/jobs/extract_to_parquet.py \
+		--start 2026-07-28 --end 2026-07-28 \
+		--output data/raw_issuer_events \
+		--batch-size 50000
+
 # ── phase 2 helpers ───────────────────────────
+enrich-labels: ## CryptoLabel lookup for blacklisted addresses → raw_address_labels
+	uv run python -m backend.ingest.cryptolabel
 labels-check: ## validate backend/labels/addresses.csv
 	@echo "TODO P2.2: label registry not built yet" && exit 1
 bq-dryrun: ## estimate bytes for standard transfer query
 	@echo "TODO P2.1: BigQuery access not set up yet" && exit 1
+
+export-issuer-events: ## export public.raw_issuer_events → parquet (data/raw_issuer_events.parquet)
+	uv run python backend/jobs/export_issuer_events.py
 
 # ── product ───────────────────────────────────
 serve: ## run API + terminal UI (http://localhost:8080)

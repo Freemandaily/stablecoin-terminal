@@ -64,3 +64,54 @@ models:
           # — real market data, not transform errors (decisions B-D11).
           - dbt_utils.expression_is_true:
               expression: ">= 0"
+
+  - name: mart_issuer_events
+    description: P2.2 issuer events + CryptoLabel entity labels (left join; unlabeled = has_label false).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - transaction_hash
+            - log_index
+    columns:
+      - name: has_label
+        tests:
+          - not_null
+
+  - name: mart_mint_burn_daily
+    description: P2.5 daily minted/burned/net per token — View F core (DESTROY_BLACKLIST counted as burn).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - date
+            - token
+    columns:
+      - name: date
+        tests:
+          - not_null
+      - name: minted_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: burned_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: net_usd
+        tests:
+          # net must be exactly minted − burned (both coalesced in the model)
+          - dbt_utils.expression_is_true:
+              expression: "= minted_usd - burned_usd"
+
+  - name: mart_blacklist_events
+    description: P2.2 blacklist/unblacklist/destroy events + entity labels + current per-address state — View E risk filter.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - transaction_hash
+            - log_index
+    columns:
+      - name: blacklisted_address
+        tests:
+          - not_null
+      # is_currently_blacklisted: intentionally no not_null test — destroy-only
+      # addresses have no action row, state is honest NULL (see model comment)

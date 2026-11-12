@@ -1,0 +1,35 @@
+type FiatTokenProxy_Mint {
+  id: ID!
+  minter: String!
+  to: String!
+  amount: BigInt!
+}
+
+type FiatTokenProxy_Burn {
+  id: ID!
+  burner: String!
+  amount: BigInt!
+}
+
+type FiatTokenProxy_Blacklisted {
+  id: ID!
+  _account: String!
+}
+
+type FiatTokenProxy_UnBlacklisted {
+  id: ID!
+  _account: String!
+}
+
+type TetherToken_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+type TetherToken_BlackList {
+  id: ID!
+  _user: String!
+  isBlackListed: Boolean!
+}

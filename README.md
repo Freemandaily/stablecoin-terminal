@@ -69,3 +69,53 @@ docs/           MVP spec, architecture, decisions, data dictionary
 - **Frontend changes** must pass the checklist in `AGENTS.md` §11.
 - Every build task + acceptance criteria: `implementation.md` §7.
 - Decisions & exceptions: `docs/decisions.md`.
+
+## Parquet Export (Spark-ready dataset)
+
+`backend/jobs/extract_to_parquet.py` extracts `public.raw_issuer_events` from
+Postgres and writes clean, flat Parquet files for Spark lessons. All cleanup
+happens in the extract (decoded addresses/amounts, Spark-safe types, UTC
+timestamps) so Spark can focus on business logic.
+
+### Run
+
+```bash
+# Export a date range (inclusive) → flat dir of SNAPPY Parquet (~50k rows/file)
+DATABASE_URL="postgresql://stableflow:stableflow@localhost:5432/stableflow" \
+  uv run python backend/jobs/extract_to_parquet.py \
+    --start 2026-07-28 --end 2026-07-28 \
+    --output data/raw_issuer_events \
+    --batch-size 50000
+```
+
+Connection string comes from `DATABASE_URL` (never hard-coded). Falls back to
+`PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE` env vars.
+
+### Output schema (flat, snake_case, one table)
+
+| Column | Type | Notes |
+|---|---|---|
+| block_number | int64 | |
+| block_timestamp | timestamp[us, tz=UTC] | UTC |
+| event_date | date32 | derived from block_timestamp |
+| transaction_hash | string | lowercase, 0x prefix |
+| log_index | int32 | |
+| contract_address | string | lowercase, 0x prefix |
+| token | string | USDC / USDT |
+| event_type | string | MINT / BURN / BLACKLIST / … |
+| topic1_address | string | decoded from padded topic, lowercase 0x |
+| topic2_address | string | decoded from padded topic, lowercase 0x |
+| amount_raw | string | uint256 from hex `data`, as decimal string |
+| blacklisted_address | string | lowercase 0x, NULL unless BLACKLIST/UNBLACKLIST |
+| destroyed_amount_raw | int64 | NULL unless DESTROY_BLACKLIST |
+| destroyed_amount_usdt | decimal128(38, 6) | Spark-safe (max 38 digits) |
+| ingested_at | timestamp[us, tz=UTC] | ETL metadata |
+
+Nulls are meaningful (event-type dependent); no sentinel fills. Natural key
+`(transaction_hash, log_index)` is unique and validated on every run.
+
+### Tests
+
+```bash
+uv run pytest backend/jobs/tests/test_extract_to_parquet.py
+```

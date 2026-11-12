@@ -16,7 +16,10 @@ sources:
                   values: ['running', 'success', 'failed']
 
       - name: raw_assets
-        description: S1 metadata + current supply (ingestion/loaders.py).
+        description: S1 metadata + current supply (ingestion/loaders.py). logo_url populated by backend/ingest/logos.py.
+        columns:
+          - name: logo_url
+            description: CoinGecko image.large URL (nullable). Filled by the logos ingest job; null falls back to a text chip in the UI.
 
       - name: raw_chain_current
         description: S1 per-chain current supply, PK (asset_id, chain).
@@ -29,3 +32,27 @@ sources:
 
       - name: raw_market_daily
         description: S3 full-market daily totals (all tracked coins), PK (date).
+
+      - name: raw_issuer_events
+        description: >-
+          P2.2 BigQuery issuer events — USDC/USDT MINT·BURN·BLACKLIST·UNBLACKLIST·DESTROY
+          (indexer/bigquery/ingest.py), PK (transaction_hash, log_index).
+        columns:
+          - name: blacklisted_address
+            description: >-
+              Target of blacklist/unblacklist/destroy events (lowercase 0x, null for
+              mint/burn); join key to raw_address_labels.
+
+      - name: raw_address_labels
+        description: >-
+          P2.2 CryptoLabel lookups for blacklisted addresses (backend/ingest/cryptolabel.py),
+          PK address. Rows with entity_name='Unknown' are attempts still awaiting an
+          identification — the fetcher retries them every run until CryptoLabel names
+          the entity.
+        columns:
+          - name: entity_name
+            description: >-
+              API entity name; 'Unknown' (or null) = not identified yet — counts as
+              unlabeled and is retried by the fetcher.
+          - name: labels
+            description: Full labels JSON array from the API (can be empty for named entities).

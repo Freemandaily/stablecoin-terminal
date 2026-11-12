@@ -27,7 +27,7 @@ header{display:flex;align-items:center;gap:16px;padding:0 16px;height:44px;
   border-bottom:1px solid var(--line2);background:var(--panel);position:sticky;top:0;z-index:30}
 .logo{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:600;font-size:14px;letter-spacing:.04em}
 .logo .dot{width:7px;height:7px;background:var(--acc);border-radius:50%;box-shadow:0 0 6px var(--acc)}
-.logo .sub{color:var(--dim);font-weight:400;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+
 nav{display:flex;height:100%;margin-left:12px}
 nav button{height:100%;padding:0 16px;background:none;border:none;border-bottom:2px solid transparent;
   color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer}
@@ -73,7 +73,7 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   /* header → 2 rows: [logo] then a full-width tab bar */
   header{flex-wrap:wrap;height:auto;padding:0 10px}
   .logo{order:1;height:44px;font-size:13px}
-  .logo .sub{display:none}
+
   nav{order:3;flex-basis:100%;height:40px;margin-left:0;border-top:1px solid var(--line)}
   nav button{flex:1;padding:0 8px;font-size:10px;letter-spacing:.06em}
   .railhead{top:84px}
@@ -186,7 +186,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 <body>
 
 <header>
-  <div class="logo"><span class="dot"></span>STABLEFLOW<span class="sub">stablecoin circulation terminal</span></div>
+  <div class="logo"><span class="dot"></span>STABLEFLOW TERMINAL</div>
   <nav id="nav">
     <button data-v="ov" class="on">OVERVIEW</button>
     <button data-v="peg">PEG&nbsp;HEALTH</button>
@@ -208,8 +208,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
     </div>
 
     <div class="panel">
-      <div class="phead"><span class="t">Assets</span>
-        <span class="chip">TOP 12 · CLICK HEADER TO SORT</span><span class="m" id="assetmeta"></span></div>
+      <div class="phead"><span class="t">Assets</span><span class="m" id="assetmeta"></span></div>
       <div class="tscroll wide tall"><table id="coinstable">
         <thead><tr>
           <th class="l" data-k="rank">#</th><th class="l" data-k="sym">Asset</th>
@@ -221,11 +220,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
       </table></div>
     </div>
 
-    <div class="panel">
-      <div class="phead"><span class="t">Distribution by Chain</span>
-        <span class="chip">TOP-12 ASSETS AGGREGATED</span><span class="m">SHARE / 7D MIGRATION</span></div>
-      <div id="chains"></div>
-    </div>
   </section>
 
   <!-- ══ VIEW: PEG ══ -->
@@ -278,10 +272,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 
 <!-- ══ RIGHT RAIL: ACTIVITY FEED ══ -->
 <aside class="rail">
-  <div class="railhead"><span class="t">Activity</span><span class="chip s">SAMPLE</span>
-    <span class="m mono" style="margin-left:auto;font-size:10px;color:var(--dim2)">VIEWS E/F</span></div>
-  <div class="railnote">Prototype feed — Phase 2 replaces this with <span style="color:var(--txt)">fct_events</span>
-    (mint ≥ $10M, exchange legs, peg breaks) from BigQuery.</div>
+  <div class="railhead"><span class="t">Activity</span></div>
   <ul class="feed" id="feed"></ul>
 </aside>
 </div>
@@ -414,14 +405,13 @@ function drawTable(){
       <td class="l rank">${String(r.rank).padStart(2,'0')}</td>
       <td class="l"><span class="sym">${esc(r.sym)}</span> <span class="nm">${esc(r.name)}</span></td>
       <td>$${fmtUSD(r.supply)}</td>
-      <td class="${cls(r.d1)} nw">${sgn(r.d1)}<span class="p2">${pct(r.p1)}</span></td>
-      <td class="${cls(r.d7)} nw">${sgn(r.d7)}<span class="p2">${pct(r.p7)}</span></td>
-      <td class="${cls(r.d30)} nw">${sgn(r.d30)}<span class="p2">${pct(r.p30)}</span></td>
+      <td class="${cls(r.d1)} nw"><span class="p2">${pct(r.p1)}</span></td>
+      <td class="${cls(r.d7)} nw"><span class="p2">${pct(r.p7)}</span></td>
+      <td class="${cls(r.d30)} nw"><span class="p2">${pct(r.p30)}</span></td>
       <td>${r.price? r.price.toFixed(4):'—'}</td>
       <td><div class="sharebar"><span class="dim">${r.share.toFixed(1)}%</span>
         <span class="tr"><i class="fl ${r.share===maxSh?'hi':''}" style="width:${r.share/maxSh*100}%"></i></span></div></td>
     </tr>`).join('');
-  $('#assetmeta').textContent=`AGGREGATE $${fmtUSD(M.total)} · ${rows.length} ASSETS`;
 }
 document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('click',()=>{
   const k=th.dataset.k; sortDir = k===sortK ? -sortDir : (k==='sym'||k==='rank'?1:-1); sortK=k;
@@ -429,18 +419,6 @@ document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('cli
   drawTable();
 }));
 drawTable();
-
-/* ── chain bars ────────────────────────── */
-(function(){
-  const ch=D.chains, max=Math.max(...ch.map(c=>c.share));
-  $('#chains').innerHTML=ch.map(c=>`
-    <div class="chainrow">
-      <span class="nm">${esc(c.chain)}</span>
-      <span class="bar"><i style="width:${(c.share/max*100).toFixed(1)}%"></i></span>
-      <span style="text-align:right">${fmtUSD(c.usd)}</span>
-      <span style="text-align:right" class="${c.d7?cls(c.d7):'dim'}">${c.d7?sgn(c.d7):'—'}</span>
-    </div>`).join('');
-})();
 
 /* ── peg board ─────────────────────────── */
 (function(){
@@ -535,32 +513,56 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
     </span></td></tr>`).join('');
 })();
 
-/* ── activity feed (sample) ────────────── */
-(function(){
-  const t=(h,m)=>`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  const ev=[
-    ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
-    ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
-    ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
-    ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
-    ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
-    ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
-    ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
-    ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
-    ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
-    ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
-    ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
-    ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
-    ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
-    ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
-  ];
-  $('#feed').innerHTML=ev.map(([ts,kind,tag,amt,unit,route])=>`
-    <li><span class="ts">${ts}</span>
+/* ── activity feed (live from /api/events) ────────────── */
+(async () => {
+  const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
+  const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
+    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'ex' : 'peg';
+  const tagFor = t => t === 'MINT' ? 'MINT' : t === 'BURN' ? 'BURN' :
+    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'EXCHANGE' : 'PEG_BREAK';
+
+  let events = [];
+  try {
+    const r = await fetch('/api/events?limit=20', { cache: 'no-store' });
+    if (r.ok) events = (await r.json()).events || [];
+  } catch (e) { /* fall back to sample below */ }
+
+  if (!events.length) {
+    const ev=[
+      ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
+      ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
+      ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
+      ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
+      ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
+      ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
+      ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
+      ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
+      ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
+      ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
+      ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
+      ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
+      ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
+      ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
+    ];
+    events = ev.map(([ts,kind,tag,amt,unit,route])=>({
+      ts: `1970-01-01T${ts}:00Z`, type: tag, sym: unit, usd: amt.includes('−') ? -parseFloat(amt) : parseFloat(amt.replace(/[^0-9.]/g,'')),
+      from: null, to: null, label: route,
+    }));
+  }
+
+  $('#feed').innerHTML = events.map(e => {
+    const ts = e.ts ? e.ts.slice(11,16) : '--:--';
+    const kind = kindFor(e.type);
+    const tag = tagFor(e.type);
+    const amt = e.usd != null ? sgn(e.usd) : '—';
+    const unit = e.sym || '';
+    const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
+    return `<li><span class="ts">${ts}</span>
       <span class="ev"><span class="tag ${kind}">${tag}</span>
         <span class="amt">${amt}</span> <span class="dim">${unit}</span>
-        <div class="route">${esc(route).replace('Binance','<b class="hl">Binance</b>')
-          .replace('Circle','<b>Circle</b>').replace('Tether','<b>Tether</b>')}</div>
-      </span></li>`).join('');
+        <div class="route">${route}</div>
+      </span></li>`;
+  }).join('');
 })();
 
 /* ── tabs ──────────────────────────────── */

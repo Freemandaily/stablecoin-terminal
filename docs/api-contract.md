@@ -25,9 +25,10 @@ additive changes only; breaking a shape requires a `docs/decisions.md` entry.
 | 3 | `GET /api/coin/{asset_id}` | B — per-coin detail | ✅ LIVE | `marts.mart_supply_daily`, `mart_supply_chain`, `mart_peg_daily`, `staging.stg_assets` |
 | 4 | `GET /api/health` | — liveness/readiness | ✅ LIVE | `SELECT 1` |
 | 5 | `GET /api/events` | E — activity feed | 🔒 501 (P2.7) | `fct_events` |
-| 6 | `GET /api/flows/mintburn` | F — mint/burn analytics | 🔒 501 (P2.7/P2.8) | `fct_daily_flows` |
+| 6 | `GET /api/flows/mintburn` | F — mint/burn analytics | ✅ LIVE | `marts.mart_mint_burn_daily` (was: `fct_daily_flows`) |
 | 7 | `GET /api/flows/exchanges` | G — exchange netflow + z-score | 🔒 501 (P2.8) | `fct_daily_flows`, exchange aggregates |
 | 8 | `GET /api/alerts` | H — recent alerts | 🔒 501 (P2.9) | alerts table + `fct_events` |
+| 9 | `GET /api/blacklist` | CONTROL — blacklist feed, KPIs, charts (B-D27) | 🔒 501 | Envio-indexed token-contract blacklist events (D2 amendment pending) |
 
 View D (daily digest) is a Telegram message, not an HTTP endpoint (B-D14).
 
@@ -127,11 +128,18 @@ objects as `overview.coins`. Added for the scrollable Assets table (B-D24);
 
 ---
 
-## Phase 2 — designed now, `501` until built
+## Phase 2 — §5–§6 LIVE, §7–§8 `501` until built
 
-All return `501 {"error":"not implemented yet","blocked_by":"...","spec":"docs/api-contract.md"}`.
+Unbuilt routes return `501 {"error":"not implemented yet","blocked_by":"...","spec":"docs/api-contract.md"}`.
 
-### 5 · `GET /api/events` (View E) — blocked by P2.7 `fct_events`
+### 5 · `GET /api/events` (View E) — LIVE
+
+> Live since P2.2/P2.5 marts: `MINT`/`BURN` from `mart_issuer_events` (≥ $10M,
+> `from`/`to` = the event's indexed addresses) + `PEG_BREAK` from `mart_peg_daily`
+> (≥ $1B assets, worst break per coin per day; its `ts` is a **date** — no
+> intraday data — and `bps` carries the deviation). `EXCHANGE_IN/OUT` and
+> `LARGE_TRANSFER` return empty until P2.6/P2.8. The default response reserves
+> up to 5 slots for peg breaks so mint/burn volume can't crowd them out.
 
 Query params: `limit` (default 50, max 200), `type`
 (`MINT|BURN|EXCHANGE_IN|EXCHANGE_OUT|LARGE_TRANSFER|PEG_BREAK`), `since=YYYY-MM-DD`.
@@ -143,7 +151,11 @@ Query params: `limit` (default 50, max 200), `type`
                "label":"large mint ≥ $10M" } ] }
 ```
 
-### 6 · `GET /api/flows/mintburn` (View F) — blocked by P2.7/P2.8
+### 6 · `GET /api/flows/mintburn` (View F) — LIVE
+
+> Live since P2.5: reads `marts.mart_mint_burn_daily` (+ `mart_issuer_events` for
+> `top_mints`, `mart_supply_daily` for the `chain_net` cross-check).
+> `lag_median_min` stays `null` until P2.6 exchange data lands.
 
 ```jsonc
 { "asof":"...", "source":"api: fct_daily_flows",
@@ -169,6 +181,21 @@ Query params: `limit` (default 50, max 200), `type`
   "thresholds": { "mint_usd":10000000,"z":2.0,"peg_bps":50,"contraction_pct":-5 },
   "recent":[ { "ts":"…","kind":"LARGE_MINT","line":"USDC +$250M mint → Binance","delivered":true } ] }
 ```
+
+### 9 · `GET /api/blacklist` (CONTROL tab, B-D27) — blocked by blacklist ingest
+
+Query params: `token` (`USDT|USDC`, optional), `since=YYYY-MM-DD` (optional).
+
+```jsonc
+{ "asof":"...", "source":"api: token-contract blacklist events (Envio)",
+  "events":[ { "ts":"2026-11-05T09:14:00Z","token":"USDT",
+               "type":"BLACKLIST|UNBLACKLIST|DESTROY",
+               "addr":"0x…","usd":1234567.0,"tx":"0x…","block":26270000 } ] }
+```
+
+All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
+comparison are derived **client-side** from `events[]` — one payload, no extra
+endpoints (derivation reference: `ui/refs/stablecoin-control.html`).
 
 ---
 

@@ -11,7 +11,8 @@ memory; nothing is written to disk. Loads are idempotent upserts, so
 re-running the job is safe (§3 rule 4).
 
 Run:  uv run python -m backend.ingest.defillama            # S1 + S3 + S4
-      uv run python -m backend.ingest.defillama --coins    # + core coin histories (S2)
+      uv run python -m backend.ingest.defillama --coins    # + all peggedUSD coin histories (S2)
+      uv run python -m backend.ingest.defillama --coins --core-only   # core set only (fast)
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ import sys
 
 from .config import CORE_COIN_SYMBOLS, LLAMA_S1, LLAMA_S2, LLAMA_S3, LLAMA_S4
 from .db import get_conn
-from .http import get_json
+from .http import FetchError, get_json
 from .loaders import load_assets, load_chain_current, load_coin_history, load_market, load_prices
 from .logging_setup import get_logger
 
@@ -83,9 +84,29 @@ def resolve_core_ids(assets: dict) -> dict[str, str]:
     return resolved
 
 
+def resolve_all_usd_ids(assets: dict) -> list[tuple[str, str]]:
+    """All live peggedUSD coins, cap order — S2 supply-history scope (B-D27).
+
+    Same filter as the Assets table (`peg_type='peggedUSD' and circulating > 0`),
+    so every coin on screen gets a supply log.
+    """
+    targets = [
+        (str(a["id"]), a.get("symbol") or "?",
+         (a.get("circulating") or {}).get("peggedUSD") or 0)
+        for a in assets["peggedAssets"]
+        if a.get("pegType") == "peggedUSD"
+        and ((a.get("circulating") or {}).get("peggedUSD") or 0) > 0
+    ]
+    targets.sort(key=lambda t: -t[2])  # biggest first: progress survives interruption
+    return [(cid, sym) for cid, sym, _ in targets]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="DeFiLlama stablecoin ingest (P1.1)")
-    ap.add_argument("--coins", action="store_true", help="also fetch core coin histories (S2)")
+    ap.add_argument("--coins", action="store_true",
+                    help="also fetch per-coin supply histories (S2)")
+    ap.add_argument("--core-only", action="store_true",
+                    help="with --coins: core set only (fast, no tail coins)")
     args = ap.parse_args()
 
     # ── fetch into memory + shape sanity before touching the DB ──
@@ -124,11 +145,28 @@ def main() -> int:
         load_prices(c, prices, gecko_to_id)
 
         if args.coins:
-            for sym, cid in ids.items():
-                hist = fetch_coin_history(cid)
-                load_coin_history(c, cid, hist)
-                del hist  # 22 MB parsed payload — release before the next fetch
-            log.info("coin histories loaded for %d coins", len(ids))
+            targets = (
+                [(cid, sym) for sym, cid in ids.items()]
+                if args.core_only
+                else resolve_all_usd_ids(assets)
+            )
+            done = failed = 0
+            for cid, sym in targets:
+                try:
+                    hist = fetch_coin_history(cid)
+                    load_coin_history(c, cid, hist)
+                    del hist  # large parsed payload — release before the next fetch
+                except FetchError as e:
+                    failed += 1
+                    log.warning("supply history failed %s (id=%s): %s", sym, cid, e)
+                    continue
+                done += 1
+                if done % 50 == 0:
+                    log.info("supply histories: %d/%d loaded …", done, len(targets))
+            log.info(
+                "coin histories loaded: %d ok, %d failed (scope: %s)",
+                done, failed, "core" if args.core_only else "all peggedUSD",
+            )
 
     log.info("ingest complete — raw_* tables updated")
     return 0

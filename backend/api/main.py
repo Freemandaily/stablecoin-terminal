@@ -8,15 +8,20 @@ Run:  make serve  →  http://localhost:8080  (UI + API, one origin)
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+import base64
+import urllib.request
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Literal
 
 import psycopg
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from psycopg.rows import dict_row
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
 
 from backend.ingest.db import get_conn
 
@@ -29,6 +34,23 @@ app.add_middleware(
 )
 
 
+# ── no-cache middleware ──────────────────────────────────────────
+# Force browsers to always revalidate static files (HTML/JS/CSS).
+# Without this, browsers cache index.html and serve stale JS after edits.
+
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response = await call_next(request)
+        # Don't cache HTML, JS, CSS, or JSON API responses
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        return response
+
+
+app.add_middleware(NoCacheMiddleware)
+
+
 def _f(v) -> float:
     """NUMERIC comes back as Decimal — JSON needs float."""
     return float(v) if v is not None else 0.0
@@ -39,7 +61,7 @@ def _coins_list(cur, limit: int | None = None) -> list[dict]:
     /api/overview (top-12, contract §1) and /api/coins (all, contract §1b)."""
     sql = """
         select id, symbol, name, circulating_usd, prev_day_usd, prev_week_usd,
-               prev_month_usd, price, peg_mechanism, n_chains
+               prev_month_usd, price, peg_mechanism, n_chains, logo_url
         from raw_assets
         where peg_type = 'peggedUSD' and circulating_usd > 0
         order by circulating_usd desc
@@ -69,6 +91,7 @@ def _coins_list(cur, limit: int | None = None) -> list[dict]:
             "price": _f(r["price"]) if r["price"] is not None else None,
             "peg": r["peg_mechanism"] or "",
             "chains": r["n_chains"],
+            "logo_url": _proxy_logo_url(r["logo_url"]),
             "dev": peg_dev.get(r["id"]),
         }
         for r in rows
@@ -287,7 +310,8 @@ def _coin(asset_id: str) -> dict | None:
     with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
         meta = cur.execute(
             """
-            select id, name, symbol, price, peg_mechanism, n_chains, circulating_usd
+            select id, name, symbol, price, peg_mechanism, n_chains, circulating_usd,
+                   logo_url
             from staging.stg_assets where id = %s
             """,
             (asset_id,),
@@ -384,6 +408,7 @@ def _coin(asset_id: str) -> dict | None:
             "price": _f(meta["price"]) if meta["price"] is not None else None,
             "peg": meta["peg_mechanism"] or "", "n_chains": meta["n_chains"],
             "circulating_usd": _f(meta["circulating_usd"]),
+            "logo_url": _proxy_logo_url(meta["logo_url"]),
         },
         "supply": supply,
         "hist": hist,
@@ -394,10 +419,9 @@ def _coin(asset_id: str) -> dict | None:
 
 # ── Phase 2 routes: designed in docs/api-contract.md, 501 until built ──
 _PHASE2_BLOCKED = {
-    "/api/events": "P2.7 (fct_events)",
-    "/api/flows/mintburn": "P2.7/P2.8 (fct_daily_flows)",
     "/api/flows/exchanges": "P2.8 (fct_daily_flows)",
     "/api/alerts": "P2.9 (alerts dispatcher)",
+    "/api/blacklist": "blacklist ingest (Envio contract events)",
 }
 
 
@@ -432,14 +456,208 @@ def coin(asset_id: str) -> JSONResponse:
     return JSONResponse(payload)
 
 
+def _events(limit: int, event_type: str | None, since: date | None) -> dict:
+    """View E (contract §5): recent large mints/burns + notable peg breaks.
+    Exchange legs (EXCHANGE_IN/OUT) are absent until P2.6 exchange data —
+    never fabricated (honesty rule §9)."""
+    window_start = since or (datetime.now(UTC).date() - timedelta(days=30))
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        flows = cur.execute(
+            """
+            select block_timestamp as ts, event_type, token, amount_usd,
+                   transaction_hash as tx,
+                   '0x' || substr(topic1, 27, 40) as frm,
+                   '0x' || substr(topic2, 27, 40) as dest
+            from marts.mart_issuer_events
+            where event_type in ('MINT', 'BURN')
+              and amount_usd >= 10000000
+              and block_timestamp::date >= %s
+            order by block_timestamp desc
+            limit %s
+            """,
+            (window_start, limit),
+        ).fetchall()
+
+        # peg breaks: ≥ $1B assets only (micro-cap depegs are not feed material),
+        # worst break per coin per day — date granularity, no intraday data
+        peg_rows = cur.execute(
+            """
+            select p.date, a.symbol, p.dev_bps
+            from marts.mart_peg_daily p
+            join staging.stg_assets a on a.id = p.asset_id
+            where p.is_depeg_event
+              and p.date >= %s
+              and a.circulating_usd >= 1000000000
+            order by p.date desc, abs(p.dev_bps) desc
+            """,
+            (window_start,),
+        ).fetchall()
+
+    events = [
+        {
+            "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            "type": r["event_type"],
+            "sym": r["token"],
+            "usd": _f(r["amount_usd"]),
+            "from": r["frm"],
+            "to": r["dest"],
+            "tx": r["tx"],
+            "label": (
+                "large mint ≥ $10M" if r["event_type"] == "MINT"
+                else "large burn ≥ $10M"
+            ),
+        }
+        for r in flows
+    ]
+
+    seen: set[tuple[str, date]] = set()
+    for p in peg_rows:
+        if (p["symbol"], p["date"]) in seen:
+            continue
+        seen.add((p["symbol"], p["date"]))
+        bps = _f(p["dev_bps"])
+        events.append(
+            {
+                "ts": p["date"].isoformat(),  # date only — no intraday data
+                "type": "PEG_BREAK",
+                "sym": p["symbol"],
+                "usd": None,
+                "from": None,
+                "to": None,
+                "tx": None,
+                "label": (
+                    f"{p['symbol']} trades below −50 bps" if bps < 0
+                    else f"{p['symbol']} trades above +50 bps"
+                ),
+                "bps": round(bps, 1),
+            }
+        )
+
+    if event_type:
+        events = [e for e in events if e["type"] == event_type]
+    events.sort(key=lambda e: e["ts"], reverse=True)
+
+    if event_type:
+        events = events[:limit]
+    else:
+        # peg breaks are rare but are the rail's signal — reserve up to 5 slots
+        # (and at most 1/5 of the response) so a stream of ≥$10M mints can't
+        # crowd them out entirely
+        reserve = min(5, max(1, limit // 5))
+        pegs = [e for e in events if e["type"] == "PEG_BREAK"][:reserve]
+        rest = [e for e in events if e["type"] != "PEG_BREAK"][: limit - len(pegs)]
+        events = sorted(pegs + rest, key=lambda e: e["ts"], reverse=True)
+
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: marts.mart_issuer_events · marts.mart_peg_daily",
+        "count": len(events),
+        "events": events,
+    }
+
+
 @app.get("/api/events")
-def events() -> JSONResponse:
-    return _phase2("/api/events")
+def events(
+    limit: int = 50,
+    event_type: Literal[
+        "MINT", "BURN", "EXCHANGE_IN", "EXCHANGE_OUT",
+        "LARGE_TRANSFER", "PEG_BREAK",
+    ]
+    | None = Query(None, alias="type"),
+    since: date | None = None,
+) -> JSONResponse:
+    """View E payload — live since P2.2/P2.5 marts (contract §5)."""
+    try:
+        return JSONResponse(_events(min(max(limit, 1), 200), event_type, since))
+    except psycopg.OperationalError as e:
+        return JSONResponse({"error": "database unreachable", "detail": str(e)},
+                            status_code=503)
+
+
+@app.get("/api/blacklist")
+def blacklist() -> JSONResponse:
+    """CONTROL tab payload (B-D27) — 501 until blacklist events are indexed."""
+    return _phase2("/api/blacklist")
+
+
+def _mintburn() -> dict:
+    """View F (contract §6): daily minted/burned/net, USDT+USDC combined,
+    last 30 days, + top mints of the latest day."""
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        daily = [
+            {"d": r["date"].isoformat(), "minted": _f(r["minted"]),
+             "burned": _f(r["burned"]), "net": _f(r["net"]), "chain_net": None}
+            for r in cur.execute(
+                """
+                select date,
+                       sum(minted_usd) as minted,
+                       sum(burned_usd) as burned,
+                       sum(net_usd) as net
+                from marts.mart_mint_burn_daily
+                group by date
+                order by date desc
+                limit 30
+                """
+            ).fetchall()
+        ]
+        daily.reverse()
+
+        # cross-check column (§6): DeFiLlama net issuance for the same 2 tokens
+        if daily:
+            first = date.fromisoformat(daily[0]["d"])
+            chain_net = {
+                r["date"]: _f(r["net"])
+                for r in cur.execute(
+                    """
+                    select s.date, sum(s.net_issuance_1d) as net
+                    from marts.mart_supply_daily s
+                    join staging.stg_assets a on a.id = s.asset_id
+                    where a.symbol in ('USDT', 'USDC') and s.date >= %s
+                    group by s.date
+                    """,
+                    (first,),
+                ).fetchall()
+            }
+            for row in daily:
+                row["chain_net"] = chain_net.get(date.fromisoformat(row["d"]))
+
+        top_mints = [
+            {
+                "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
+                "sym": r["token"], "usd": _f(r["amount_usd"]), "tx": r["tx"],
+            }
+            for r in cur.execute(
+                """
+                select block_timestamp as ts, token, amount_usd,
+                       transaction_hash as tx
+                from marts.mart_issuer_events
+                where event_type = 'MINT'
+                  and date(block_timestamp at time zone 'UTC') =
+                      (select max(date) from marts.mart_mint_burn_daily)
+                order by amount_usd desc nulls last
+                limit 10
+                """
+            ).fetchall()
+        ]
+
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: marts.mart_mint_burn_daily · mart_issuer_events · mart_supply_daily",
+        "daily": daily,
+        "top_mints": top_mints,
+        # issuer → exchange deposit lag needs P2.6 exchange data — honest null
+        "lag_median_min": None,
+    }
 
 
 @app.get("/api/flows/mintburn")
 def flows_mintburn() -> JSONResponse:
-    return _phase2("/api/flows/mintburn")
+    """View F payload — live since P2.5 (reads marts.mart_mint_burn_daily)."""
+    try:
+        return JSONResponse(_mintburn())
+    except psycopg.OperationalError as e:
+        return JSONResponse({"error": "database unreachable", "detail": str(e)},
+                            status_code=503)
 
 
 @app.get("/api/flows/exchanges")
@@ -460,6 +678,53 @@ def health() -> dict:
         return {"status": "ok", "db": "up"}
     except psycopg.OperationalError:
         return {"status": "degraded", "db": "down"}
+
+
+# ── logo proxy ───────────────────────────────────────────────────
+# CoinGecko CDN blocks requests from localhost/private IPs.
+# This endpoint proxies images through our backend so the browser
+# loads them from the same origin as the page.
+
+
+def _proxy_logo_url(url: str) -> str:
+    """Rewrite CoinGecko URL to use our proxy endpoint."""
+    if not url or "coin-images.coingecko.com" not in url:
+        return url
+    # Extract path after the domain
+    path = url.split("coin-images.coingecko.com/")[1]
+    return f"/api/logo/{path}"
+
+
+# 1x1 transparent PNG fallback
+_TRANSPARENT_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
+
+
+@app.get("/api/logo/{path:path}")
+def proxy_logo(path: str) -> Response:
+    """Proxy coin images from CoinGecko CDN (blocks direct localhost requests)."""
+    # Only allow requests to coin-images.coingecko.com
+    allowed_host = "coin-images.coingecko.com"
+    url = f"https://{allowed_host}/{path}"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "StableFlow/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            content = resp.read()
+            content_type = resp.headers.get("Content-Type", "image/png")
+            return Response(
+                content=content,
+                media_type=content_type,
+                headers={"Cache-Control": "public, max-age=86400"},  # Cache for 1 day
+            )
+    except Exception:
+        # Return transparent PNG as fallback
+        return Response(
+            content=_TRANSPARENT_PNG,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
 
 
 # UI last — the "/" mount would otherwise swallow /api routes
