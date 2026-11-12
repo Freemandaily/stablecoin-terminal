@@ -86,7 +86,6 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   .phead{padding:9px 10px;gap:8px;flex-wrap:wrap}
   td,th{padding:7px 9px}
   .chainrow{grid-template-columns:96px 1fr 74px 62px;gap:8px;padding:8px 10px;font-size:11px}
-  .pegrow{grid-template-columns:70px 1fr 76px;gap:10px;padding:8px 10px}
   .notice{margin:10px}
   .railhead{padding:9px 10px}
   .railnote{padding:8px 10px}
@@ -99,7 +98,6 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   .cell{padding:8px}
   td{font-size:11.5px}
   .chainrow{grid-template-columns:84px 1fr 64px 56px;gap:6px;padding:8px;font-size:10.5px}
-  .pegrow{grid-template-columns:56px 1fr 64px;gap:8px;padding:8px;font-size:11px}
 }
 
 /* ── chart ──────────────────────────────── */
@@ -142,17 +140,58 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 .chainrow:hover .bar i{background:var(--acc-dim)}
 .chainrow .nm{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ── peg board ──────────────────────────── */
-.pegrow{display:grid;grid-template-columns:88px 1fr 90px;gap:14px;align-items:center;
-  padding:8px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
-.pegtrack{position:relative;height:16px;background:
-  repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#161B1F 25%,transparent calc(25% + 1px))}
-.pegtrack .zero{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:var(--line2)}
-.pegtrack .thr{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--acc-dim)}
-.pegtrack .pin{position:absolute;top:50%;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--dim)}
-.pegtrack .pin.ok{background:var(--up)} .pegtrack .pin.bad{background:var(--down)}
-.pegtrack .pin.warn{background:var(--acc)}
-
+/* ── CONTROL view (ported from stablecoin-control.html) ───────── */
+.ctl-app{display:flex;flex-direction:column;min-height:0}
+.ctl-bar{display:flex;align-items:center;gap:16px;padding:0 16px;height:44px;border-bottom:1px solid var(--line2);background:var(--panel);flex:0 0 auto}
+.ctl-bar .bar-l{display:flex;align-items:center;gap:14px;min-width:0}
+.ctl-bar .bar-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ctl-brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.ctl-dot{width:7px;height:7px;background:var(--acc);border-radius:50%}
+.ctl-seg{display:flex;align-items:center;border:1px solid var(--line2);background:var(--panel2);height:24px}
+.ctl-seg-b{height:22px;padding:0 10px;background:none;border:none;border-right:1px solid var(--line2);color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.ctl-seg-b:last-child{border-right:none}
+.ctl-seg-b.is-on{color:var(--acc);background:var(--panel)}
+.ctl-chip{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 6px;border:1px solid var(--line2);color:var(--dim);text-transform:uppercase}
+.ctl-chip--sample{border-color:var(--acc-dim);color:var(--acc)}
+.ctl-chip--live{border-color:var(--up);color:var(--up)}
+.ctl-kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line2);background:var(--panel)}
+.ctl-kpi{padding:12px 16px;border-right:1px solid var(--line);min-width:0}
+.ctl-kpi:last-child{border-right:none}
+.ctl-kl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:500;margin-bottom:6px}
+.ctl-kv{font-family:var(--mono);font-size:21px;font-weight:500;color:var(--txt);font-variant-numeric:tabular-nums}
+.ctl-ks{font-family:var(--mono);font-size:10px;color:var(--dim2);margin-top:3px;letter-spacing:.02em}
+.ctl-hgrid{display:grid;grid-template-columns:1fr}
+.ctl-hgrid.ctl-charts{display:grid;grid-template-columns:1.35fr 1fr}
+.ctl-panel{border-bottom:1px solid var(--line2)}
+.ctl-phead{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.ctl-phead .ctl-t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.ctl-phead .ctl-m{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.05em}
+.ctl-rows{display:flex;flex-direction:column;max-height:420px;overflow-y:auto}
+.ctl-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;width:100%;background:none;border-left:2px solid transparent;border-right:1px solid var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ctl-row:hover{background:#121619}
+.ctl-row.is-match{background:#121619}
+.ctl-rows .ctl-row-h{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:500;padding:6px 16px;border-bottom:1px solid var(--line);background:var(--panel);cursor:default}
+.ctl-lk{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.ctl-addr{font-family:var(--mono);font-size:12px;color:var(--txt);word-break:break-all}
+.ctl-tk-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px}
+.ctl-tk-row .ctl-tk-status{font-weight:600}
+.ctl-hist-h{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:500;margin-top:6px}
+.ctl-hist-row{display:grid;grid-template-columns:110px 1fr auto auto;gap:10px;font-family:var(--mono);font-size:11px;padding:4px 0;border-bottom:1px solid var(--line);align-items:center}
+.ctl-note{font-family:var(--mono);font-size:11.5px;color:var(--dim);line-height:1.7;padding:0 16px 12px}
+.ctl-note b{color:var(--acc);font-weight:500}
+.ctl-chartbox{padding:14px 16px 8px}
+.ctl-chartbox svg{display:block;width:100%}
+.ctl-bars{display:flex;align-items:flex-end;gap:6px;height:150px;padding:14px 16px 8px;border-bottom:1px solid var(--line2)}
+.ctl-bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}
+.ctl-bv{font-family:var(--mono);font-size:9px;color:var(--dim2)}
+.ctl-bar-a{width:8px;background:var(--acc-dim)}
+.ctl-bar-b{width:8px;background:var(--line2)}
+.ctl-mrow{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--line2)}
+.ctl-mrow span{flex:1;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);text-align:center}
+.ctl-num{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--txt);text-align:right}
+.ctl-peak{padding:14px 16px}
+.ctl-foot{padding:10px 16px;border-top:1px solid var(--line2);display:flex;gap:20px;flex-wrap:wrap;background:var(--panel)}
+.ctl-faint{color:var(--dim2)}
 /* ── feed (right rail) ──────────────────── */
 .railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
   background:var(--panel2);position:sticky;top:44px;z-index:10}
@@ -166,7 +205,6 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 .feed .ev .tag.mint{color:var(--up);border-color:#2A4A38}
 .feed .ev .tag.burn{color:var(--down);border-color:#4A2A28}
 .feed .ev .tag.ex{color:var(--acc);border-color:var(--acc-dim)}
-.feed .ev .tag.peg{color:#fff;background:var(--down);border-color:var(--down)}
 .feed .amt{font-weight:600}
 .feed .route{color:var(--dim);font-size:11px;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .feed .route b{color:var(--txt);font-weight:500}
@@ -189,8 +227,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
   <div class="logo"><span class="dot"></span>STABLEFLOW TERMINAL</div>
   <nav id="nav">
     <button data-v="ov" class="on">OVERVIEW</button>
-    <button data-v="peg">PEG&nbsp;HEALTH</button>
-    <button data-v="fl">FLOWS</button>
+    <button data-v="ctl">CONTROL</button>
   </nav>
 </header>
 
@@ -222,49 +259,75 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 
   </section>
 
-  <!-- ══ VIEW: PEG ══ -->
-  <section class="view" id="v-peg">
-    <div class="panel">
-      <div class="phead"><span class="t">Peg Deviation</span>
-        <span class="chip">TODAY · BPS FROM $1.0000</span>
-        <span class="m">±50 BPS = EVENT THRESHOLD</span></div>
-      <div style="padding:6px 0 0" id="pegboard"></div>
-    </div>
-    <div class="panel">
-      <div class="phead"><span class="t">Peg Events</span>
-        <span class="chip s">DETECTION: |DEV| &gt; 50 BPS</span>
-        <span class="m">FULL EVENT HISTORY → MART_PEG_DAILY (P1.5)</span></div>
-      <div class="tscroll"><table><thead><tr>
-        <th class="l">Date</th><th class="l">Asset</th><th>Deviation</th><th class="l">Class</th><th class="l">Status</th>
-      </tr></thead><tbody id="pegevents"></tbody></table></div>
-      <div class="notice" id="pegnote"></div>
-    </div>
-  </section>
+  <!-- ══ VIEW: CONTROL (stablecoin control) ──── -->
+  <section class="view" id="v-ctl">
+    <div class="ctl-app">
+      <div class="ctl-bar">
+        <div class="bar-l">
+          <div class="ctl-brand"><span class="ctl-dot"></span>CONTROLLED ASSETS</div>
+          <div class="ctl-seg" id="ctl-tokenseg">
+            <button class="ctl-seg-b is-on" data-ctl-group="token" data-ctl-value="ALL">ALL</button>
+            <button class="ctl-seg-b" data-ctl-group="token" data-ctl-value="USDT">USDT</button>
+            <button class="ctl-seg-b" data-ctl-group="token" data-ctl-value="USDC">USDC</button>
+          </div>
+          <div class="ctl-seg" id="ctl-typeseg">
+            <button class="ctl-seg-b is-on" data-ctl-group="type" data-ctl-value="ALL">ALL</button>
+            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="BLACKLIST">BLACKLIST</button>
+            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="UNBLACKLIST">UNBLACKLIST</button>
+            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="DESTROY">DESTROY</button>
+          </div>
+        </div>
+        <div class="bar-r">
+          <span class="ctl-chip">SAMPLE</span>
+          <span class="ctl-chip ctl-chip--live">BLACKLIST FEED</span>
+        </div>
+      </div>
 
-  <!-- ══ VIEW: FLOWS (Phase 2) ══ -->
-  <section class="view" id="v-fl">
-    <div class="notice"><b>PHASE 2 PANEL — SAMPLE DATA.</b> Mint/burn, exchange netflow and the z-score below
-      are generated placeholders illustrating views E–G. They populate from
-      <span style="color:var(--txt)">fct_daily_flows</span> once P2.3–P2.6 land (BigQuery ingest → dbt).</div>
+      <div class="ctl-kpis" id="ctl-kpis"></div>
 
-    <div class="panel">
-      <div class="phead"><span class="t">On-chain Mint vs Burn</span>
-        <span class="chip s">SAMPLE</span><span class="m">30D · USDT+USDC · ISSUER WALLETS</span></div>
-      <div class="chartbox"><div id="mbchart"></div></div>
-    </div>
+      <div class="ctl-hgrid" style="flex: 999 1 620px">
+        <div class="ctl-panel">
+          <div class="ctl-phead"><span class="ctl-t">Events</span>
+            <span class="ctl-chip">30D</span><span class="ctl-m" id="ctl-feedcount"></span></div>
+          <div class="ctl-rows" id="ctl-rows"></div>
+        </div>
+        <div class="ctl-panel ctl-side">
+          <div class="ctl-phead"><span class="ctl-t">Address detail</span>
+            <span class="ctl-chip">BLACKLIST / UNBLACKLIST / DESTROY</span></div>
+          <div class="ctl-lk" id="ctl-lk"></div>
+        </div>
+      </div>
 
-    <div class="panel">
-      <div class="phead"><span class="t">Exchange Netflow — Z-Score (30D)</span>
-        <span class="chip s">SAMPLE</span><span class="m">|Z| &gt; 2 → ALERT</span></div>
-      <div class="chartbox"><div id="zchart"></div></div>
-    </div>
+      <div class="ctl-hgrid ctl-charts">
+        <div class="ctl-panel">
+          <div class="ctl-phead"><span class="ctl-t">Supply over time</span>
+            <span class="ctl-chip">USDT+USDC</span><span class="ctl-m">BLACKLIST · UNBLACKLIST · DESTROY</span></div>
+          <div class="ctl-chartbox"><svg id="ctl-chartarea" viewBox="0 0 600 150"></svg></div>
+        </div>
+        <div class="ctl-panel">
+          <div class="ctl-phead"><span class="ctl-t">Events per month</span>
+            <span class="ctl-chip">ALL TYPES</span><span class="ctl-m">BLACKLIST · UNBLACKIST · DESTROY</span></div>
+          <div class="ctl-bars" id="ctl-bars"></div>
+          <div class="ctl-mrow"><span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span></div>
+        </div>
+      </div>
 
-    <div class="panel">
-      <div class="phead"><span class="t">Exchange Flows — 24H</span>
-        <span class="chip s">SAMPLE</span><span class="m">TOP EXCHANGES · USDT+USDC</span></div>
-      <div class="tscroll"><table><thead><tr>
-        <th class="l">Exchange</th><th>Inflow</th><th>Outflow</th><th>Netflow</th><th class="l">Bar</th>
-      </tr></thead><tbody id="extable"></tbody></table></div>
+      <div class="ctl-hgrid">
+        <div class="ctl-panel">
+          <div class="ctl-phead"><span class="ctl-t">Comparison</span>
+            <span class="ctl-chip">YTD</span><span class="ctl-m">BLACKLIST / UNBLACKLIST · USDC vs USDT</span></div>
+          <div class="ctl-cmp" id="ctl-cmp"></div>
+        </div>
+        <div class="ctl-panel">
+          <div class="ctl-phead"><span class="ctl-t">Frozen now</span>
+            <span class="ctl-chip">SUPPLY</span><span class="ctl-m">FROZEN / DESTROYED</span></div>
+          <div class="ctl-peak" id="ctl-peak"></div>
+        </div>
+      </div>
+
+      <div class="ctl-foot">
+        <div class="ctl-note">SAMPLE DATA — CONTROL VIEW IS A PORT OF STABLECOIN-CONTROL.HTML.</div>
+      </div>
     </div>
   </section>
 
@@ -416,99 +479,6 @@ document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('cli
 }));
 drawTable();
 
-/* ── peg board ─────────────────────────── */
-(function(){
-  const rows=[...D.peg.rows].sort((a,b)=>Math.abs(b.dev_bps)-Math.abs(a.dev_bps));
-  const span=Math.max(...rows.map(r=>Math.abs(r.dev_bps)))*1.15;
-  const pos=v=>50+(v/span)*50;
-  $('#pegboard').innerHTML=rows.map(r=>{
-    const bad=Math.abs(r.dev_bps)>50, warn=Math.abs(r.dev_bps)>20;
-    return `<div class="pegrow">
-      <span>${esc(r.sym)}</span>
-      <span class="pegtrack">
-        <span class="zero"></span>
-        <span class="thr" style="left:${pos(50)}%"></span>
-        <span class="thr" style="left:${pos(-50)}%"></span>
-        <span class="pin ${bad?'bad':warn?'warn':'ok'}" style="left:${pos(r.dev_bps)}%"></span>
-      </span>
-      <span style="text-align:right" class="${bad?'down':warn?'':''}">${bps(r.dev_bps)}</span>
-    </div>`;}).join('');
-  const ev=rows.filter(r=>Math.abs(r.dev_bps)>50);
-  $('#pegevents').innerHTML = ev.length ? ev.map(r=>`
-    <tr><td class="l">${D.asof.slice(0,10)}</td><td class="l"><span class="sym">${r.sym}</span></td>
-    <td class="down">${bps(r.dev_bps)}</td><td class="l dim">deviation &gt; 50bps</td>
-    <td class="l"><span style="color:var(--acc)">●</span> <span class="dim">observed now</span></td></tr>`).join('')
-    : `<tr><td class="l dim" colspan="5">no coin beyond ±50 bps today</td></tr>`;
-  $('#pegnote').innerHTML=`Row-level event history (start, min price, duration, recovery) is built in
-    <b>P1.5 mart_peg_daily</b> from hourly prices — this prototype shows the live snapshot only.`;
-})();
-
-/* ── flows: sample series (deterministic) ─*/
-function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
-  let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
-  return ((t^t>>>14)>>>0)/4294967296; }; }
-(function(){ // mint vs burn bars
-  const r=rng(42), days=30, W=MOBILE?460:1000,H=MOBILE?240:210,PT=10,PB=22,PL=MOBILE?48:54;
-  const series=[...Array(days)].map((_,i)=>{
-    const m=(2+r()*6)*1e9*(i>20?1.35:1), b=m*(0.55+r()*0.95);
-    return {m,b}; });
-  const hi=Math.max(...series.flatMap(s=>[s.m,s.b]))*1.1;
-  const gw=(W-PL-14)/days, bw=Math.min(9,gw/2.6);
-  let g='';
-  for(let k=0;k<=3;k++){ const v=hi*k/3, y=PT+(1-v/hi)*(H-PT-PB);
-    g+=`<line x1="${PL}" x2="${W-14}" y1="${y}" y2="${y}" stroke="#1A2024"/>
-        <text x="${PL-8}" y="${y+3.5}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${fmtUSD(v)}</text>`; }
-  const bars=series.map((s,i)=>{ const x=PL+i*gw+gw/2;
-    const hm=(s.m/hi)*(H-PT-PB), hb=(s.b/hi)*(H-PT-PB);
-    return `<rect x="${x-bw-1}" y="${H-PB-hm}" width="${bw}" height="${hm}" fill="#4FB477" opacity=".85"/>
-            <rect x="${x+1}"   y="${H-PB-hb}" width="${bw}" height="${hb}" fill="#E0564E" opacity=".85"/>`;}).join('');
-  const xl=[0,9,19,29].map(i=>`<text x="${PL+i*gw+gw/2}" y="${H-7}" fill="#525C65" font-size="10"
-      font-family="IBM Plex Mono" text-anchor="middle">D-${29-i}</text>`).join('');
-  $('#mbchart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}${bars}${xl}
-    <text x="${W-14}" y="${PT+2}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">
-      ▉ MINT (GREEN)  ▉ BURN (RED)</text></svg>`;
-})();
-(function(){ // z-score line
-  const r=rng(7), n=30, W=MOBILE?460:1000,H=MOBILE?240:190,PT=12,PB=22,PL=44;
-  let z=0.3; const zs=[...Array(n)].map(()=>{ z=Math.max(-2.8,Math.min(2.8,z+(r()-.48)*1.1)); return z; });
-  zs[n-1]=2.24;
-  const X=i=>PL+(i/(n-1))*(W-PL-14);
-  const Y=v=>PT+(1-(v+3)/6)*(H-PT-PB);
-  let g='';
-  [3,2,1,0,-1,-2,-3].forEach(v=>{ const y=Y(v);
-    const isT=Math.abs(v)===2;
-    g+=`<line x1="${PL}" x2="${W-14}" y1="${y}" y2="${y}" stroke="${isT?'#8A6A24':'#1A2024'}"
-          stroke-dasharray="${isT?'4 4':''}"/>
-        <text x="${PL-8}" y="${y+3.5}" fill="#525C65" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${v>0?'+':''}${v}σ</text>`;});
-  const line=zs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
-  const lastX=X(n-1), lastY=Y(zs[n-1]);
-  const alert=zs[n-1]>2;
-  $('#zchart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}
-    <path d="${line}" fill="none" stroke="${alert?'#E8B33C':'#6FA8DC'}" stroke-width="1.6"/>
-    <circle cx="${lastX}" cy="${lastY}" r="3.5" fill="${alert?'#E8B33C':'#6FA8DC'}"/>
-    <text x="${lastX-8}" y="${lastY-9}" fill="${alert?'#E8B33C':'#DBD8D2'}" font-size="11"
-      font-family="IBM Plex Mono" text-anchor="end">Z ${zs[n-1]>0?'+':''}${zs[n-1].toFixed(2)}${alert?' — ALERT ARMED':''}</text>
-    <text x="${PL}" y="${Y(2)-5}" fill="#8A6A24" font-size="9.5" font-family="IBM Plex Mono">ALERT +2σ</text>
-    <text x="${PL}" y="${Y(-2)+12}" fill="#8A6A24" font-size="9.5" font-family="IBM Plex Mono">ALERT −2σ</text>
-    </svg>`;
-})();
-(function(){ // exchange table
-  const r=rng(99);
-  const ex=['Binance','Coinbase','OKX','Bybit','Kraken','Gate.io','Bitget','HTX'];
-  const rows=ex.map(e=>{ const i=(r()*2-1)*450e6;
-    return {e, inflow:Math.abs(i)*1.3+r()*150e6, outflow:Math.abs(i)*1.1+r()*150e6, net:i};});
-  rows.sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
-  const max=Math.max(...rows.map(x=>Math.abs(x.net)));
-  $('#extable').innerHTML=rows.map(x=>`
-    <tr><td class="l">${x.e}</td><td>${fmtUSD(x.inflow)}</td><td>${fmtUSD(x.outflow)}</td>
-    <td class="${cls(x.net)}">${sgn(x.net)}</td>
-    <td class="l" style="width:180px"><span style="position:relative;display:block;height:7px;background:#171C20">
-      <i style="position:absolute;left:50%;top:0;bottom:0;width:${Math.abs(x.net)/max*50}%;
-        background:${x.net>0?'#4FB477':'#E0564E'};${x.net<0?'transform:translateX(-100%)':''}"></i>
-      <i style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#2A3238"></i>
-    </span></td></tr>`).join('');
-})();
-
 /* ── activity feed (sample data) ──────────────────────── */
   const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
   const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
@@ -553,6 +523,232 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
 
 
 /* ── tabs ──────────────────────────────── */
+/* ── CONTROL view (ported from stablecoin-control.html) ───────── */
+const CTL = { token: 'ALL', type: 'ALL', q: '' };
+function ctlBuild() {
+  let seed = 20261106;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+  const hex = (n) => { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(rnd() * 16).toString(16); return s; };
+  const pool = [];
+  for (let i = 0; i < 14; i++) pool.push('0x' + hex(40));
+  const N = 46;
+  const times = [];
+  let t = Date.UTC(2026, 10, 5, 14, 40);
+  for (let i = 0; i < N; i++) { times.push(t); t -= (0.5 + rnd() * 12) * 86400000; }
+  times.reverse();
+  const open = {};
+  const durations = { USDT: [], USDC: [] };
+  const events = [];
+  const endTs = times[times.length - 1];
+  times.forEach((ts) => {
+    const token = rnd() < 0.62 ? 'USDT' : 'USDC';
+    const openList = pool.filter((a) => open[token + a]);
+    const freeList = pool.filter((a) => !open[token + a]);
+    let addr, type, amt;
+    if ((openList.length && rnd() < 0.45) || !freeList.length) {
+      addr = openList[Math.floor(rnd() * openList.length)];
+      const o = open[token + addr];
+      if (token === 'USDT' && !o.destroyed && rnd() < 0.35) { type = 'DESTROY'; amt = o.amt; o.amt = 0; o.destroyed = true; }
+      else { type = 'UNBLACKLIST'; amt = o.amt; durations[token].push((ts - o.ts) / 86400000); delete open[token + addr]; }
+    } else {
+      addr = freeList[Math.floor(rnd() * freeList.length)];
+      type = 'BLACKLIST';
+      amt = Math.round(Math.exp(7 + rnd() * 8.5));
+      open[token + addr] = { amt: amt, ts: ts, destroyed: false };
+    }
+    events.push({ ts: ts, month: new Date(ts).getUTCMonth(), time: new Date(ts).toISOString().slice(0, 16).replace('T', ' '), token: token, type: type, addr: addr, short: addr.slice(0, 8) + '…' + addr.slice(-6), amt: amt, tx: '0x' + hex(6) + '…' + hex(4), block: Math.round(26270000 - (endTs - ts) / 12000) });
+  });
+  return { events: events, open: open, durations: durations };
+}
+function ctlMoney(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+  return '$' + Math.round(n);
+}
+function ctlFull(n) { return '$' + n.toLocaleString('en-US'); }
+function ctlMedian(a) {
+  if (!a.length) return '-';
+  const s = a.slice().sort((x, y) => x - y);
+  const m = Math.floor(s.length / 2);
+  const v = s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  return v.toFixed(1);
+}
+function ctlRender() {
+  if (!CTL._d) CTL._d = ctlBuild();
+  const d = CTL._d;
+  const st = { token: CTL.token, type: CTL.type, q: CTL.q };
+  const tagCls = { BLACKLIST: 'ctl-tag--bl', UNBLACKLIST: 'ctl-tag--un', DESTROY: 'ctl-tag--ds' };
+  const supply = { USDT: 186.2e9, USDC: 74.9e9 };
+  const now = Date.UTC(2026, 10, 6, 16, 15);
+  const toks = st.token === 'ALL' ? ['USDT', 'USDC'] : [st.token];
+  const scoped = d.events.filter((e) => toks.indexOf(e.token) > -1);
+  let frozen = 0, openCount = 0, supplySum = 0, destroyed = 0;
+  toks.forEach((tk) => {
+    supplySum += supply[tk];
+    Object.keys(d.open).forEach((k) => { if (k.indexOf(tk) === 0) { frozen += d.open[k].amt; openCount += 1; } });
+  });
+  scoped.forEach((e) => { if (e.type === 'DESTROY') destroyed += e.amt; });
+  const recent = scoped.filter((e) => e.ts >= now - 30 * 86400000);
+  const cnt = (list, ty) => list.filter((e) => e.type === ty).length;
+  const last = scoped[scoped.length - 1];
+  const ago = now - last.ts;
+  const agoD = Math.floor(ago / 86400000);
+  const agoH = Math.floor((ago % 86400000) / 3600000);
+  const destroyNA = st.token === 'USDC';
+  const kpis = [
+    { label: 'SUPPLY', value: ctlMoney(supplySum), sub: toks.join(' + ') + ' ON ETHEREUM' },
+    { label: 'FROZEN NOW', value: ctlMoney(frozen), sub: (frozen / supplySum * 100).toFixed(4) + '% OF SUPPLY' },
+    { label: 'BLACKLISTED ADDRESSES', value: String(openCount), sub: 'CURRENTLY ON THE LIST' },
+    { label: 'EVENTS, LAST 30D', value: String(recent.length), sub: 'BL ' + cnt(recent, 'BLACKLIST') + '  UN ' + cnt(recent, 'UNBLACKLIST') + '  DS ' + cnt(recent, 'DESTROY') },
+    { label: 'DESTROYED, YTD', value: destroyNA ? 'N/A' : ctlMoney(destroyed), sub: destroyNA ? 'NO DESTROY FUNCTION IN CONTRACT' : cnt(scoped, 'DESTROY') + ' DESTROY EVENTS' },
+    { label: 'LAST EVENT', value: agoD + 'D ' + agoH + 'H', sub: 'AGO, ' + last.token + ' ' + last.type }
+  ];
+
+  const q = st.q.trim().toLowerCase().replace(/^0x/, '');
+  let lk = { isEmpty: true, isNone: false, isHit: false, addr: '', tokens: [], hist: [], more: false, moreText: '' };
+  let activeAddr = '';
+  if (q.length >= 4) {
+    const hits = d.events.filter((e) => e.addr.slice(2).indexOf(q) > -1);
+    if (!hits.length) {
+      lk = { isEmpty: false, isNone: true, isHit: false, addr: '', tokens: [], hist: [], more: false, moreText: '' };
+    } else {
+      activeAddr = hits[0].addr;
+      const mine = d.events.filter((e) => e.addr === activeAddr);
+      const distinct = {};
+      hits.forEach((h) => { distinct[h.addr] = 1; });
+      const nAddr = Object.keys(distinct).length;
+      lk = {
+        isEmpty: false, isNone: false, isHit: true,
+        addr: activeAddr,
+        tokens: ['USDT', 'USDC'].map((tk) => {
+          const o = d.open[tk + activeAddr];
+          const n = mine.filter((e) => e.token === tk).length;
+          return {
+            token: tk,
+            status: o ? 'BLACKLISTED' : (n ? 'PREVIOUSLY BLACKLISTED' : 'NO EVENTS'),
+            cls: o ? 'ctl-st-neg' : (n ? 'ctl-st-hist' : 'ctl-st-none'),
+            frozen: o ? ctlFull(o.amt) + ' FROZEN' : '-'
+          };
+        }),
+        hist: mine.slice().reverse().map((e) => ({ time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type], amt: ctlFull(e.amt) })),
+        more: nAddr > 1,
+        moreText: nAddr + ' ADDRESSES MATCH. SHOWING THE MOST RECENT. TYPE MORE CHARACTERS TO NARROW.'
+      };
+    }
+  }
+
+  const byAddr = {};
+  d.events.forEach((e) => { byAddr[e.addr] = (byAddr[e.addr] || 0) + 1; });
+  const samples = Object.keys(byAddr).sort((a, b) => byAddr[b] - byAddr[a]).slice(0, 3).map((a) => ({ short: a.slice(0, 8) + '…' + a.slice(-4), addr: a, pick: () => { CTL.q = a; ctlDraw(); } }));
+
+  const list = scoped.filter((e) => st.type === 'ALL' || e.type === st.type).slice().reverse();
+  const rows = list.map((e) => ({
+    addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
+    short: e.short, amt: ctlFull(e.amt), tx: e.tx, block: e.block.toLocaleString('en-US'),
+    cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
+  }));
+
+  const cap = (label, u, c) => ({ label: label, u: u, c: c, uCls: u === 'NO' ? 'ctl-st-none' : '', cCls: c === 'NO' ? 'ctl-st-none' : '' });
+  const caps = [
+    cap('CONTRACT', '0xdAC1…1ec7', '0xA0b8…eB48'),
+    cap('BLACKLIST ADDRESS', 'YES', 'YES'),
+    cap('UNBLACKLIST ADDRESS', 'YES', 'YES'),
+    cap('DESTROY FROZEN FUNDS', 'YES', 'NO'),
+    cap('PAUSE TRANSFERS', 'YES', 'YES')
+  ];
+
+  const run = { USDT: 0, USDC: 0 };
+  const cum = { USDT: [], USDC: [] };
+  const cntM = { USDT: [], USDC: [] };
+  for (let m = 0; m <= 10; m++) {
+    ['USDT', 'USDC'].forEach((tk) => { cntM[tk][m] = 0; });
+    d.events.filter((e) => e.month === m).forEach((e) => {
+      cntM[e.token][m] += 1;
+      if (e.type === 'BLACKLIST') run[e.token] += e.amt;
+      else run[e.token] -= e.amt;
+    });
+    cum.USDT.push(run.USDT);
+    cum.USDC.push(run.USDC);
+  }
+  const peakV = Math.max(1, Math.max.apply(null, cum.USDT.concat(cum.USDC)));
+  const W = 600, H = 150, TOP = 10;
+  const line = (arr) => arr.map((v, i) => (i ? 'L' : 'M') + Math.round(i * W / 10) + ',' + Math.round(H - (Math.max(0, v) / peakV) * (H - TOP))).join(' ');
+  const lineA = line(cum.USDT);
+  const chart = { lineA: lineA, areaA: lineA + ' L' + W + ',' + H + ' L0,' + H + ' Z', lineB: line(cum.USDC) };
+
+  const labels = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N'];
+  const maxC = Math.max(1, Math.max.apply(null, cntM.USDT.concat(cntM.USDC)));
+  const hh = (c) => (c ? Math.max(2, Math.round(c / maxC * 90)) : 0);
+  const months = labels.map((l, i) => ({ label: l, ua: cntM.USDT[i], ca: cntM.USDC[i], uh: hh(cntM.USDT[i]), ch: hh(cntM.USDC[i]) }));
+
+  const stat = (tk) => {
+    const ev = d.events.filter((e) => e.token === tk);
+    let f = 0, n = 0;
+    Object.keys(d.open).forEach((k) => { if (k.indexOf(tk) === 0) { f += d.open[k].amt; n += 1; } });
+    return { total: ev.length, bl: cnt(ev, 'BLACKLIST'), un: cnt(ev, 'UNBLACKLIST'), ds: cnt(ev, 'DESTROY'), med: ctlMedian(d.durations[tk]), frozen: ctlMoney(f), n: n };
+  };
+  const U = stat('USDT');
+  const C = stat('USDC');
+  const cmp = [
+    { label: 'EVENTS', u: String(U.total), c: String(C.total) },
+    { label: 'BLACKLISTS', u: String(U.bl), c: String(C.bl) },
+    { label: 'UNBLACKLISTS', u: String(U.un), c: String(C.un) },
+    { label: 'DESTROYS', u: String(U.ds), c: 'N/A' },
+    { label: 'MEDIAN DAYS FROZEN', u: U.med, c: C.med },
+    { label: 'FROZEN NOW', u: U.frozen, c: C.frozen },
+    { label: 'LISTED NOW', u: String(U.n), c: String(C.n) }
+  ];
+
+  return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, caps: caps, chart: chart, peak: ctlMoney(peakV), months: months, cmp: cmp };
+}
+function ctlDraw() {
+  const p = ctlRender();
+  document.querySelectorAll('#v-ctl [data-ctl-group="token"] .ctl-seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-ctl-value') === CTL.token); });
+  document.querySelectorAll('#v-ctl [data-ctl-group="type"] .ctl-seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-ctl-value') === CTL.type); });
+  const lnkBtns = document.querySelectorAll('#v-ctl .ctl-lnk');
+  p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
+  document.getElementById('ctl-feedcount').textContent = p.feedCount + ' EVENTS';
+  document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="ctl-kpi"><div class="ctl-kl">' + k.label + '</div><div class="ctl-kv">' + k.value + '</div><div class="ctl-ks">' + k.sub + '</div></div>').join('');
+  document.getElementById('ctl-rows').innerHTML = p.rows.map((r) => '<button class="ctl-row ' + r.cls + '" data-ctl-addr="' + r.addr + '"><span class="ctl-c ctl-mono ctl-dim">' + r.time + '</span><span class="ctl-c ctl-mono">' + r.token + '</span><span class="ctl-c"><span class="ctl-tag ' + r.tagCls + '">' + r.type + '</span></span><span class="ctl-c ctl-mono">' + r.short + '</span><span class="ctl-c ctl-mono ctl-num">' + r.amt + '</span><span class="ctl-c ctl-mono ctl-dim">' + r.tx + '</span><span class="ctl-c ctl-mono ctl-num ctl-dim">' + r.block + '</span></button>').join('');
+  let lkHtml = '';
+  const lk = p.lk;
+  if (lk.isEmpty) lkHtml = '<div class="ctl-note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>';
+  else if (lk.isNone) lkHtml = '<div class="ctl-note">NO EVENTS FOR THIS ADDRESS IN THE SAMPLE SET.</div>';
+  else {
+    let h = '<div class="ctl-addr">' + lk.addr + '</div>';
+    lk.tokens.forEach((tk2) => { h += '<div class="ctl-tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="ctl-dim">' + tk2.frozen + '</span></div>'; });
+    h += '<div class="ctl-hist-h">HISTORY</div>';
+    lk.hist.forEach((x) => { h += '<div class="ctl-hist-row"><span class="ctl-dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="ctl-tag ' + x.tagCls + '">' + x.type + '</span></span><span class="ctl-dim">' + x.amt + '</span></div>'; });
+    if (lk.more) h += '<div class="ctl-note">' + lk.moreText + '</div>';
+    lkHtml = h;
+  }
+  document.getElementById('ctl-lk').innerHTML = lkHtml;
+  document.getElementById('ctl-chartlinea').setAttribute('d', p.chart.lineA);
+  document.getElementById('ctl-chartarea').setAttribute('d', p.chart.areaA);
+  document.getElementById('ctl-chartlineb').setAttribute('d', p.chart.lineB);
+  document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="ctl-mcol"><div class="ctl-bcol"><span class="ctl-bv">' + m.ua + '</span><div class="ctl-bar-a" style="height:' + m.uh + 'px"></div></div><div class="ctl-bcol"><span class="ctl-bv">' + m.ca + '</span><div class="ctl-bar-b" style="height:' + m.ch + 'px"></div></div></div>').join('');
+  document.getElementById('ctl-cmp').innerHTML = p.cmp.map((r) => '<div class="ctl-cmp"><span class="ctl-dim">' + r.label + '</span><span class="ctl-num">' + r.u + '</span><span class="ctl-num">' + r.c + '</span></div>').join('');
+  document.getElementById('ctl-peak').textContent = p.peak;
+}
+function ctlBind() {
+  const tk = document.getElementById('ctl-tokenseg');
+  tk.addEventListener('click', (e) => { const b = e.target.closest('.ctl-seg-b'); if (!b) return; CTL.token = b.getAttribute('data-ctl-value'); ctlDraw(); });
+  const ty = document.getElementById('ctl-typeseg');
+  ty.addEventListener('click', (e) => { const b = e.target.closest('.ctl-seg-b'); if (!b) return; CTL.type = b.getAttribute('data-ctl-value'); ctlDraw(); });
+  const addrq = document.getElementById('ctl-addrq');
+  addrq.addEventListener('input', (e) => { CTL.q = e.target.value; ctlDraw(); });
+  document.getElementById('v-ctl').addEventListener('click', (e) => {
+    const el = e.target;
+    const lnk = el.closest ? el.closest('.ctl-lnk') : null;
+    if (lnk) { CTL.q = lnk.getAttribute('data-addr') || ''; ctlDraw(); return; }
+    const row = el.closest ? el.closest('.ctl-row') : null;
+    if (row && !row.classList.contains('ctl-row-h')) { CTL.q = row.getAttribute('data-ctl-addr') || ''; ctlDraw(); return; }
+  });
+}
+ctlBind();
+ctlDraw();
+
 document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
