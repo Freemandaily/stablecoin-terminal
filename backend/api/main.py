@@ -574,10 +574,67 @@ def events(
                             status_code=503)
 
 
+def _blacklist(token: str | None = None, since: date | None = None) -> dict:
+    """CONTROL tab payload (B-D27) — blacklist ingest via Envio contract events.
+
+    Reads BLACKLIST / UNBLACKLIST / DESTROY events from the issuer-events mart.
+    All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
+    comparison are derived client-side from `events[]` (see docs/api-contract.md §9).
+    """
+    types = ("BLACKLIST", "UNBLACKLIST", "DESTROY")
+    clauses, params = [], []
+    if token:
+        clauses.append("token = %s")
+        params.append(token)
+    if since is not None:
+        clauses.append("block_timestamp::date >= %s")
+        params.append(since)
+    where = " and ".join(clauses) if clauses else "true"
+    with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
+        rows = cur.execute(
+            f"""
+            select block_timestamp as ts, event_type, token, amount_usd,
+                   transaction_hash as tx,
+                   '0x' || substr(topic1, 27, 40) as frm,
+                   '0x' || substr(topic2, 27, 40) as dest
+            from marts.mart_issuer_events
+            where event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY')
+              and {where}
+            order by block_timestamp desc
+            limit 200
+            """,
+            params,
+        ).fetchall()
+    events = [
+        {
+            "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            "type": r["event_type"],
+            "token": r["token"],
+            "addr": (r["dest"] or r["frm"]),
+            "usd": _f(r["amount_usd"]),
+            "tx": r["tx"],
+        }
+        for r in rows
+    ]
+    return {
+        "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "api: token-contract blacklist events (Envio)",
+        "count": len(events),
+        "events": events,
+    }
+
+
 @app.get("/api/blacklist")
-def blacklist() -> JSONResponse:
-    """CONTROL tab payload (B-D27) — 501 until blacklist events are indexed."""
-    return _phase2("/api/blacklist")
+def blacklist(
+    token: str | None = Query(None, alias="token"),
+    since: date | None = Query(None),
+) -> JSONResponse:
+    """CONTROL tab payload (B-D27) — blacklist ingest (Envio contract events)."""
+    try:
+        return JSONResponse(_blacklist(token=token, since=since))
+    except psycopg.OperationalError as e:
+        return JSONResponse({"error": "database unreachable", "detail": str(e)},
+                            status_code=503)
 
 
 def _mintburn() -> dict:

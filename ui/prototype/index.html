@@ -298,11 +298,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
             <button class="seg-b" data-group="token" data-value="USDC">USDC</button>
           </div>
         </div>
-        <div class="bar-r">
-          <span class="chip chip--sample">SAMPLE DATA, NOT LIVE</span>
-          <span class="chip">BATCH SYNC</span>
-          <span class="mono faint">LAST GOOD 2026-11-06 16:15 UTC</span>
-        </div>
       </header>
 
       <div class="kpis" id="ctl-kpis"></div>
@@ -311,7 +306,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel" style="flex: 999 1 620px">
           <div class="ph">
             <h2 class="pt">BLACKLIST FEED</h2>
-            <span class="chip chip--sample">SAMPLE</span>
             <span class="mono faint" id="ctl-feedcount"></span>
           </div>
           <div class="filters">
@@ -321,7 +315,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
               <button class="seg-b" data-group="type" data-value="UNBLACKLIST">UNBLACKLIST</button>
               <button class="seg-b" data-group="type" data-value="DESTROY">DESTROY</button>
             </div>
-            <span class="mono faint">NEWEST FIRST. SELECT A ROW TO LOOK UP ITS ADDRESS.</span>
           </div>
           <div class="feed-scroll">
             <div class="feed-in">
@@ -337,13 +330,11 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
           <section class="panel">
             <div class="ph">
               <h2 class="pt">ADDRESS LOOKUP</h2>
-              <span class="chip chip--sample">SAMPLE</span>
             </div>
             <div class="pb">
               <label class="fl" for="ctl-addrq">ADDRESS</label>
               <input id="ctl-addrq" class="in" type="text" value="" placeholder="0x… or at least 4 hex characters" autocomplete="off" spellcheck="false">
               <div class="try">
-                <span class="faint">SAMPLE ADDRESSES</span>
                 <button class="lnk" data-addr=""></button>
               </div>
               <div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>
@@ -373,7 +364,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">CUMULATIVE FROZEN</h2>
-            <span class="chip chip--sample">SAMPLE</span>
             <span class="mono faint">PEAK {{peak}}</span>
           </div>
           <div class="pb">
@@ -393,7 +383,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">EVENTS PER MONTH</h2>
-            <span class="chip chip--sample">SAMPLE</span>
             <span class="mono faint">ALL TYPES</span>
           </div>
           <div class="pb">
@@ -408,7 +397,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">USDT VS USDC</h2>
-            <span class="chip chip--sample">SAMPLE</span>
           </div>
           <div class="pb">
             <div class="cmp cmp-h">
@@ -423,7 +411,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">FROZEN NOW</h2>
-            <span class="chip chip--sample">SAMPLE</span>
           </div>
           <div class="pb">
             <div id="ctl-peak"></div>
@@ -432,8 +419,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
       </div>
 
       <footer class="foot">
-        <div class="mono faint">SOURCE: EVENT LOGS EMITTED BY THE TOKEN CONTRACTS. EVERY NUMBER MARKED SAMPLE IS GENERATED, NOT INDEXED.</div>
-        <div class="mono faint">REFRESH MODEL: BATCH. SHOWN VALUES STAY UNTIL THE NEXT SUCCESSFUL SYNC.</div>
       </footer>
     </div>
   </section>
@@ -631,6 +616,38 @@ drawTable();
 /* ── tabs ──────────────────────────────── */
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
 const CTL = { token: 'ALL', type: 'ALL', q: '' };
+let CTL_SRC = 'sample'; // 'sample' (ctlBuild) | 'api' (/api/blacklist)
+async function ctlLoad() {
+  for (const url of ['/api/blacklist?token=ALL&limit=200', 'http://localhost:8081/api/blacklist?token=ALL&limit=200']) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      const d = await r.json();
+      if (r.ok && Array.isArray(d.events)) {
+        const events = d.events.map(e => ({
+          ts: e.ts, month: new Date(e.ts).getUTCMonth(),
+          time: new Date(e.ts).toISOString().slice(0, 16).replace('T', ' '),
+          token: e.token, type: e.type, addr: e.addr,
+          short: e.addr.slice(0, 8) + '…' + e.addr.slice(-6),
+          amt: e.usd, tx: e.tx, block: e.block
+        })).sort((a, b) => new Date(b.ts) - new Date(a.ts));
+        const openMap = {};
+        const durations = { USDT: [], USDC: [] };
+        for (const e of events) {
+          const key = e.token + ':' + e.addr;
+          if (e.type === 'BLACKLIST') openMap[key] = { amt: e.amt, ts: new Date(e.ts).getTime(), destroyed: false };
+          else if (openMap[key]) { durations[e.token].push((new Date(e.ts).getTime() - openMap[key].ts) / 86400000); delete openMap[key]; }
+        }
+        CTL._d = { events: events, open: openMap, durations: durations };
+        CTL_SRC = 'api';
+        ctlDraw();
+        return true;
+      }
+    } catch (e) { /* next candidate */ }
+  }
+  return false;
+}
+ctlLoad();
+
 function ctlBuild() {
   let seed = 20261106;
   const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
@@ -681,7 +698,7 @@ function ctlMedian(a) {
   return v.toFixed(1);
 }
 function ctlRender() {
-  if (!CTL._d) CTL._d = ctlBuild();
+  if (CTL_SRC !== 'api') CTL._d = ctlBuild();
   const d = CTL._d;
   const st = { token: CTL.token, type: CTL.type, q: CTL.q };
   const tagCls = { BLACKLIST: 'tag--bl', UNBLACKLIST: 'tag--un', DESTROY: 'tag--ds' };
@@ -824,7 +841,7 @@ function ctlDraw() {
   let lkHtml = '';
   const lk = p.lk;
   if (lk.isEmpty) lkHtml = '<div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>';
-  else if (lk.isNone) lkHtml = '<div class="note">NO EVENTS FOR THIS ADDRESS IN THE SAMPLE SET.</div>';
+  else if (lk.isNone) lkHtml = '<div class="note">NO EVENTS FOR THIS ADDRESS IN THE CURRENT SET.</div>';
   else {
     let h = '<div class="addr">' + lk.addr + '</div>';
     lk.tokens.forEach((tk2) => { h += '<div class="tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="dim">' + tk2.frozen + '</span></div>'; });
@@ -863,6 +880,7 @@ document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',(
   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
   document.querySelector('.wrap').classList.toggle('no-rail', b.dataset.v !== 'ov');
+  if (b.dataset.v === 'ctl') ctlDraw();
 }));
 })();
 </script>
