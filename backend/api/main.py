@@ -574,7 +574,7 @@ def events(
                             status_code=503)
 
 
-def _blacklist(token: str | None = None, since: date | None = None) -> dict:
+def _blacklist(token: str | None = None, since: date | None = None, addr: str | None = None) -> dict:
     """CONTROL tab payload (B-D27) — blacklist ingest via Envio contract events.
 
     Reads BLACKLIST / UNBLACKLIST / DESTROY events from the issuer-events mart.
@@ -583,7 +583,7 @@ def _blacklist(token: str | None = None, since: date | None = None) -> dict:
     """
     types = ("BLACKLIST", "UNBLACKLIST", "DESTROY")
     clauses, params = [], []
-    if token:
+    if token and token != "ALL":
         clauses.append("token = %s")
         params.append(token)
     if since is not None:
@@ -594,9 +594,8 @@ def _blacklist(token: str | None = None, since: date | None = None) -> dict:
         rows = cur.execute(
             f"""
             select block_timestamp as ts, event_type, token, amount_usd,
-                   transaction_hash as tx,
-                   '0x' || substr(topic1, 27, 40) as frm,
-                   '0x' || substr(topic2, 27, 40) as dest
+                   transaction_hash as tx, blacklisted_address as addr,
+                   destroyed_amount_usdt as destroyed
             from marts.mart_issuer_events
             where event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY')
               and {where}
@@ -610,12 +609,18 @@ def _blacklist(token: str | None = None, since: date | None = None) -> dict:
             "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
             "type": r["event_type"],
             "token": r["token"],
-            "addr": (r["dest"] or r["frm"]),
-            "usd": _f(r["amount_usd"]),
+            "addr": r["addr"],
+            "usd": _f(r["destroyed"] if r["event_type"] == "DESTROY" and r["destroyed"] is not None else r["amount_usd"]),
             "tx": r["tx"],
         }
         for r in rows
     ]
+    if addr:
+        key = addr.strip().lower().replace("0x", "")
+        events = [
+            e for e in events
+            if e.get("addr") and e["addr"].lower().replace("0x", "").find(key) > -1
+        ]
     return {
         "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "source": "api: token-contract blacklist events (Envio)",
@@ -628,10 +633,11 @@ def _blacklist(token: str | None = None, since: date | None = None) -> dict:
 def blacklist(
     token: str | None = Query(None, alias="token"),
     since: date | None = Query(None),
+    addr: str | None = Query(None, alias="addr"),
 ) -> JSONResponse:
     """CONTROL tab payload (B-D27) — blacklist ingest (Envio contract events)."""
     try:
-        return JSONResponse(_blacklist(token=token, since=since))
+        return JSONResponse(_blacklist(token=token, since=since, addr=addr))
     except psycopg.OperationalError as e:
         return JSONResponse({"error": "database unreachable", "detail": str(e)},
                             status_code=503)

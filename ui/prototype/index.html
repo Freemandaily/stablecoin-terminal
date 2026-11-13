@@ -337,24 +337,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
               <div class="try">
                 <button class="lnk" data-addr=""></button>
               </div>
-              <div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>
               <div id="ctl-lk"></div>
-            </div>
-          </section>
-          <section class="panel">
-            <div class="ph">
-              <h2 class="pt">CONTRACT CAPABILITIES</h2>
-              <span class="mono faint">FROM ABI</span>
-            </div>
-            <div class="pb">
-              <div class="cap cap-h"><span>CAPABILITY</span><span>USDT</span><span>USDC</span></div>
-              <div class="cap"><span class="dim">CONTRACT</span><span class="st-none">0xdAC1…1ec7</span><span class="st-none">0xA0b8…eB48</span></div>
-              <div class="cap"><span class="dim">BLACKLIST ADDRESS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
-              <div class="cap"><span class="dim">UNBLACKLIST ADDRESS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
-              <div class="cap"><span class="dim">DESTROY FROZEN FUNDS</span><span class="st-none">YES</span><span class="st-none">NO</span></div>
-              <div class="cap"><span class="dim">PAUSE TRANSFERS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
-              <div class="evn">USDT EVENTS: AddedBlackList, RemovedBlackList, DestroyedBlackFunds.</div>
-              <div class="evn">USDC EVENTS: Blacklisted, UnBlacklisted.</div>
             </div>
           </section>
         </div>
@@ -618,7 +601,7 @@ drawTable();
 const CTL = { token: 'ALL', type: 'ALL', q: '' };
 let CTL_SRC = 'sample'; // 'sample' (ctlBuild) | 'api' (/api/blacklist)
 async function ctlLoad() {
-  for (const url of ['/api/blacklist?token=ALL&limit=200', 'http://localhost:8081/api/blacklist?token=ALL&limit=200']) {
+  for (const url of ['/api/blacklist?token=ALL&limit=200']) {
     try {
       const r = await fetch(url, { cache: 'no-store' });
       const d = await r.json();
@@ -633,7 +616,7 @@ async function ctlLoad() {
         const openMap = {};
         const durations = { USDT: [], USDC: [] };
         for (const e of events) {
-          const key = e.token + ':' + e.addr;
+          const key = e.token + e.addr;
           if (e.type === 'BLACKLIST') openMap[key] = { amt: e.amt, ts: new Date(e.ts).getTime(), destroyed: false };
           else if (openMap[key]) { durations[e.token].push((new Date(e.ts).getTime() - openMap[key].ts) / 86400000); delete openMap[key]; }
         }
@@ -768,18 +751,9 @@ function ctlRender() {
   const list = scoped.filter((e) => st.type === 'ALL' || e.type === st.type).slice().reverse();
   const rows = list.map((e) => ({
     addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
-    short: e.short, amt: ctlFull(e.amt), tx: e.tx, block: e.block.toLocaleString('en-US'),
+    short: e.short, amt: ctlFull(e.amt), tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
   }));
-
-  const cap = (label, u, c) => ({ label: label, u: u, c: c, uCls: u === 'NO' ? 'st-none' : '', cCls: c === 'NO' ? 'st-none' : '' });
-  const caps = [
-    cap('CONTRACT', '0xdAC1…1ec7', '0xA0b8…eB48'),
-    cap('BLACKLIST ADDRESS', 'YES', 'YES'),
-    cap('UNBLACKLIST ADDRESS', 'YES', 'YES'),
-    cap('DESTROY FROZEN FUNDS', 'YES', 'NO'),
-    cap('PAUSE TRANSFERS', 'YES', 'YES')
-  ];
 
   const run = { USDT: 0, USDC: 0 };
   const cum = { USDT: [], USDC: [] };
@@ -825,7 +799,7 @@ function ctlRender() {
     { label: 'LISTED NOW', u: String(U.n), c: String(C.n) }
   ];
 
-  return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, caps: caps, chart: chart, peak: ctlMoney(peakV), months: months, cmp: cmp };
+  return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, chart: chart, peak: ctlMoney(peakV), months: months, cmp: cmp };
 }
 function ctlDraw() {
   const p = ctlRender();
@@ -840,7 +814,7 @@ function ctlDraw() {
   document.getElementById('ctl-rows').innerHTML = p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
-  if (lk.isEmpty) lkHtml = '<div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>';
+  if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';
   else if (lk.isNone) lkHtml = '<div class="note">NO EVENTS FOR THIS ADDRESS IN THE CURRENT SET.</div>';
   else {
     let h = '<div class="addr">' + lk.addr + '</div>';
