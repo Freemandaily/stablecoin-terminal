@@ -45,8 +45,11 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 
 /* ── layout ─────────────────────────────── */
 .wrap{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 44px - 74px)}
+.wrap.no-rail{grid-template-columns:1fr}
 .main{border-right:1px solid var(--line2);min-width:0}
-.rail{background:var(--panel);min-width:0}
+.rail{background:var(--panel);min-width:0;display:block}
+.wrap.no-rail .rail{display:none}
+.wrap.no-rail .main{border-right:0}
 .view{display:none} .view.on{display:block}
 
 /* ── panels ─────────────────────────────── */
@@ -141,7 +144,7 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 .chainrow .nm{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
-#v-ctl .app{max-width:1440px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+#v-ctl .app{width:100%;padding:12px;display:flex;flex-direction:column;gap:12px}
 #v-ctl .hgrid{display:flex;flex-wrap:wrap;gap:1px;background:#262a30;border:1px solid #262a30}
 #v-ctl .panel{background:#121417;min-width:0}
 #v-ctl .ph{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #262a30}
@@ -256,13 +259,12 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
   </nav>
 </header>
 
-<div class="strip" id="strip"></div>
-
 <div class="wrap">
 <div class="main">
 
   <!-- ══ VIEW: OVERVIEW ══ -->
   <section class="view on" id="v-ov">
+    <div class="strip" id="strip"></div>
     <div class="panel">
       <div class="phead"><span class="t">Market Cap</span>
         <span class="chip">365D</span><span class="m">USD-PEGGED · ALL CHAINS · DEFI LLAMA</span></div>
@@ -281,7 +283,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <tbody></tbody>
       </table></div>
     </div>
-
   </section>
 
   <!-- ══ VIEW: CONTROL (stablecoin control) ──── -->
@@ -439,7 +440,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 
 </div>
 
-<!-- ══ RIGHT RAIL: ACTIVITY FEED ══ -->
 <aside class="rail">
   <div class="railhead"><span class="t">Activity</span></div>
   <ul class="feed" id="feed"></ul>
@@ -862,6 +862,7 @@ ctlDraw();
 document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
+  document.querySelector('.wrap').classList.toggle('no-rail', b.dataset.v !== 'ov');
 }));
 })();
 </script>
