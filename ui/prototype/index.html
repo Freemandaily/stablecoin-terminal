@@ -195,7 +195,7 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .st-hist{color:#e8eaed}
 #v-ctl .st-none{color:#80868f}
 #v-ctl .hist-h{margin-top:8px}
-#v-ctl .hist-row{display:grid;grid-template-columns:116px 52px 1fr auto;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px}
+#v-ctl .hist-row{display:grid;grid-template-columns:116px 52px 1fr auto auto;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px}
 #v-ctl .cap{display:grid;grid-template-columns:1fr 108px 108px;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
 #v-ctl .cap-h{border-top:0;color:#80868f;font-size:11px;letter-spacing:0.08em}
 #v-ctl .evn{margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2;word-break:break-word}
@@ -327,7 +327,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         </section>
 
         <div class="stack" style="flex: 1 1 340px; min-width: 0">
-          <section class="panel">
+          <section class="panel" id="ctl-panel-addr">
             <div class="ph">
               <h2 class="pt">ADDRESS LOOKUP</h2>
             </div>
@@ -820,7 +820,7 @@ function ctlDraw() {
     let h = '<div class="addr">' + lk.addr + '</div>';
     lk.tokens.forEach((tk2) => { h += '<div class="tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="dim">' + tk2.frozen + '</span></div>'; });
     h += '<div class="hist-h">HISTORY</div>';
-    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + x.amt + '</span></div>'; });
+    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + x.amt + '</span><span class="c mono"><a href="https://etherscan.io/tx/' + x.tx + '" target="_blank" rel="noreferrer">↗</a></span></div>'; });
     if (lk.more) h += '<div class="note">' + lk.moreText + '</div>';
     lkHtml = h;
   }
@@ -833,6 +833,16 @@ function ctlDraw() {
   document.getElementById('ctl-peak').textContent = p.peak;
 }
 function ctlBind() {
+  const addrPanel = document.querySelector('#v-ctl .stack .panel');
+  addrPanel.addEventListener('mousedown', (e) => {
+    const r = addrPanel.getBoundingClientRect();
+    if (e.clientX - r.left > 28) return;
+    const sx = e.clientX, sw = addrPanel.clientWidth;
+    const move = (ev) => { addrPanel.style.width = Math.max(120, sw + (ev.clientX - sx)) + 'px'; };
+    const up = () => { addrPanel.style.width = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
   const tk = document.querySelector('#v-ctl [data-group="token"]');
   tk.addEventListener('click', (e) => { const b = e.target.closest('.seg-b'); if (!b) return; CTL.token = b.getAttribute('data-value'); ctlDraw(); });
   const ty = document.querySelector('#v-ctl [data-group="type"]');
