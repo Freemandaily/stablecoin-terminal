@@ -141,57 +141,82 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 .chainrow .nm{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
-.ctl-app{display:flex;flex-direction:column;min-height:0}
-.ctl-bar{display:flex;align-items:center;gap:16px;padding:0 16px;height:44px;border-bottom:1px solid var(--line2);background:var(--panel);flex:0 0 auto}
-.ctl-bar .bar-l{display:flex;align-items:center;gap:14px;min-width:0}
-.ctl-bar .bar-r{margin-left:auto;display:flex;align-items:center;gap:8px}
-.ctl-brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.ctl-dot{width:7px;height:7px;background:var(--acc);border-radius:50%}
-.ctl-seg{display:flex;align-items:center;border:1px solid var(--line2);background:var(--panel2);height:24px}
-.ctl-seg-b{height:22px;padding:0 10px;background:none;border:none;border-right:1px solid var(--line2);color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.ctl-seg-b:last-child{border-right:none}
-.ctl-seg-b.is-on{color:var(--acc);background:var(--panel)}
-.ctl-chip{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 6px;border:1px solid var(--line2);color:var(--dim);text-transform:uppercase}
-.ctl-chip--sample{border-color:var(--acc-dim);color:var(--acc)}
-.ctl-chip--live{border-color:var(--up);color:var(--up)}
-.ctl-kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line2);background:var(--panel)}
-.ctl-kpi{padding:12px 16px;border-right:1px solid var(--line);min-width:0}
-.ctl-kpi:last-child{border-right:none}
-.ctl-kl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:500;margin-bottom:6px}
-.ctl-kv{font-family:var(--mono);font-size:21px;font-weight:500;color:var(--txt);font-variant-numeric:tabular-nums}
-.ctl-ks{font-family:var(--mono);font-size:10px;color:var(--dim2);margin-top:3px;letter-spacing:.02em}
-.ctl-hgrid{display:grid;grid-template-columns:1fr}
-.ctl-hgrid.ctl-charts{display:grid;grid-template-columns:1.35fr 1fr}
-.ctl-panel{border-bottom:1px solid var(--line2)}
-.ctl-phead{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
-.ctl-phead .ctl-t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-.ctl-phead .ctl-m{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.05em}
-.ctl-rows{display:flex;flex-direction:column;max-height:420px;overflow-y:auto}
-.ctl-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;width:100%;background:none;border-left:2px solid transparent;border-right:1px solid var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.ctl-row:hover{background:#121619}
-.ctl-row.is-match{background:#121619}
-.ctl-rows .ctl-row-h{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:500;padding:6px 16px;border-bottom:1px solid var(--line);background:var(--panel);cursor:default}
-.ctl-lk{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.ctl-addr{font-family:var(--mono);font-size:12px;color:var(--txt);word-break:break-all}
-.ctl-tk-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px}
-.ctl-tk-row .ctl-tk-status{font-weight:600}
-.ctl-hist-h{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:500;margin-top:6px}
-.ctl-hist-row{display:grid;grid-template-columns:110px 1fr auto auto;gap:10px;font-family:var(--mono);font-size:11px;padding:4px 0;border-bottom:1px solid var(--line);align-items:center}
-.ctl-note{font-family:var(--mono);font-size:11.5px;color:var(--dim);line-height:1.7;padding:0 16px 12px}
-.ctl-note b{color:var(--acc);font-weight:500}
-.ctl-chartbox{padding:14px 16px 8px}
-.ctl-chartbox svg{display:block;width:100%}
-.ctl-bars{display:flex;align-items:flex-end;gap:6px;height:150px;padding:14px 16px 8px;border-bottom:1px solid var(--line2)}
-.ctl-bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}
-.ctl-bv{font-family:var(--mono);font-size:9px;color:var(--dim2)}
-.ctl-bar-a{width:8px;background:var(--acc-dim)}
-.ctl-bar-b{width:8px;background:var(--line2)}
-.ctl-mrow{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--line2)}
-.ctl-mrow span{flex:1;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);text-align:center}
-.ctl-num{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--txt);text-align:right}
-.ctl-peak{padding:14px 16px}
-.ctl-foot{padding:10px 16px;border-top:1px solid var(--line2);display:flex;gap:20px;flex-wrap:wrap;background:var(--panel)}
-.ctl-faint{color:var(--dim2)}
+#v-ctl .app{max-width:1440px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+#v-ctl .hgrid{display:flex;flex-wrap:wrap;gap:1px;background:#262a30;border:1px solid #262a30}
+#v-ctl .panel{background:#121417;min-width:0}
+#v-ctl .ph{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #262a30}
+#v-ctl .pt{margin:0;flex:1;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;font-weight:600;letter-spacing:0.08em}
+#v-ctl .pb{padding:12px}
+#v-ctl .stack{display:flex;flex-direction:column;gap:1px;background:#262a30}
+#v-ctl .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid #262a30;background:#121417}
+#v-ctl .bar-l,.v-ctl .bar-r{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+#v-ctl .brand{font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:13px;letter-spacing:0.08em}
+#v-ctl .chip{display:inline-flex;align-items:center;padding:4px 8px;border:1px solid #3a3f47;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#a3a9b2;white-space:nowrap}
+#v-ctl .chip--sample{border-color:#e8a317;color:#e8a317}
+#v-ctl .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e8a317;margin-right:8px}
+#v-ctl .seg{display:inline-flex}
+#v-ctl .seg-b{padding:4px 12px;background:transparent;border:1px solid #3a3f47;color:#a3a9b2;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;letter-spacing:0.08em;cursor:pointer}
+#v-ctl .seg-b+.seg-b{margin-left:-1px}
+#v-ctl .seg-b:hover{color:#e8eaed}
+#v-ctl .seg-b.is-on{position:relative;background:rgba(232,163,23,0.14);border-color:#e8a317;color:#e8a317}
+#v-ctl .seg-b:focus-visible{outline:1px solid #e8a317;outline-offset:1px}
+#v-ctl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:#262a30;border:1px solid #262a30}
+#v-ctl .kpi{background:#121417;padding:12px}
+#v-ctl .kl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#80868f}
+#v-ctl .kv{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:22px;font-weight:500;margin:4px 0}
+#v-ctl .ks{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2}
+#v-ctl .filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #262a30}
+#v-ctl .feed-scroll{overflow:auto;max-height:520px}
+#v-ctl .feed-in{min-width:760px}
+#v-ctl .row{display:grid;grid-template-columns:132px 52px 100px minmax(150px,1fr) 104px 104px 88px;gap:8px;align-items:center;width:100%;padding:4px 12px;border:0;border-bottom:1px solid #262a30;background:transparent;color:#e8eaed;text-align:left;cursor:pointer}
+#v-ctl .row:hover{background:#181b1f}
+#v-ctl .row:focus-visible{outline:1px solid #e8a317;outline-offset:-1px}
+#v-ctl .row.is-match{background:rgba(232,163,23,0.14)}
+#v-ctl .row-h{position:sticky;top:0;z-index:1;background:#121417;cursor:default;color:#80868f;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em}
+#v-ctl .row-h:hover{background:#121417}
+#v-ctl .c{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+#v-ctl .tag{display:inline-block;padding:0 4px;border:1px solid;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em}
+#v-ctl .tag--bl{color:#f2564f;border-color:#f2564f}
+#v-ctl .tag--un{color:#3fb950;border-color:#3fb950}
+#v-ctl .tag--ds{background:#f2564f;border-color:#f2564f;color:#0d0e10}
+#v-ctl .fl{display:block;margin-bottom:4px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#80868f}
+#v-ctl .in{width:100%;padding:8px;background:#0d0e10;border:1px solid #3a3f47;color:#e8eaed;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px}
+#v-ctl .in:focus{outline:1px solid #e8a317;outline-offset:0;border-color:#e8a317}
+#v-ctl .try{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
+#v-ctl .lnk{padding:0;background:none;border:0;border-bottom:1px solid #3a3f47;color:#a3a9b2;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;cursor:pointer}
+#v-ctl .lnk:hover{color:#e8a317;border-color:#e8a317}
+#v-ctl .note{margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
+#v-ctl .addr{margin:12px 0 8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;word-break:break-all}
+#v-ctl .tk-row{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+#v-ctl .st-neg{color:#f2564f}
+#v-ctl .st-hist{color:#e8eaed}
+#v-ctl .st-none{color:#80868f}
+#v-ctl .hist-h{margin-top:8px}
+#v-ctl .hist-row{display:grid;grid-template-columns:116px 52px 1fr auto;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px}
+#v-ctl .cap{display:grid;grid-template-columns:1fr 108px 108px;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+#v-ctl .cap-h{border-top:0;color:#80868f;font-size:11px;letter-spacing:0.08em}
+#v-ctl .evn{margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2;word-break:break-word}
+#v-ctl .charts>.panel{flex:1 1 360px}
+#v-ctl .legend{display:flex;gap:16px;align-items:center;margin-bottom:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2}
+#v-ctl .lg-l{display:inline-block;width:20px;margin-right:4px;vertical-align:middle}
+#v-ctl .lg-a{border-top:2px solid #e8a317}
+#v-ctl .lg-b{border-top:2px dashed #a3a9b2}
+#v-ctl .ch{display:block;width:100%;height:160px}
+#v-ctl .g{stroke:#262a30;stroke-width:1;vector-effect:non-scaling-stroke}
+#v-ctl .ln-a{fill:none;stroke:#e8a317;stroke-width:1.5;vector-effect:non-scaling-stroke}
+#v-ctl .ln-b{fill:none;stroke:#a3a9b2;stroke-width:1.5;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+#v-ctl .ar-a{fill:#e8a317;fill-opacity:0.14;stroke:none}
+#v-ctl .mrow{display:flex;justify-content:space-between;margin-top:4px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
+#v-ctl .bars{display:flex;align-items:flex-end;gap:4px;height:120px}
+#v-ctl .mcol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:1px}
+#v-ctl .bcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+#v-ctl .bv{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;line-height:1;color:#a3a9b2}
+#v-ctl .bar-a{width:14px;background:#e8a317}
+#v-ctl .bar-b{width:14px;background:#a3a9b2}
+#v-ctl .mlab{flex:1;min-width:0;text-align:center}
+#v-ctl .cmp{display:grid;grid-template-columns:1fr 88px 88px;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+#v-ctl .cmp-h{border-top:0;color:#80868f;font-size:11px;letter-spacing:0.08em}
+#v-ctl .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 12px;border:1px solid #262a30;background:#121417;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
 /* ── feed (right rail) ──────────────────── */
 .railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
   background:var(--panel2);position:sticky;top:44px;z-index:10}
@@ -261,73 +286,154 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 
   <!-- ══ VIEW: CONTROL (stablecoin control) ──── -->
   <section class="view" id="v-ctl">
-    <div class="ctl-app">
-      <div class="ctl-bar">
+    <div class="app">
+      <header class="bar">
         <div class="bar-l">
-          <div class="ctl-brand"><span class="ctl-dot"></span>CONTROLLED ASSETS</div>
-          <div class="ctl-seg" id="ctl-tokenseg">
-            <button class="ctl-seg-b is-on" data-ctl-group="token" data-ctl-value="ALL">ALL</button>
-            <button class="ctl-seg-b" data-ctl-group="token" data-ctl-value="USDT">USDT</button>
-            <button class="ctl-seg-b" data-ctl-group="token" data-ctl-value="USDC">USDC</button>
-          </div>
-          <div class="ctl-seg" id="ctl-typeseg">
-            <button class="ctl-seg-b is-on" data-ctl-group="type" data-ctl-value="ALL">ALL</button>
-            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="BLACKLIST">BLACKLIST</button>
-            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="UNBLACKLIST">UNBLACKLIST</button>
-            <button class="ctl-seg-b" data-ctl-group="type" data-ctl-value="DESTROY">DESTROY</button>
+          <span class="brand">STABLECOIN CONTROL</span>
+          <span class="chip">ETHEREUM</span>
+          <div class="seg" role="group" aria-label="Token">
+            <button class="seg-b is-on" data-group="token" data-value="ALL">ALL</button>
+            <button class="seg-b" data-group="token" data-value="USDT">USDT</button>
+            <button class="seg-b" data-group="token" data-value="USDC">USDC</button>
           </div>
         </div>
         <div class="bar-r">
-          <span class="ctl-chip">SAMPLE</span>
-          <span class="ctl-chip ctl-chip--live">BLACKLIST FEED</span>
+          <span class="chip chip--sample">SAMPLE DATA, NOT LIVE</span>
+          <span class="chip">BATCH SYNC</span>
+          <span class="mono faint">LAST GOOD 2026-11-06 16:15 UTC</span>
+        </div>
+      </header>
+
+      <div class="kpis" id="ctl-kpis"></div>
+
+      <div class="hgrid">
+        <section class="panel" style="flex: 999 1 620px">
+          <div class="ph">
+            <h2 class="pt">BLACKLIST FEED</h2>
+            <span class="chip chip--sample">SAMPLE</span>
+            <span class="mono faint" id="ctl-feedcount"></span>
+          </div>
+          <div class="filters">
+            <div class="seg" role="group" aria-label="Event type">
+              <button class="seg-b is-on" data-group="type" data-value="ALL">ALL</button>
+              <button class="seg-b" data-group="type" data-value="BLACKLIST">BLACKLIST</button>
+              <button class="seg-b" data-group="type" data-value="UNBLACKLIST">UNBLACKLIST</button>
+              <button class="seg-b" data-group="type" data-value="DESTROY">DESTROY</button>
+            </div>
+            <span class="mono faint">NEWEST FIRST. SELECT A ROW TO LOOK UP ITS ADDRESS.</span>
+          </div>
+          <div class="feed-scroll">
+            <div class="feed-in">
+              <div class="row row-h">
+                <span>TIME (UTC)</span><span>TOKEN</span><span>EVENT</span><span>ADDRESS</span><span class="num">BALANCE</span><span>TX</span><span class="num">BLOCK</span>
+              </div>
+              <div id="ctl-rows"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="stack" style="flex: 1 1 340px; min-width: 0">
+          <section class="panel">
+            <div class="ph">
+              <h2 class="pt">ADDRESS LOOKUP</h2>
+              <span class="chip chip--sample">SAMPLE</span>
+            </div>
+            <div class="pb">
+              <label class="fl" for="ctl-addrq">ADDRESS</label>
+              <input id="ctl-addrq" class="in" type="text" value="" placeholder="0x… or at least 4 hex characters" autocomplete="off" spellcheck="false">
+              <div class="try">
+                <span class="faint">SAMPLE ADDRESSES</span>
+                <button class="lnk" data-addr=""></button>
+              </div>
+              <div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>
+              <div id="ctl-lk"></div>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="ph">
+              <h2 class="pt">CONTRACT CAPABILITIES</h2>
+              <span class="mono faint">FROM ABI</span>
+            </div>
+            <div class="pb">
+              <div class="cap cap-h"><span>CAPABILITY</span><span>USDT</span><span>USDC</span></div>
+              <div class="cap"><span class="dim">CONTRACT</span><span class="st-none">0xdAC1…1ec7</span><span class="st-none">0xA0b8…eB48</span></div>
+              <div class="cap"><span class="dim">BLACKLIST ADDRESS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
+              <div class="cap"><span class="dim">UNBLACKLIST ADDRESS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
+              <div class="cap"><span class="dim">DESTROY FROZEN FUNDS</span><span class="st-none">YES</span><span class="st-none">NO</span></div>
+              <div class="cap"><span class="dim">PAUSE TRANSFERS</span><span class="st-none">YES</span><span class="st-none">YES</span></div>
+              <div class="evn">USDT EVENTS: AddedBlackList, RemovedBlackList, DestroyedBlackFunds.</div>
+              <div class="evn">USDC EVENTS: Blacklisted, UnBlacklisted.</div>
+            </div>
+          </section>
         </div>
       </div>
 
-      <div class="ctl-kpis" id="ctl-kpis"></div>
-
-      <div class="ctl-hgrid" style="flex: 999 1 620px">
-        <div class="ctl-panel">
-          <div class="ctl-phead"><span class="ctl-t">Events</span>
-            <span class="ctl-chip">30D</span><span class="ctl-m" id="ctl-feedcount"></span></div>
-          <div class="ctl-rows" id="ctl-rows"></div>
-        </div>
-        <div class="ctl-panel ctl-side">
-          <div class="ctl-phead"><span class="ctl-t">Address detail</span>
-            <span class="ctl-chip">BLACKLIST / UNBLACKLIST / DESTROY</span></div>
-          <div class="ctl-lk" id="ctl-lk"></div>
-        </div>
+      <div class="hgrid charts">
+        <section class="panel">
+          <div class="ph">
+            <h2 class="pt">CUMULATIVE FROZEN</h2>
+            <span class="chip chip--sample">SAMPLE</span>
+            <span class="mono faint">PEAK {{peak}}</span>
+          </div>
+          <div class="pb">
+            <div class="legend">
+              <span><span class="lg-l lg-a"></span>USDT</span>
+              <span><span class="lg-l lg-b"></span>USDC</span>
+            </div>
+            <svg class="ch" id="ctl-chartbox" viewBox="0 0 600 150">
+              <path class="g" id="ctl-grid" d="M0,25 H600 M0,50 H600 M0,75 H600 M0,100 H600"></path>
+              <path class="ln-a" id="ctl-chartlinea" d=""></path>
+              <path class="ar-a" id="ctl-chartarea" d=""></path>
+              <path class="ln-b" id="ctl-chartlineb" d=""></path>
+            </svg>
+            <div class="mrow"><span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="ph">
+            <h2 class="pt">EVENTS PER MONTH</h2>
+            <span class="chip chip--sample">SAMPLE</span>
+            <span class="mono faint">ALL TYPES</span>
+          </div>
+          <div class="pb">
+            <div class="legend">
+              <span><span class="lg-l lg-a"></span>USDT</span>
+              <span><span class="lg-l lg-b"></span>USDC</span>
+            </div>
+            <div class="bars" id="ctl-bars"></div>
+            <div class="mrow"><span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="ph">
+            <h2 class="pt">USDT VS USDC</h2>
+            <span class="chip chip--sample">SAMPLE</span>
+          </div>
+          <div class="pb">
+            <div class="cmp cmp-h">
+              <span>CAPABILITY</span><span class="num">USDT</span><span class="num">USDC</span>
+            </div>
+            <div id="ctl-cmp"></div>
+          </div>
+        </section>
       </div>
 
-      <div class="ctl-hgrid ctl-charts">
-        <div class="ctl-panel">
-          <div class="ctl-phead"><span class="ctl-t">Supply over time</span>
-            <span class="ctl-chip">USDT+USDC</span><span class="ctl-m">BLACKLIST · UNBLACKLIST · DESTROY</span></div>
-          <div class="ctl-chartbox"><svg id="ctl-chartarea" viewBox="0 0 600 150"></svg></div>
-        </div>
-        <div class="ctl-panel">
-          <div class="ctl-phead"><span class="ctl-t">Events per month</span>
-            <span class="ctl-chip">ALL TYPES</span><span class="ctl-m">BLACKLIST · UNBLACKIST · DESTROY</span></div>
-          <div class="ctl-bars" id="ctl-bars"></div>
-          <div class="ctl-mrow"><span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span></div>
-        </div>
+      <div class="hgrid">
+        <section class="panel">
+          <div class="ph">
+            <h2 class="pt">FROZEN NOW</h2>
+            <span class="chip chip--sample">SAMPLE</span>
+          </div>
+          <div class="pb">
+            <div id="ctl-peak"></div>
+          </div>
+        </section>
       </div>
 
-      <div class="ctl-hgrid">
-        <div class="ctl-panel">
-          <div class="ctl-phead"><span class="ctl-t">Comparison</span>
-            <span class="ctl-chip">YTD</span><span class="ctl-m">BLACKLIST / UNBLACKLIST · USDC vs USDT</span></div>
-          <div class="ctl-cmp" id="ctl-cmp"></div>
-        </div>
-        <div class="ctl-panel">
-          <div class="ctl-phead"><span class="ctl-t">Frozen now</span>
-            <span class="ctl-chip">SUPPLY</span><span class="ctl-m">FROZEN / DESTROYED</span></div>
-          <div class="ctl-peak" id="ctl-peak"></div>
-        </div>
-      </div>
-
-      <div class="ctl-foot">
-        <div class="ctl-note">SAMPLE DATA — CONTROL VIEW IS A PORT OF STABLECOIN-CONTROL.HTML.</div>
-      </div>
+      <footer class="foot">
+        <div class="mono faint">SOURCE: EVENT LOGS EMITTED BY THE TOKEN CONTRACTS. EVERY NUMBER MARKED SAMPLE IS GENERATED, NOT INDEXED.</div>
+        <div class="mono faint">REFRESH MODEL: BATCH. SHOWN VALUES STAY UNTIL THE NEXT SUCCESSFUL SYNC.</div>
+      </footer>
     </div>
   </section>
 
@@ -578,7 +684,7 @@ function ctlRender() {
   if (!CTL._d) CTL._d = ctlBuild();
   const d = CTL._d;
   const st = { token: CTL.token, type: CTL.type, q: CTL.q };
-  const tagCls = { BLACKLIST: 'ctl-tag--bl', UNBLACKLIST: 'ctl-tag--un', DESTROY: 'ctl-tag--ds' };
+  const tagCls = { BLACKLIST: 'tag--bl', UNBLACKLIST: 'tag--un', DESTROY: 'tag--ds' };
   const supply = { USDT: 186.2e9, USDC: 74.9e9 };
   const now = Date.UTC(2026, 10, 6, 16, 15);
   const toks = st.token === 'ALL' ? ['USDT', 'USDC'] : [st.token];
@@ -627,7 +733,7 @@ function ctlRender() {
           return {
             token: tk,
             status: o ? 'BLACKLISTED' : (n ? 'PREVIOUSLY BLACKLISTED' : 'NO EVENTS'),
-            cls: o ? 'ctl-st-neg' : (n ? 'ctl-st-hist' : 'ctl-st-none'),
+            cls: o ? 'st-neg' : (n ? 'st-hist' : 'st-none'),
             frozen: o ? ctlFull(o.amt) + ' FROZEN' : '-'
           };
         }),
@@ -649,7 +755,7 @@ function ctlRender() {
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
   }));
 
-  const cap = (label, u, c) => ({ label: label, u: u, c: c, uCls: u === 'NO' ? 'ctl-st-none' : '', cCls: c === 'NO' ? 'ctl-st-none' : '' });
+  const cap = (label, u, c) => ({ label: label, u: u, c: c, uCls: u === 'NO' ? 'st-none' : '', cCls: c === 'NO' ? 'st-none' : '' });
   const caps = [
     cap('CONTRACT', '0xdAC1…1ec7', '0xA0b8…eB48'),
     cap('BLACKLIST ADDRESS', 'YES', 'YES'),
@@ -675,7 +781,9 @@ function ctlRender() {
   const W = 600, H = 150, TOP = 10;
   const line = (arr) => arr.map((v, i) => (i ? 'L' : 'M') + Math.round(i * W / 10) + ',' + Math.round(H - (Math.max(0, v) / peakV) * (H - TOP))).join(' ');
   const lineA = line(cum.USDT);
-  const chart = { lineA: lineA, areaA: lineA + ' L' + W + ',' + H + ' L0,' + H + ' Z', lineB: line(cum.USDC) };
+  const areaA = lineA + ' L' + W + ',' + H + ' L0,' + H + ' Z';
+  const lineB = line(cum.USDC);
+  const chart = { lineA: lineA, areaA: areaA, lineB: lineB };
 
   const labels = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N'];
   const maxC = Math.max(1, Math.max.apply(null, cntM.USDT.concat(cntM.USDC)));
@@ -704,46 +812,48 @@ function ctlRender() {
 }
 function ctlDraw() {
   const p = ctlRender();
-  document.querySelectorAll('#v-ctl [data-ctl-group="token"] .ctl-seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-ctl-value') === CTL.token); });
-  document.querySelectorAll('#v-ctl [data-ctl-group="type"] .ctl-seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-ctl-value') === CTL.type); });
-  const lnkBtns = document.querySelectorAll('#v-ctl .ctl-lnk');
+  const tkSeg = document.querySelector('#v-ctl [data-group="token"]');
+  tkSeg.querySelectorAll('.seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.token); });
+  const tySeg = document.querySelector('#v-ctl [data-group="type"]');
+  tySeg.querySelectorAll('.seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.type); });
+  const lnkBtns = document.querySelectorAll('#v-ctl .lnk');
   p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
   document.getElementById('ctl-feedcount').textContent = p.feedCount + ' EVENTS';
-  document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="ctl-kpi"><div class="ctl-kl">' + k.label + '</div><div class="ctl-kv">' + k.value + '</div><div class="ctl-ks">' + k.sub + '</div></div>').join('');
-  document.getElementById('ctl-rows').innerHTML = p.rows.map((r) => '<button class="ctl-row ' + r.cls + '" data-ctl-addr="' + r.addr + '"><span class="ctl-c ctl-mono ctl-dim">' + r.time + '</span><span class="ctl-c ctl-mono">' + r.token + '</span><span class="ctl-c"><span class="ctl-tag ' + r.tagCls + '">' + r.type + '</span></span><span class="ctl-c ctl-mono">' + r.short + '</span><span class="ctl-c ctl-mono ctl-num">' + r.amt + '</span><span class="ctl-c ctl-mono ctl-dim">' + r.tx + '</span><span class="ctl-c ctl-mono ctl-num ctl-dim">' + r.block + '</span></button>').join('');
+  document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
+  document.getElementById('ctl-rows').innerHTML = p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
-  if (lk.isEmpty) lkHtml = '<div class="ctl-note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>';
-  else if (lk.isNone) lkHtml = '<div class="ctl-note">NO EVENTS FOR THIS ADDRESS IN THE SAMPLE SET.</div>';
+  if (lk.isEmpty) lkHtml = '<div class="note">STATUS, FROZEN BALANCE AND FULL HISTORY APPEAR HERE.</div>';
+  else if (lk.isNone) lkHtml = '<div class="note">NO EVENTS FOR THIS ADDRESS IN THE SAMPLE SET.</div>';
   else {
-    let h = '<div class="ctl-addr">' + lk.addr + '</div>';
-    lk.tokens.forEach((tk2) => { h += '<div class="ctl-tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="ctl-dim">' + tk2.frozen + '</span></div>'; });
-    h += '<div class="ctl-hist-h">HISTORY</div>';
-    lk.hist.forEach((x) => { h += '<div class="ctl-hist-row"><span class="ctl-dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="ctl-tag ' + x.tagCls + '">' + x.type + '</span></span><span class="ctl-dim">' + x.amt + '</span></div>'; });
-    if (lk.more) h += '<div class="ctl-note">' + lk.moreText + '</div>';
+    let h = '<div class="addr">' + lk.addr + '</div>';
+    lk.tokens.forEach((tk2) => { h += '<div class="tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="dim">' + tk2.frozen + '</span></div>'; });
+    h += '<div class="hist-h">HISTORY</div>';
+    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + x.amt + '</span></div>'; });
+    if (lk.more) h += '<div class="note">' + lk.moreText + '</div>';
     lkHtml = h;
   }
   document.getElementById('ctl-lk').innerHTML = lkHtml;
   document.getElementById('ctl-chartlinea').setAttribute('d', p.chart.lineA);
   document.getElementById('ctl-chartarea').setAttribute('d', p.chart.areaA);
   document.getElementById('ctl-chartlineb').setAttribute('d', p.chart.lineB);
-  document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="ctl-mcol"><div class="ctl-bcol"><span class="ctl-bv">' + m.ua + '</span><div class="ctl-bar-a" style="height:' + m.uh + 'px"></div></div><div class="ctl-bcol"><span class="ctl-bv">' + m.ca + '</span><div class="ctl-bar-b" style="height:' + m.ch + 'px"></div></div></div>').join('');
-  document.getElementById('ctl-cmp').innerHTML = p.cmp.map((r) => '<div class="ctl-cmp"><span class="ctl-dim">' + r.label + '</span><span class="ctl-num">' + r.u + '</span><span class="ctl-num">' + r.c + '</span></div>').join('');
+  document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="mcol"><div class="bcol"><span class="bv">' + m.ua + '</span><div class="bar-a" style="height:' + m.uh + 'px"></div></div><div class="bcol"><span class="bv">' + m.ca + '</span><div class="bar-b" style="height:' + m.ch + 'px"></div></div></div>').join('');
+  document.getElementById('ctl-cmp').innerHTML = p.cmp.map((r) => '<div class="cmp"><span class="dim">' + r.label + '</span><span class="num">' + r.u + '</span><span class="num">' + r.c + '</span></div>').join('');
   document.getElementById('ctl-peak').textContent = p.peak;
 }
 function ctlBind() {
-  const tk = document.getElementById('ctl-tokenseg');
-  tk.addEventListener('click', (e) => { const b = e.target.closest('.ctl-seg-b'); if (!b) return; CTL.token = b.getAttribute('data-ctl-value'); ctlDraw(); });
-  const ty = document.getElementById('ctl-typeseg');
-  ty.addEventListener('click', (e) => { const b = e.target.closest('.ctl-seg-b'); if (!b) return; CTL.type = b.getAttribute('data-ctl-value'); ctlDraw(); });
+  const tk = document.querySelector('#v-ctl [data-group="token"]');
+  tk.addEventListener('click', (e) => { const b = e.target.closest('.seg-b'); if (!b) return; CTL.token = b.getAttribute('data-value'); ctlDraw(); });
+  const ty = document.querySelector('#v-ctl [data-group="type"]');
+  ty.addEventListener('click', (e) => { const b = e.target.closest('.seg-b'); if (!b) return; CTL.type = b.getAttribute('data-value'); ctlDraw(); });
   const addrq = document.getElementById('ctl-addrq');
   addrq.addEventListener('input', (e) => { CTL.q = e.target.value; ctlDraw(); });
-  document.getElementById('v-ctl').addEventListener('click', (e) => {
+  document.querySelector('#v-ctl').addEventListener('click', (e) => {
     const el = e.target;
-    const lnk = el.closest ? el.closest('.ctl-lnk') : null;
+    const lnk = el.closest ? el.closest('.lnk') : null;
     if (lnk) { CTL.q = lnk.getAttribute('data-addr') || ''; ctlDraw(); return; }
-    const row = el.closest ? el.closest('.ctl-row') : null;
-    if (row && !row.classList.contains('ctl-row-h')) { CTL.q = row.getAttribute('data-ctl-addr') || ''; ctlDraw(); return; }
+    const row = el.closest ? el.closest('.row') : null;
+    if (row && !row.classList.contains('row-h')) { CTL.q = row.getAttribute('data-addr') || ''; ctlDraw(); return; }
   });
 }
 ctlBind();
