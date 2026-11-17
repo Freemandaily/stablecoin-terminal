@@ -764,10 +764,8 @@ function ctlRender() {
 }
 function ctlDraw() {
   const p = ctlRender();
-  const tkSeg = document.querySelector('#v-ctl [data-group="token"]');
-  tkSeg.querySelectorAll('.seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.token); });
-  const tySeg = document.querySelector('#v-ctl [data-group="type"]');
-  tySeg.querySelectorAll('.seg-b').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.type); });
+  document.querySelectorAll('#v-ctl button[data-group="token"]').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.token); });
+  document.querySelectorAll('#v-ctl button[data-group="type"]').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.type); });
   const lnkBtns = document.querySelectorAll('#v-ctl .lnk');
   p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
   document.getElementById('ctl-feedcount').textContent = p.feedCount + ' EVENTS';
@@ -806,14 +804,16 @@ function ctlBind() {
     document.addEventListener('mousemove', move);
     document.addEventListener('mouseup', up);
   });
-  const tk = document.querySelector('#v-ctl [data-group="token"]');
-  tk.addEventListener('click', (e) => { const b = e.target.closest('.seg-b'); if (!b) return; CTL.token = b.getAttribute('data-value'); ctlDraw(); });
-  const ty = document.querySelector('#v-ctl [data-group="type"]');
-  ty.addEventListener('click', (e) => { const b = e.target.closest('.seg-b'); if (!b) return; CTL.type = b.getAttribute('data-value'); ctlDraw(); });
   const addrq = document.getElementById('ctl-addrq');
   addrq.addEventListener('input', (e) => { CTL.q = e.target.value; ctlDraw(); });
   document.querySelector('#v-ctl').addEventListener('click', (e) => {
     const el = e.target;
+    const seg = el.closest ? el.closest('.seg-b') : null;
+    if (seg) {
+      if (seg.dataset.group === 'token') { CTL.token = seg.getAttribute('data-value'); ctlDraw(); }
+      else if (seg.dataset.group === 'type') { CTL.type = seg.getAttribute('data-value'); ctlDraw(); }
+      return;
+    }
     const lnk = el.closest ? el.closest('.lnk') : null;
     if (lnk) { CTL.q = lnk.getAttribute('data-addr') || ''; ctlDraw(); return; }
     const row = el.closest ? el.closest('.row') : null;
