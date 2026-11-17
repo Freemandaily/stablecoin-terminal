@@ -421,7 +421,6 @@ def _coin(asset_id: str) -> dict | None:
 _PHASE2_BLOCKED = {
     "/api/flows/exchanges": "P2.8 (fct_daily_flows)",
     "/api/alerts": "P2.9 (alerts dispatcher)",
-    "/api/blacklist": "blacklist ingest (Envio contract events)",
 }
 
 
@@ -577,11 +576,12 @@ def events(
 def _blacklist(token: str | None = None, since: date | None = None, addr: str | None = None) -> dict:
     """CONTROL tab payload (B-D27) — blacklist ingest via Envio contract events.
 
-    Reads BLACKLIST / UNBLACKLIST / DESTROY events from the issuer-events mart.
+    Reads BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST events from the
+    issuer-events mart (DESTROY_BLACKLIST is the on-chain destroy type).
     All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
     comparison are derived client-side from `events[]` (see docs/api-contract.md §9).
     """
-    types = ("BLACKLIST", "UNBLACKLIST", "DESTROY")
+    types = ("BLACKLIST", "UNBLACKLIST", "DESTROY_BLACKLIST")
     clauses, params = [], []
     if token and token != "ALL":
         clauses.append("token = %s")
@@ -597,7 +597,7 @@ def _blacklist(token: str | None = None, since: date | None = None, addr: str | 
                    transaction_hash as tx, blacklisted_address as addr,
                    destroyed_amount_usdt as destroyed
             from marts.mart_issuer_events
-            where event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY')
+            where event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY_BLACKLIST')
               and {where}
             order by block_timestamp desc
             limit 200
@@ -607,10 +607,10 @@ def _blacklist(token: str | None = None, since: date | None = None, addr: str | 
     events = [
         {
             "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
-            "type": r["event_type"],
+            "type": "DESTROY" if r["event_type"] == "DESTROY_BLACKLIST" else r["event_type"],
             "token": r["token"],
             "addr": r["addr"],
-            "usd": _f(r["destroyed"] if r["event_type"] == "DESTROY" and r["destroyed"] is not None else r["amount_usd"]),
+            "usd": _f(r["destroyed"] if r["event_type"] == "DESTROY_BLACKLIST" and r["destroyed"] is not None else r["amount_usd"]),
             "tx": r["tx"],
         }
         for r in rows

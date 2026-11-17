@@ -553,53 +553,44 @@ document.querySelectorAll('#coinstable th').forEach(th=>th.addEventListener('cli
 }));
 drawTable();
 
-/* ── activity feed (sample data) ──────────────────────── */
+/* ── activity feed (live: /api/events → issuer/peg events) ───── */
   const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
   const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
     (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'ex' : 'peg';
   const tagFor = t => t === 'MINT' ? 'MINT' : t === 'BURN' ? 'BURN' :
     (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'EXCHANGE' : 'PEG_BREAK';
 
-  const ev=[
-    ['14:52','mint','MINT','250.0M','USDC','Circle treasury → Ethereum','hl'],
-    ['14:47','ex','EXCHANGE_IN','40.0M','USDT','unknown → Binance hot','hl'],
-    ['14:31','mint','MINT','125.0M','USDT','Tether treasury → Tron','hl'],
-    ['14:22','ex','EXCHANGE_OUT','18.6M','USDT','Kraken → unknown','hl'],
-    ['14:08','burn','BURN','90.0M','USDC','Ethereum → Circle (redeem)','hl'],
-    ['13:56','ex','EXCHANGE_IN','12.4M','USDT','unknown → Bybit hot','hl'],
-    ['13:44','mint','MINT','10.0M','USDT','Tether treasury → Ethereum','hl'],
-    ['13:30','peg','PEG_BREAK','−80.7','bps','USDf trades below −50 bps',''],
-    ['13:18','ex','EXCHANGE_OUT','65.0M','USDT','Binance hot → unknown','hl'],
-    ['13:02','mint','MINT','300.0M','USDT','Tether treasury → Tron','hl'],
-    ['12:49','ex','EXCHANGE_IN','8.2M','USDC','unknown → Coinbase','hl'],
-    ['12:35','burn','BURN','42.5M','USDT','Tron → Tether (redeem)','hl'],
-    ['12:11','ex','EXCHANGE_IN','25.0M','USDT','unknown → OKX hot','hl'],
-    ['11:58','mint','MINT','50.0M','USDC','Circle treasury → Ethereum','hl'],
-  ];
-  events = ev.map(([ts,kind,tag,amt,unit,route])=>({
-    ts: `1970-01-01T${ts}:00Z`, type: tag, sym: unit, usd: amt.includes('−') ? -parseFloat(amt) : parseFloat(amt.replace(/[^0-9.]/g,'')),
-    from: null, to: null, label: route,
-  }));
-
-  $('#feed').innerHTML = events.filter(e => e.type === 'MINT' || e.type === 'BURN').map(e => {
-    const ts = e.ts ? e.ts.slice(11,16) : '--:--';
-    const kind = kindFor(e.type);
-    const tag = tagFor(e.type);
-    const amt = e.usd != null ? sgn(e.usd) : '—';
-    const unit = e.sym || '';
-    const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
-    return `<li><span class="ts">${ts}</span>
-      <span class="ev"><span class="tag ${kind}">${tag}</span>
-        <span class="amt">${amt}</span> <span class="dim">${unit}</span>
-        <div class="route">${route}</div>
-      </span></li>`;
-  }).join('');
+  let events = [];
+  const loadFeed = async () => {
+    for (const url of ['/api/events?limit=50', 'http://localhost:8081/api/events?limit=50']) {
+      try {
+        const r = await fetch(url, { cache: 'no-store' });
+        const d = await r.json();
+        if (r.ok && Array.isArray(d.events)) { events = d.events; break; }
+      } catch (e) { /* live feed unreachable */ }
+    }
+    $('#feed').innerHTML = events.filter(e => e.type === 'MINT' || e.type === 'BURN').map(e => {
+      const ts = e.ts ? e.ts.slice(11,16) : '--:--';
+      const kind = kindFor(e.type);
+      const tag = tagFor(e.type);
+      const amt = e.usd != null ? sgn(e.usd) : '—';
+      const unit = e.sym || '';
+      const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
+      return `<li><span class="ts">${ts}</span>
+        <span class="ev"><span class="tag ${kind}">${tag}</span>
+          <span class="amt">${amt}</span> <span class="dim">${unit}</span>
+          <div class="route">${route}</div>
+        </span></li>`;
+    }).join('');
+  };
+  loadFeed();
 
 
 /* ── tabs ──────────────────────────────── */
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
 const CTL = { token: 'ALL', type: 'ALL', q: '' };
-let CTL_SRC = 'sample'; // 'sample' (ctlBuild) | 'api' (/api/blacklist)
+let CTL_DATA = null; // live blacklist events from /api/blacklist
+let CTL_STATUS = 'loading'; // 'loading' | 'ok' | 'err'
 async function ctlLoad() {
   for (const url of ['/api/blacklist?token=ALL&limit=200']) {
     try {
@@ -620,52 +611,19 @@ async function ctlLoad() {
           if (e.type === 'BLACKLIST') openMap[key] = { amt: e.amt, ts: new Date(e.ts).getTime(), destroyed: false };
           else if (openMap[key]) { durations[e.token].push((new Date(e.ts).getTime() - openMap[key].ts) / 86400000); delete openMap[key]; }
         }
-        CTL._d = { events: events, open: openMap, durations: durations };
-        CTL_SRC = 'api';
+        CTL_DATA = { events: events, open: openMap, durations: durations };
+        CTL_STATUS = 'ok';
         ctlDraw();
         return true;
       }
-    } catch (e) { /* next candidate */ }
+    } catch (e) { /* live feed unreachable — retry on next tab switch */ }
   }
+  CTL_STATUS = 'err';
+  ctlDraw();
   return false;
 }
 ctlLoad();
 
-function ctlBuild() {
-  let seed = 20261106;
-  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-  const hex = (n) => { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(rnd() * 16).toString(16); return s; };
-  const pool = [];
-  for (let i = 0; i < 14; i++) pool.push('0x' + hex(40));
-  const N = 46;
-  const times = [];
-  let t = Date.UTC(2026, 10, 5, 14, 40);
-  for (let i = 0; i < N; i++) { times.push(t); t -= (0.5 + rnd() * 12) * 86400000; }
-  times.reverse();
-  const open = {};
-  const durations = { USDT: [], USDC: [] };
-  const events = [];
-  const endTs = times[times.length - 1];
-  times.forEach((ts) => {
-    const token = rnd() < 0.62 ? 'USDT' : 'USDC';
-    const openList = pool.filter((a) => open[token + a]);
-    const freeList = pool.filter((a) => !open[token + a]);
-    let addr, type, amt;
-    if ((openList.length && rnd() < 0.45) || !freeList.length) {
-      addr = openList[Math.floor(rnd() * openList.length)];
-      const o = open[token + addr];
-      if (token === 'USDT' && !o.destroyed && rnd() < 0.35) { type = 'DESTROY'; amt = o.amt; o.amt = 0; o.destroyed = true; }
-      else { type = 'UNBLACKLIST'; amt = o.amt; durations[token].push((ts - o.ts) / 86400000); delete open[token + addr]; }
-    } else {
-      addr = freeList[Math.floor(rnd() * freeList.length)];
-      type = 'BLACKLIST';
-      amt = Math.round(Math.exp(7 + rnd() * 8.5));
-      open[token + addr] = { amt: amt, ts: ts, destroyed: false };
-    }
-    events.push({ ts: ts, month: new Date(ts).getUTCMonth(), time: new Date(ts).toISOString().slice(0, 16).replace('T', ' '), token: token, type: type, addr: addr, short: addr.slice(0, 8) + '…' + addr.slice(-6), amt: amt, tx: '0x' + hex(6) + '…' + hex(4), block: Math.round(26270000 - (endTs - ts) / 12000) });
-  });
-  return { events: events, open: open, durations: durations };
-}
 function ctlMoney(n) {
   if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
@@ -681,24 +639,27 @@ function ctlMedian(a) {
   return v.toFixed(1);
 }
 function ctlRender() {
-  if (CTL_SRC !== 'api') CTL._d = ctlBuild();
-  const d = CTL._d;
+  const d = CTL_DATA || { events: [] };
+  const offline = CTL_STATUS === 'err';
   const st = { token: CTL.token, type: CTL.type, q: CTL.q };
   const tagCls = { BLACKLIST: 'tag--bl', UNBLACKLIST: 'tag--un', DESTROY: 'tag--ds' };
-  const supply = { USDT: 186.2e9, USDC: 74.9e9 };
-  const now = Date.UTC(2026, 10, 6, 16, 15);
+  const supply = {
+    USDT: (D.coins || []).find(c => c.sym === 'USDT') ?.supply || 0,
+    USDC: (D.coins || []).find(c => c.sym === 'USDC')?.supply || 0,
+  };
+  const now = Date.now();
   const toks = st.token === 'ALL' ? ['USDT', 'USDC'] : [st.token];
   const scoped = d.events.filter((e) => toks.indexOf(e.token) > -1);
   let frozen = 0, openCount = 0, supplySum = 0, destroyed = 0;
   toks.forEach((tk) => {
     supplySum += supply[tk];
-    Object.keys(d.open).forEach((k) => { if (k.indexOf(tk) === 0) { frozen += d.open[k].amt; openCount += 1; } });
+    Object.keys(d.open || {}).forEach((k) => { if (k.indexOf(tk) === 0) { frozen += d.open[k].amt; openCount += 1; } });
   });
   scoped.forEach((e) => { if (e.type === 'DESTROY') destroyed += e.amt; });
-  const recent = scoped.filter((e) => e.ts >= now - 30 * 86400000);
+  const recent = scoped.filter((e) => new Date(e.ts).getTime() >= now - 30 * 86400000);
   const cnt = (list, ty) => list.filter((e) => e.type === ty).length;
   const last = scoped[scoped.length - 1];
-  const ago = now - last.ts;
+  const ago = last ? now - new Date(last.ts).getTime() : 0;
   const agoD = Math.floor(ago / 86400000);
   const agoH = Math.floor((ago % 86400000) / 3600000);
   const destroyNA = st.token === 'USDC';
@@ -708,7 +669,7 @@ function ctlRender() {
     { label: 'BLACKLISTED ADDRESSES', value: String(openCount), sub: 'CURRENTLY ON THE LIST' },
     { label: 'EVENTS, LAST 30D', value: String(recent.length), sub: 'BL ' + cnt(recent, 'BLACKLIST') + '  UN ' + cnt(recent, 'UNBLACKLIST') + '  DS ' + cnt(recent, 'DESTROY') },
     { label: 'DESTROYED, YTD', value: destroyNA ? 'N/A' : ctlMoney(destroyed), sub: destroyNA ? 'NO DESTROY FUNCTION IN CONTRACT' : cnt(scoped, 'DESTROY') + ' DESTROY EVENTS' },
-    { label: 'LAST EVENT', value: agoD + 'D ' + agoH + 'H', sub: 'AGO, ' + last.token + ' ' + last.type }
+    { label: 'LAST EVENT', value: agoD + 'D ' + agoH + 'H', sub: 'AGO, ' + (last ? last.token + ' ' + last.type : '') }
   ];
 
   const q = st.q.trim().toLowerCase().replace(/^0x/, '');
@@ -749,7 +710,7 @@ function ctlRender() {
   const samples = Object.keys(byAddr).sort((a, b) => byAddr[b] - byAddr[a]).slice(0, 3).map((a) => ({ short: a.slice(0, 8) + '…' + a.slice(-4), addr: a, pick: () => { CTL.q = a; ctlDraw(); } }));
 
   const list = scoped.filter((e) => st.type === 'ALL' || e.type === st.type).slice().reverse();
-  const rows = list.map((e) => ({
+  const rows = offline ? [] : list.map((e) => ({
     addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
     short: e.short, amt: ctlFull(e.amt), tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
@@ -784,8 +745,8 @@ function ctlRender() {
   const stat = (tk) => {
     const ev = d.events.filter((e) => e.token === tk);
     let f = 0, n = 0;
-    Object.keys(d.open).forEach((k) => { if (k.indexOf(tk) === 0) { f += d.open[k].amt; n += 1; } });
-    return { total: ev.length, bl: cnt(ev, 'BLACKLIST'), un: cnt(ev, 'UNBLACKLIST'), ds: cnt(ev, 'DESTROY'), med: ctlMedian(d.durations[tk]), frozen: ctlMoney(f), n: n };
+    Object.keys(d.open || {}).forEach((k) => { if (k.indexOf(tk) === 0) { f += d.open[k].amt; n += 1; } });
+    return { total: ev.length, bl: cnt(ev, 'BLACKLIST'), un: cnt(ev, 'UNBLACKLIST'), ds: cnt(ev, 'DESTROY'), med: ctlMedian((d.durations || {})[tk] || []), frozen: ctlMoney(f), n: n };
   };
   const U = stat('USDT');
   const C = stat('USDC');
@@ -811,7 +772,9 @@ function ctlDraw() {
   p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
   document.getElementById('ctl-feedcount').textContent = p.feedCount + ' EVENTS';
   document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
-  document.getElementById('ctl-rows').innerHTML = p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
+  document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
+    ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
+    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
   if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';
