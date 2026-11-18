@@ -58,8 +58,8 @@ extract-issuer-events: ## extract public.raw_issuer_events → Spark-ready Parqu
 		--batch-size 50000
 
 # ── phase 2 helpers ───────────────────────────
-enrich-labels: ## CryptoLabel lookup for blacklisted addresses → raw_address_labels
-	uv run python -m backend.ingest.cryptolabel
+enrich-labels: ## address lookup for blacklisted addresses → raw_address_labels (SOURCE=cryptolabel|arkham)
+	uv run python -m backend.ingest.cryptolabel --source $(or $(SOURCE),cryptolabel)
 labels-check: ## validate backend/labels/addresses.csv
 	@echo "TODO P2.2: label registry not built yet" && exit 1
 bq-dryrun: ## estimate bytes for standard transfer query

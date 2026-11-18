@@ -35,4 +35,5 @@ select = ["E", "F", "I", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["backend/ingest/tests"]
+pythonpath = ["."]           # `backend` is a namespace package at repo root
 addopts = "-q"

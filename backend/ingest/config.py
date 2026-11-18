@@ -43,6 +43,13 @@ BQ_TOKEN_ADDRESSES = (  # USDT, USDC, DAI (mainnet, lowercase for BigQuery compa
 CRYPTOLABEL_BASE = "https://cryptolabel.io/api/v1"
 CRYPTOLABEL_API_KEY = os.getenv("CRYPTOLABEL_API_KEY", "")
 
+# ── Arkham Intel address labels (P2.2, alternate source) ──
+# Verified live 2026-11-18: GET /intelligence/address/{addr} with an
+# `API-Key` header → {address, chain, arkhamEntity{...}, arkhamLabel{...},
+# isUserAddress, contract}. No entity/label keys = unlabeled (HTTP 200).
+ARKHAM_BASE = "https://api.arkm.com"
+ARKHAM_API_KEY = os.getenv("ARKHAM_API_KEY", "")
+
 # ── Alerts
 TG_TOKEN = os.getenv("TG_TOKEN", "")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID", "")
