@@ -590,10 +590,13 @@ async function ctlLoad() {
         const events = d.events.map(e => ({
           ts: e.ts, month: new Date(e.ts).getUTCMonth(),
           time: new Date(e.ts).toISOString().slice(0, 16).replace('T', ' '),
-          token: e.token, type: e.type, addr: e.addr, entity: e.entity || '',
+          token: e.token, type: e.type, addr: e.addr,
+          entity: (e.entity && e.entity !== 'Unknown') ? e.entity : '',
           short: e.addr.slice(0, 8) + '…' + e.addr.slice(-6),
           amt: e.usd, tx: e.tx, block: e.block
-        })).sort((a, b) => new Date(b.ts) - new Date(a.ts));
+          // events stay oldest→newest (ascending): openMap/durations, LAST EVENT
+          // and the feed's .reverse() below all depend on this invariant
+        })).sort((a, b) => new Date(a.ts) - new Date(b.ts));
         const openMap = {};
         const durations = { USDT: [], USDC: [] };
         for (const e of events) {
