@@ -347,7 +347,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">CUMULATIVE FROZEN</h2>
-            <span class="mono faint">PEAK {{peak}}</span>
+            <span class="mono faint">PEAK <span id="ctl-peak">—</span></span>
           </div>
           <div class="pb">
             <div class="legend">
@@ -386,17 +386,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
               <span>CAPABILITY</span><span class="num">USDT</span><span class="num">USDC</span>
             </div>
             <div id="ctl-cmp"></div>
-          </div>
-        </section>
-      </div>
-
-      <div class="hgrid">
-        <section class="panel">
-          <div class="ph">
-            <h2 class="pt">FROZEN NOW</h2>
-          </div>
-          <div class="pb">
-            <div id="ctl-peak"></div>
           </div>
         </section>
       </div>
