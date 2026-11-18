@@ -19,6 +19,8 @@ select
     e.event_type,
     e.blacklisted_address,
     e.amount_usd,
+    e.destroyed_amount_usdt,   -- pass-through for the /api/blacklist DESTROY amount
+    e.block_number,            -- pass-through for the /api/blacklist feed BLOCK column
     e.transaction_hash,
     e.log_index,
     e.entity_name,

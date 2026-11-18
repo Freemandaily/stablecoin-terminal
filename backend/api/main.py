@@ -573,15 +573,19 @@ def events(
                             status_code=503)
 
 
-def _blacklist(token: str | None = None, since: date | None = None, addr: str | None = None) -> dict:
+def _blacklist(
+    token: str | None = None, since: date | None = None, addr: str | None = None,
+    limit: int = 5000,
+) -> dict:
     """CONTROL tab payload (B-D27) — blacklist ingest via Envio contract events.
 
-    Reads BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST events from the
-    issuer-events mart (DESTROY_BLACKLIST is the on-chain destroy type).
+    Reads BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST events (and each
+    address's entity label) from marts.mart_blacklist_events.
     All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
-    comparison are derived client-side from `events[]` (see docs/api-contract.md §9).
+    comparison are derived client-side from `events[]` (see docs/api-contract.md §9) —
+    so events[] must not be silently truncated: default covers the full history
+    (853 rows as of 2026-11-18), `limit` is a defensive cap only.
     """
-    types = ("BLACKLIST", "UNBLACKLIST", "DESTROY_BLACKLIST")
     clauses, params = [], []
     if token and token != "ALL":
         clauses.append("token = %s")
@@ -590,31 +594,35 @@ def _blacklist(token: str | None = None, since: date | None = None, addr: str | 
         clauses.append("block_timestamp::date >= %s")
         params.append(since)
     where = " and ".join(clauses) if clauses else "true"
+    params.append(max(1, min(limit, 10000)))
     with get_conn() as conn, conn.cursor(row_factory=dict_row) as cur:
         rows = cur.execute(
             f"""
             select block_timestamp as ts, event_type, token, amount_usd,
                    transaction_hash as tx, blacklisted_address as addr,
-                   destroyed_amount_usdt as destroyed
-            from marts.mart_issuer_events
-            where event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY_BLACKLIST')
-              and {where}
+                   destroyed_amount_usdt as destroyed, entity_name,
+                   block_number as block
+            from marts.mart_blacklist_events
+            where {where}
             order by block_timestamp desc
-            limit 200
+            limit %s
             """,
             params,
         ).fetchall()
-    events = [
-        {
+    events = []
+    for r in rows:
+        is_destroy = r["event_type"] == "DESTROY_BLACKLIST" and r["destroyed"] is not None
+        usd = r["destroyed"] if is_destroy else r["amount_usd"]
+        events.append({
             "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
             "type": "DESTROY" if r["event_type"] == "DESTROY_BLACKLIST" else r["event_type"],
             "token": r["token"],
             "addr": r["addr"],
-            "usd": _f(r["destroyed"] if r["event_type"] == "DESTROY_BLACKLIST" and r["destroyed"] is not None else r["amount_usd"]),
+            "entity": r["entity_name"],
+            "usd": _f(usd),
             "tx": r["tx"],
-        }
-        for r in rows
-    ]
+            "block": r["block"],
+        })
     if addr:
         key = addr.strip().lower().replace("0x", "")
         events = [
@@ -634,10 +642,11 @@ def blacklist(
     token: str | None = Query(None, alias="token"),
     since: date | None = Query(None),
     addr: str | None = Query(None, alias="addr"),
+    limit: int = Query(5000, ge=1, le=10000),
 ) -> JSONResponse:
     """CONTROL tab payload (B-D27) — blacklist ingest (Envio contract events)."""
     try:
-        return JSONResponse(_blacklist(token=token, since=since, addr=addr))
+        return JSONResponse(_blacklist(token=token, since=since, addr=addr, limit=limit))
     except psycopg.OperationalError as e:
         return JSONResponse({"error": "database unreachable", "detail": str(e)},
                             status_code=503)

@@ -28,7 +28,7 @@ additive changes only; breaking a shape requires a `docs/decisions.md` entry.
 | 6 | `GET /api/flows/mintburn` | F — mint/burn analytics | ✅ LIVE | `marts.mart_mint_burn_daily` (was: `fct_daily_flows`) |
 | 7 | `GET /api/flows/exchanges` | G — exchange netflow + z-score | 🔒 501 (P2.8) | `fct_daily_flows`, exchange aggregates |
 | 8 | `GET /api/alerts` | H — recent alerts | 🔒 501 (P2.9) | alerts table + `fct_events` |
-| 9 | `GET /api/blacklist` | CONTROL — blacklist feed, KPIs, charts (B-D27) | 🔒 501 | Envio-indexed token-contract blacklist events (D2 amendment pending) |
+| 9 | `GET /api/blacklist` | CONTROL — blacklist feed, KPIs, charts (B-D27) | ✅ LIVE | `marts.mart_blacklist_events` (issuer events + `stg_address_labels` entity labels) |
 
 View D (daily digest) is a Telegram message, not an HTTP endpoint (B-D14).
 
@@ -182,16 +182,22 @@ Query params: `limit` (default 50, max 200), `type`
   "recent":[ { "ts":"…","kind":"LARGE_MINT","line":"USDC +$250M mint → Binance","delivered":true } ] }
 ```
 
-### 9 · `GET /api/blacklist` (CONTROL tab, B-D27) — blocked by blacklist ingest
+### 9 · `GET /api/blacklist` (CONTROL tab, B-D27) — LIVE
 
-Query params: `token` (`USDT|USDC`, optional), `since=YYYY-MM-DD` (optional).
+Query params: `token` (`USDT|USDC`, optional), `since=YYYY-MM-DD` (optional),
+`limit` (default **5000**, cap 10000 — covers the full event history; the feed
+derives KPIs client-side, so a truncated `events[]` would silently corrupt them).
 
 ```jsonc
 { "asof":"...", "source":"api: token-contract blacklist events (Envio)",
   "events":[ { "ts":"2026-11-05T09:14:00Z","token":"USDT",
                "type":"BLACKLIST|UNBLACKLIST|DESTROY",
-               "addr":"0x…","usd":1234567.0,"tx":"0x…","block":26270000 } ] }
+               "addr":"0x…","entity":"Binance",   // entity_name from mart_blacklist_events; null = not yet labeled
+               "usd":1234567.0,"tx":"0x…","block":26270000 } ] }
 ```
+
+`entity` is the address label joined in via `stg_address_labels` (CryptoLabel /
+Arkham, B-D31); `null` renders as `—` in the feed — never a fabricated name.
 
 All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
 comparison are derived **client-side** from `events[]` — one payload, no extra

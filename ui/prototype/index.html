@@ -170,8 +170,8 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .ks{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2}
 #v-ctl .filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #262a30}
 #v-ctl .feed-scroll{overflow:auto;max-height:520px}
-#v-ctl .feed-in{min-width:760px}
-#v-ctl .row{display:grid;grid-template-columns:132px 52px 100px minmax(150px,1fr) 104px 104px 88px;gap:8px;align-items:center;width:100%;padding:4px 12px;border:0;border-bottom:1px solid #262a30;background:transparent;color:#e8eaed;text-align:left;cursor:pointer}
+#v-ctl .feed-in{min-width:940px}
+#v-ctl .row{display:grid;grid-template-columns:132px 52px 100px minmax(140px,1fr) minmax(150px,1.3fr) 104px 104px 88px;gap:8px;align-items:center;width:100%;padding:4px 12px;border:0;border-bottom:1px solid #262a30;background:transparent;color:#e8eaed;text-align:left;cursor:pointer}
 #v-ctl .row:hover{background:#181b1f}
 #v-ctl .row:focus-visible{outline:1px solid #e8a317;outline-offset:-1px}
 #v-ctl .row.is-match{background:rgba(232,163,23,0.14)}
@@ -319,7 +319,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
           <div class="feed-scroll">
             <div class="feed-in">
               <div class="row row-h">
-                <span>TIME (UTC)</span><span>TOKEN</span><span>EVENT</span><span>ADDRESS</span><span class="num">BALANCE</span><span>TX</span><span class="num">BLOCK</span>
+                <span>TIME (UTC)</span><span>TOKEN</span><span>EVENT</span><span>ADDRESS</span><span>ENTITY</span><span class="num">BALANCE</span><span>TX</span><span class="num">BLOCK</span>
               </div>
               <div id="ctl-rows"></div>
             </div>
@@ -580,8 +580,9 @@ drawTable();
 const CTL = { token: 'ALL', type: 'ALL', q: '' };
 let CTL_DATA = null; // live blacklist events from /api/blacklist
 let CTL_STATUS = 'loading'; // 'loading' | 'ok' | 'err'
+function ctlEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 async function ctlLoad() {
-  for (const url of ['/api/blacklist?token=ALL&limit=200']) {
+  for (const url of ['/api/blacklist?token=ALL&limit=5000']) {
     try {
       const r = await fetch(url, { cache: 'no-store' });
       const d = await r.json();
@@ -589,7 +590,7 @@ async function ctlLoad() {
         const events = d.events.map(e => ({
           ts: e.ts, month: new Date(e.ts).getUTCMonth(),
           time: new Date(e.ts).toISOString().slice(0, 16).replace('T', ' '),
-          token: e.token, type: e.type, addr: e.addr,
+          token: e.token, type: e.type, addr: e.addr, entity: e.entity || '',
           short: e.addr.slice(0, 8) + '…' + e.addr.slice(-6),
           amt: e.usd, tx: e.tx, block: e.block
         })).sort((a, b) => new Date(b.ts) - new Date(a.ts));
@@ -701,7 +702,7 @@ function ctlRender() {
   const list = scoped.filter((e) => st.type === 'ALL' || e.type === st.type).slice().reverse();
   const rows = offline ? [] : list.map((e) => ({
     addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
-    short: e.short, amt: ctlFull(e.amt), tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
+    short: e.short, entity: e.entity, amt: ctlFull(e.amt), tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
   }));
 
@@ -761,7 +762,7 @@ function ctlDraw() {
   document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
   document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
     ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
-    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
+    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
   if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';
