@@ -5,7 +5,7 @@
 
 .PHONY: help setup lint test up down backend-logs migrate dbt-run dbt-test \
         ingest-supply ingest-prices ingest-transfers ingest-check ingest-issuer-events \
-        enrich-labels labels-check bq-dryrun serve digest verify export-issuer-events
+        enrich-labels enrich-balances labels-check bq-dryrun serve digest verify export-issuer-events
 
 help: ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -60,6 +60,8 @@ extract-issuer-events: ## extract public.raw_issuer_events → Spark-ready Parqu
 # ── phase 2 helpers ───────────────────────────
 enrich-labels: ## address lookup for blacklisted addresses → raw_address_labels (SOURCE=cryptolabel|arkham)
 	uv run python -m backend.ingest.cryptolabel --source $(or $(SOURCE),cryptolabel)
+enrich-balances: ## balanceOf at event block for blacklist events → raw_blacklist_balances (P2.11, needs ETH_RPC_URL)
+	uv run python -m indexer.bigquery.enrich_balances
 labels-check: ## validate backend/labels/addresses.csv
 	@echo "TODO P2.2: label registry not built yet" && exit 1
 bq-dryrun: ## estimate bytes for standard transfer query

@@ -113,5 +113,8 @@ models:
       - name: blacklisted_address
         tests:
           - not_null
+      # balance_raw: intentionally no not_null test — unfetched events are honest
+      # NULL (P2.11) and render as `—`, never 0. balance_usd likewise; when known,
+      # both are non-negative (stg_blacklist_balances tests enforce it at source).
       # is_currently_blacklisted: intentionally no not_null test — destroy-only
       # addresses have no action row, state is honest NULL (see model comment)

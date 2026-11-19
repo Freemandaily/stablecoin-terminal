@@ -27,7 +27,7 @@ with stable as (
     topics[SAFE_OFFSET(2)] AS topic2,
     data
   FROM `bigquery-public-data.crypto_ethereum.logs`
-  WHERE block_number >= 25003330
+  WHERE block_number >= 26354691
     AND (
       -- USDC: only Mint, Burn, Blacklisted, UnBlacklisted (NOT Transfer)
       (

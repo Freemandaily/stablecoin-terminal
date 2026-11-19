@@ -593,7 +593,7 @@ async function ctlLoad() {
           token: e.token, type: e.type, addr: e.addr,
           entity: (e.entity && e.entity !== 'Unknown') ? e.entity : '',
           short: e.addr.slice(0, 8) + '…' + e.addr.slice(-6),
-          amt: e.usd, tx: e.tx, block: e.block
+          amt: e.usd, bal: e.bal, tx: e.tx, block: e.block
           // events stay oldest→newest (ascending): openMap/durations, LAST EVENT
           // and the feed's .reverse() below all depend on this invariant
         })).sort((a, b) => new Date(a.ts) - new Date(b.ts));
@@ -705,7 +705,9 @@ function ctlRender() {
   const list = scoped.filter((e) => st.type === 'ALL' || e.type === st.type).slice().reverse();
   const rows = offline ? [] : list.map((e) => ({
     addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
-    short: e.short, entity: e.entity, amt: ctlFull(e.amt), tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
+    short: e.short, entity: e.entity,
+    bal: e.bal == null ? null : ctlFull(e.bal),  // P2.11: null → `—`, never $0 (§9)
+    tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
   }));
 
@@ -765,7 +767,7 @@ function ctlDraw() {
   document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
   document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
     ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
-    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num">' + r.amt + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
+    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num">' + (r.bal == null ? '<span class="dim">—</span>' : r.bal) + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
   if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';

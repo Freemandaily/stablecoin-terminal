@@ -601,7 +601,7 @@ def _blacklist(
             select block_timestamp as ts, event_type, token, amount_usd,
                    transaction_hash as tx, blacklisted_address as addr,
                    destroyed_amount_usdt as destroyed, entity_name,
-                   block_number as block
+                   block_number as block, balance_usd as bal
             from marts.mart_blacklist_events
             where {where}
             order by block_timestamp desc
@@ -620,6 +620,9 @@ def _blacklist(
             "addr": r["addr"],
             "entity": r["entity_name"],
             "usd": _f(usd),
+            # P2.11: balanceOf at event block — null = not fetched yet (renders `—`,
+            # never 0; AGENTS.md §9). Unlike _f, a missing balance stays missing.
+            "bal": float(r["bal"]) if r["bal"] is not None else None,
             "tx": r["tx"],
             "block": r["block"],
         })

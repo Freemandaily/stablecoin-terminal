@@ -56,3 +56,23 @@ sources:
               unlabeled and is retried by the fetcher.
           - name: labels
             description: Full labels JSON array from the API (can be empty for named entities).
+
+      - name: raw_blacklist_balances
+        description: >-
+          P2.11 (B-D32) balanceOf() of the blacklisted address read at the event's own
+          block (indexer/bigquery/enrich_balances.py, archive RPC), PK
+          (transaction_hash, log_index) — 1:1 with raw_issuer_events. Only successful
+          fetches are stored: no row = not yet known → renders as `—`, never 0.
+        columns:
+          - name: transaction_hash
+            tests:
+              - not_null
+          - name: log_index
+            tests:
+              - not_null
+          - name: balance_raw
+            description: balanceOf() in base units (USDT/USDC both 6 decimals).
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"

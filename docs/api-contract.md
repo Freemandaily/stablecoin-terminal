@@ -193,11 +193,16 @@ derives KPIs client-side, so a truncated `events[]` would silently corrupt them)
   "events":[ { "ts":"2026-11-05T09:14:00Z","token":"USDT",
                "type":"BLACKLIST|UNBLACKLIST|DESTROY",
                "addr":"0x…","entity":"Binance",   // entity_name from mart_blacklist_events; null = not yet labeled
-               "usd":1234567.0,"tx":"0x…","block":26270000 } ] }
+               "usd":1234567.0,
+               "bal":1234567.0,                   // P2.11: balanceOf at event block (USD); null = not fetched yet → renders `—`, never 0
+               "tx":"0x…","block":26270000 } ] }
 ```
 
 `entity` is the address label joined in via `stg_address_labels` (CryptoLabel /
 Arkham, B-D31); `null` renders as `—` in the feed — never a fabricated name.
+`bal` is the blacklisted address's token balance read at the event's own block
+(archive RPC → `raw_blacklist_balances`, B-D32); `null` = enrichment hasn't
+reached that event yet — also `—`, never `0`.
 
 All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
 comparison are derived **client-side** from `events[]` — one payload, no extra

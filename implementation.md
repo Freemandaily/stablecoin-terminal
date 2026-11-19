@@ -449,6 +449,34 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
   architecture doc finalized with the real detection rules.
   *Accept:* `make verify` runs all checks and exits 0.
 
+- [x] **P2.11 Blacklisted-address balance enrichment** *(B-D32)*
+  BLACKLIST/UNBLACKLIST/DESTROY_BLACKLIST logs carry only the address — derive
+  the token balance the address held **at the event's block** and surface it on
+  the CONTROL feed.
+  1. Migration `007_blacklist_balances.sql`: `raw_blacklist_balances`
+     (public schema) — `transaction_hash`, `log_index` (PK, 1:1 with
+     `raw_issuer_events`), `token`, `blacklisted_address`, `balance_raw
+     NUMERIC(78,0)`, `balance_block BIGINT NOT NULL`, `source TEXT NOT NULL`,
+     `fetched_at TIMESTAMPTZ DEFAULT now()`; FK → `raw_issuer_events
+     (transaction_hash, log_index)`.
+  2. `indexer/bigquery/enrich_balances.py` (mirrors `cryptolabel.py` pattern):
+     select BLACKLIST/UNBLACKLIST/DESTROY rows missing a balance →
+     `eth_call balanceOf(addr)` at the event's `block_number` via archive RPC
+     (`ETH_RPC_URL` in `.env`, stub in `.env.example`) → upsert `ON CONFLICT
+     DO UPDATE`. Idempotent (only NULLs fetched), rate-limited, honest NULL on
+     failure — never 0 (§9 rule 6).
+  3. dbt: `stg_blacklist_balances` (tests: unique+not_null PK,
+     `balance_raw >= 0`, no orphan refs) → left join into
+     `mart_blacklist_events` on `(transaction_hash, log_index)` →
+     `balance_raw`, `balance_usd` (derived in dbt: raw ÷ 10^decimals ×
+     `stg_price_daily` at event date), `balance_block` pass through.
+  4. `/api/blacklist` returns the balance fields; CONTROL feed shows a
+     BALANCE column (`—` when null, never `0`).
+  5. Makefile `enrich-balances` target + `crontab.example` entry (daily).
+  *Accept:* `make enrich-balances` twice → row count unchanged; spot-check
+  5 addresses vs Etherscan at same block (±0); `make dbt-test` green;
+  CONTROL tab renders BALANCE with `—` for missing rows.
+
 **⟵ MVP DONE. Human review, then pick from §10 backlog.**
 
 ### Phase ordering rationale

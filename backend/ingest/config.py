@@ -50,6 +50,11 @@ CRYPTOLABEL_API_KEY = os.getenv("CRYPTOLABEL_API_KEY", "")
 ARKHAM_BASE = "https://api.arkm.com"
 ARKHAM_API_KEY = os.getenv("ARKHAM_API_KEY", "")
 
+# ── Ethereum archive RPC (P2.11 blacklist balance enrichment, B-D32) ──
+# Historical eth_call (balanceOf at a past block) requires an archive node —
+# any provider works (Alchemy, Infura, llamarpc…). Empty = fetcher skips.
+ETH_RPC_URL = os.getenv("ETH_RPC_URL", "")
+
 # ── Alerts
 TG_TOKEN = os.getenv("TG_TOKEN", "")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID", "")

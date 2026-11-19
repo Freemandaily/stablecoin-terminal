@@ -2149,6 +2149,8 @@ name = "stableflow"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "dbt-core" },
+    { name = "dbt-postgres" },
     { name = "fastapi" },
     { name = "google-cloud-bigquery" },
     { name = "httpx" },
@@ -2169,6 +2171,8 @@ etl = [
 
 [package.metadata]
 requires-dist = [
+    { name = "dbt-core", specifier = ">=1.12.6" },
+    { name = "dbt-postgres", specifier = ">=1.11.0" },
     { name = "dbt-postgres", marker = "extra == 'etl'", specifier = ">=1.8" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "google-cloud-bigquery", specifier = ">=3.47.0" },

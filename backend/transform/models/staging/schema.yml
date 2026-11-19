@@ -96,3 +96,32 @@ models:
       - name: has_label
         tests:
           - not_null
+
+  - name: stg_blacklist_balances
+    description: >-
+      P2.11 (B-D32) balanceOf() at the event block, 1:1 with raw_issuer_events
+      (FK in migration 007 rules out orphans). Unfetched events simply have no
+      row → NULL balance downstream (renders `—`, never 0).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - transaction_hash
+            - log_index
+    columns:
+      - name: transaction_hash
+        tests:
+          - not_null
+      - name: log_index
+        tests:
+          - not_null
+      - name: balance_raw
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: balance_block
+        tests:
+          - not_null
+          # tripwire: a balance read must land on a real mainnet block
+          - dbt_utils.expression_is_true:
+              expression: "> 0"

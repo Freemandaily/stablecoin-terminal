@@ -14,6 +14,8 @@ cd $REPO
 0 6 * * *  uv run python -m backend.ingest.defillama --coins >> data/logs/cron-defillama.log 2>&1 && cd backend/transform && uv run dbt run --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1 && uv run dbt test --profiles-dir . >> ../../data/logs/cron-dbt.log 2>&1
 
 # ── Phase 2 (added at P2.4 / P2.9) ───────────────────────────────
+# blacklist balance enrichment — daily 05:30 UTC (P2.11, needs ETH_RPC_URL)
+30 5 * * *  uv run python -m indexer.bigquery.enrich_balances >> data/logs/cron-balances.log 2>&1
 # transfers ingest — daily 04:00 UTC
 # 0 4 * * *  ... ingest-transfers ...
 # alert dispatcher — every 15 min

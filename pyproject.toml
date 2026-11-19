@@ -12,6 +12,8 @@ dependencies = [
     "pyarrow>=14.0.0",
     "python-dotenv>=1.0",
     "google-cloud-bigquery>=3.47.0",
+    "dbt-postgres>=1.11.0",
+    "dbt-core>=1.12.6",
 ]
 
 [project.optional-dependencies]
