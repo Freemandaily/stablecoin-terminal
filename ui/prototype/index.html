@@ -319,7 +319,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
           <div class="feed-scroll">
             <div class="feed-in">
               <div class="row row-h">
-                <span>TIME (UTC)</span><span>TOKEN</span><span>EVENT</span><span>ADDRESS</span><span>ENTITY</span><span class="num">BALANCE</span><span>TX</span><span class="num">BLOCK</span>
+                <span>TIME (UTC)</span><span>TOKEN</span><span>EVENT</span><span>ADDRESS</span><span>ENTITY</span><span class="num">AMOUNT</span><span>TX</span><span class="num">BLOCK</span>
               </div>
               <div id="ctl-rows"></div>
             </div>
@@ -347,7 +347,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">CUMULATIVE FROZEN</h2>
-            <span class="mono faint">PEAK <span id="ctl-peak">—</span></span>
           </div>
           <div class="pb">
             <div class="legend">
@@ -601,7 +600,7 @@ async function ctlLoad() {
         const durations = { USDT: [], USDC: [] };
         for (const e of events) {
           const key = e.token + e.addr;
-          if (e.type === 'BLACKLIST') openMap[key] = { amt: e.amt, ts: new Date(e.ts).getTime(), destroyed: false };
+          if (e.type === 'BLACKLIST') openMap[key] = { amt: e.bal, ts: new Date(e.ts).getTime(), destroyed: false };  // frozen = balance at blacklist (P2.11); null = pending
           else if (openMap[key]) { durations[e.token].push((new Date(e.ts).getTime() - openMap[key].ts) / 86400000); delete openMap[key]; }
         }
         CTL_DATA = { events: events, open: openMap, durations: durations };
@@ -624,6 +623,11 @@ function ctlMoney(n) {
   return '$' + Math.round(n);
 }
 function ctlFull(n) { return '$' + n.toLocaleString('en-US'); }
+/* event-aware amount (P2.11 display): DESTROY → destroyed amount (exact, from
+   the log); BLACKLIST/UNBLACKLIST → balanceOf at the event block. null = not
+   fetched yet → `—`; known 0 → dim `$0` — the two are never conflated (§9). */
+function ctlAmt(e) { return e.type === 'DESTROY' ? e.amt : e.bal; }
+function ctlAmtText(e) { const v = ctlAmt(e); return v == null ? null : ctlFull(v); }
 function ctlMedian(a) {
   if (!a.length) return '-';
   const s = a.slice().sort((x, y) => x - y);
@@ -643,10 +647,15 @@ function ctlRender() {
   const now = Date.now();
   const toks = st.token === 'ALL' ? ['USDT', 'USDC'] : [st.token];
   const scoped = d.events.filter((e) => toks.indexOf(e.token) > -1);
-  let frozen = 0, openCount = 0, supplySum = 0, destroyed = 0;
+  let frozen = 0, frozenP = 0, openCount = 0, supplySum = 0, destroyed = 0;
   toks.forEach((tk) => {
     supplySum += supply[tk];
-    Object.keys(d.open || {}).forEach((k) => { if (k.indexOf(tk) === 0) { frozen += d.open[k].amt; openCount += 1; } });
+    Object.keys(d.open || {}).forEach((k) => {
+      if (k.indexOf(tk) === 0) {  // frozen = balance at blacklist time (P2.11)
+        if (d.open[k].amt == null) frozenP += 1; else frozen += d.open[k].amt;
+        openCount += 1;
+      }
+    });
   });
   scoped.forEach((e) => { if (e.type === 'DESTROY') destroyed += e.amt; });
   const recent = scoped.filter((e) => new Date(e.ts).getTime() >= now - 30 * 86400000);
@@ -658,7 +667,7 @@ function ctlRender() {
   const destroyNA = st.token === 'USDC';
   const kpis = [
     { label: 'SUPPLY', value: ctlMoney(supplySum), sub: toks.join(' + ') + ' ON ETHEREUM' },
-    { label: 'FROZEN NOW', value: ctlMoney(frozen), sub: (frozen / supplySum * 100).toFixed(4) + '% OF SUPPLY' },
+    { label: 'FROZEN NOW', value: ctlMoney(frozen), sub: (frozen / supplySum * 100).toFixed(4) + '% OF SUPPLY' + (frozenP ? '  ' + frozenP + ' BALANCE PENDING' : '') },
     { label: 'BLACKLISTED ADDRESSES', value: String(openCount), sub: 'CURRENTLY ON THE LIST' },
     { label: 'EVENTS, LAST 30D', value: String(recent.length), sub: 'BL ' + cnt(recent, 'BLACKLIST') + '  UN ' + cnt(recent, 'UNBLACKLIST') + '  DS ' + cnt(recent, 'DESTROY') },
     { label: 'DESTROYED, YTD', value: destroyNA ? 'N/A' : ctlMoney(destroyed), sub: destroyNA ? 'NO DESTROY FUNCTION IN CONTRACT' : cnt(scoped, 'DESTROY') + ' DESTROY EVENTS' },
@@ -688,10 +697,10 @@ function ctlRender() {
             token: tk,
             status: o ? 'BLACKLISTED' : (n ? 'PREVIOUSLY BLACKLISTED' : 'NO EVENTS'),
             cls: o ? 'st-neg' : (n ? 'st-hist' : 'st-none'),
-            frozen: o ? ctlFull(o.amt) + ' FROZEN' : '-'
+            frozen: o ? (o.amt == null ? '— FROZEN' : ctlFull(o.amt) + ' FROZEN') : '-'
           };
         }),
-        hist: mine.slice().reverse().map((e) => ({ time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type], amt: ctlFull(e.amt) })),
+        hist: mine.slice().reverse().map((e) => ({ time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type], amt: ctlAmtText(e) })),
         more: nAddr > 1,
         moreText: nAddr + ' ADDRESSES MATCH. SHOWING THE MOST RECENT. TYPE MORE CHARACTERS TO NARROW.'
       };
@@ -706,7 +715,13 @@ function ctlRender() {
   const rows = offline ? [] : list.map((e) => ({
     addr: e.addr, time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type],
     short: e.short, entity: e.entity,
-    bal: e.bal == null ? null : ctlFull(e.bal),  // P2.11: null → `—`, never $0 (§9)
+    // event-aware amount (P2.11): DESTROY → destroyed (from log), else balance at event
+    amt: ctlAmtText(e),
+    zero: ctlAmtText(e) === '$0',  // any cell reading $0 dims (incl. sub-cent dust);
+    // `—` stays reserved for unfetched (§9)
+    amtTitle: e.type === 'DESTROY'
+      ? 'destroyed in this tx (decoded from the log)'
+      : 'balanceOf at end of block ' + (e.block != null ? e.block.toLocaleString('en-US') : '?'),
     tx: e.tx, block: e.block != null ? e.block.toLocaleString('en-US') : '—',
     cls: activeAddr && e.addr === activeAddr ? 'is-match' : ''
   }));
@@ -714,12 +729,19 @@ function ctlRender() {
   const run = { USDT: 0, USDC: 0 };
   const cum = { USDT: [], USDC: [] };
   const cntM = { USDT: [], USDC: [] };
+  const openB = {};  // token+addr → balance added at blacklist (P2.11): each close
+  // (unblacklist/destroy) subtracts exactly what we added — never `usd` (=0 here)
   for (let m = 0; m <= 10; m++) {
     ['USDT', 'USDC'].forEach((tk) => { cntM[tk][m] = 0; });
     d.events.filter((e) => e.month === m).forEach((e) => {
       cntM[e.token][m] += 1;
-      if (e.type === 'BLACKLIST') run[e.token] += e.amt;
-      else run[e.token] -= e.amt;
+      const key = e.token + e.addr;
+      if (e.type === 'BLACKLIST') {
+        if (e.bal != null) { openB[key] = e.bal; run[e.token] += e.bal; }  // bal pending → skipped (honest)
+      } else if (openB[key] != null) {  // UNBLACKLIST / DESTROY closes the tracked position
+        run[e.token] -= openB[key];
+        delete openB[key];
+      }
     });
     cum.USDT.push(run.USDT);
     cum.USDC.push(run.USDC);
@@ -740,7 +762,7 @@ function ctlRender() {
   const stat = (tk) => {
     const ev = d.events.filter((e) => e.token === tk);
     let f = 0, n = 0;
-    Object.keys(d.open || {}).forEach((k) => { if (k.indexOf(tk) === 0) { f += d.open[k].amt; n += 1; } });
+    Object.keys(d.open || {}).forEach((k) => { if (k.indexOf(tk) === 0) { if (d.open[k].amt != null) f += d.open[k].amt; n += 1; } });
     return { total: ev.length, bl: cnt(ev, 'BLACKLIST'), un: cnt(ev, 'UNBLACKLIST'), ds: cnt(ev, 'DESTROY'), med: ctlMedian((d.durations || {})[tk] || []), frozen: ctlMoney(f), n: n };
   };
   const U = stat('USDT');
@@ -755,7 +777,7 @@ function ctlRender() {
     { label: 'LISTED NOW', u: String(U.n), c: String(C.n) }
   ];
 
-  return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, chart: chart, peak: ctlMoney(peakV), months: months, cmp: cmp };
+  return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, chart: chart, months: months, cmp: cmp };
 }
 function ctlDraw() {
   const p = ctlRender();
@@ -767,7 +789,7 @@ function ctlDraw() {
   document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
   document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
     ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
-    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num">' + (r.bal == null ? '<span class="dim">—</span>' : r.bal) + '</span><span class="c mono dim">' + r.tx + '</span><span class="c mono num dim">' + r.block + '</span></button>').join('');
+    : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num' + (r.zero ? ' dim' : '') + '" title="' + ctlEsc(r.amtTitle) + '">' + (r.amt == null ? '<span class="dim">—</span>' : r.amt) + '</span><span class="c mono">' + r.tx + '</span><span class="c mono num">' + r.block + '</span></button>').join('');
   let lkHtml = '';
   const lk = p.lk;
   if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';
@@ -776,7 +798,7 @@ function ctlDraw() {
     let h = '<div class="addr">' + lk.addr + '</div>';
     lk.tokens.forEach((tk2) => { h += '<div class="tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="dim">' + tk2.frozen + '</span></div>'; });
     h += '<div class="hist-h">HISTORY</div>';
-    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + x.amt + '</span><span class="c mono"><a href="https://etherscan.io/tx/' + x.tx + '" target="_blank" rel="noreferrer">↗</a></span></div>'; });
+    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + (x.amt == null ? '—' : x.amt) + '</span><span class="c mono"><a href="https://etherscan.io/tx/' + x.tx + '" target="_blank" rel="noreferrer">↗</a></span></div>'; });
     if (lk.more) h += '<div class="note">' + lk.moreText + '</div>';
     lkHtml = h;
   }
@@ -786,7 +808,6 @@ function ctlDraw() {
   document.getElementById('ctl-chartlineb').setAttribute('d', p.chart.lineB);
   document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="mcol"><div class="bcol"><span class="bv">' + m.ua + '</span><div class="bar-a" style="height:' + m.uh + 'px"></div></div><div class="bcol"><span class="bv">' + m.ca + '</span><div class="bar-b" style="height:' + m.ch + 'px"></div></div></div>').join('');
   document.getElementById('ctl-cmp').innerHTML = p.cmp.map((r) => '<div class="cmp"><span class="dim">' + r.label + '</span><span class="num">' + r.u + '</span><span class="num">' + r.c + '</span></div>').join('');
-  document.getElementById('ctl-peak').textContent = p.peak;
 }
 function ctlBind() {
   const addrPanel = document.querySelector('#v-ctl .stack .panel');

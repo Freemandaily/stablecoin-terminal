@@ -470,8 +470,12 @@ Seed coin ids: fetch from S1 by symbol. Core set: USDT, USDC, DAI, USDe, USDS, P
      `mart_blacklist_events` on `(transaction_hash, log_index)` →
      `balance_raw`, `balance_usd` (derived in dbt: raw ÷ 10^decimals ×
      `stg_price_daily` at event date), `balance_block` pass through.
-  4. `/api/blacklist` returns the balance fields; CONTROL feed shows a
-     BALANCE column (`—` when null, never `0`).
+  4. `/api/blacklist` returns the balance fields; CONTROL feed shows an
+     event-aware AMOUNT column (BLACKLIST/UNBLACKLIST → balance at event,
+     DESTROY → destroyed amount from the log; `—` when null, known `$0`
+     dimmed — the two never conflated, §9). CUMULATIVE FROZEN chart nets
+     tracked balances (add at blacklist, subtract exactly that on
+     unblacklist/destroy) — series end == FROZEN NOW KPI.
   5. Makefile `enrich-balances` target + `crontab.example` entry (daily).
   *Accept:* `make enrich-balances` twice → row count unchanged; spot-check
   5 addresses vs Etherscan at same block (±0); `make dbt-test` green;
