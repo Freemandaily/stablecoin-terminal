@@ -306,7 +306,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel" style="flex: 999 1 620px">
           <div class="ph">
             <h2 class="pt">BLACKLIST FEED</h2>
-            <span class="mono faint" id="ctl-feedcount"></span>
           </div>
           <div class="filters">
             <div class="seg" role="group" aria-label="Event type">
@@ -326,7 +325,7 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
           </div>
         </section>
 
-        <div class="stack" style="flex: 1 1 340px; min-width: 0">
+        <div class="stack" style="flex: 1 1 480px; min-width: 0">
           <section class="panel" id="ctl-panel-addr">
             <div class="ph">
               <h2 class="pt">ADDRESS LOOKUP</h2>
@@ -373,7 +372,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
               <span><span class="lg-l lg-b"></span>USDC</span>
             </div>
             <div class="bars" id="ctl-bars"></div>
-            <div class="mrow"><span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span><span>SEP</span><span>NOV</span></div>
           </div>
         </section>
         <section class="panel">
@@ -579,6 +577,7 @@ drawTable();
 const CTL = { token: 'ALL', type: 'ALL', q: '' };
 let CTL_DATA = null; // live blacklist events from /api/blacklist
 let CTL_STATUS = 'loading'; // 'loading' | 'ok' | 'err'
+let ctlDefaultAddr = false; // ADDRESS LOOKUP pre-picks one address, once per load
 function ctlEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 async function ctlLoad() {
   for (const url of ['/api/blacklist?token=ALL&limit=5000']) {
@@ -605,6 +604,15 @@ async function ctlLoad() {
         }
         CTL_DATA = { events: events, open: openMap, durations: durations };
         CTL_STATUS = 'ok';
+        // ADDRESS LOOKUP opens with a real address (top by event count = first
+        // sample link) instead of the empty state — once per load, only if the
+        // user hasn't started their own search.
+        if (!ctlDefaultAddr && !CTL.q) {
+          const byA = {};
+          events.forEach((e) => { byA[e.addr] = (byA[e.addr] || 0) + 1; });
+          const top = Object.keys(byA).sort((a, b) => byA[b] - byA[a])[0];
+          if (top) { ctlDefaultAddr = true; CTL.q = top; document.getElementById('ctl-addrq').value = top; }
+        }
         ctlDraw();
         return true;
       }
@@ -785,7 +793,6 @@ function ctlDraw() {
   document.querySelectorAll('#v-ctl button[data-group="type"]').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.type); });
   const lnkBtns = document.querySelectorAll('#v-ctl .lnk');
   p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
-  document.getElementById('ctl-feedcount').textContent = p.feedCount + ' EVENTS';
   document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
   document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
     ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
@@ -806,9 +813,12 @@ function ctlDraw() {
   document.getElementById('ctl-chartlinea').setAttribute('d', p.chart.lineA);
   document.getElementById('ctl-chartarea').setAttribute('d', p.chart.areaA);
   document.getElementById('ctl-chartlineb').setAttribute('d', p.chart.lineB);
-  document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="mcol"><div class="bcol"><span class="bv">' + m.ua + '</span><div class="bar-a" style="height:' + m.uh + 'px"></div></div><div class="bcol"><span class="bv">' + m.ca + '</span><div class="bar-b" style="height:' + m.ch + 'px"></div></div></div>').join('');
+  document.getElementById('ctl-bars').innerHTML = p.months.map((m) => '<div class="mcol"><div class="bcol"><span class="bv">' + m.ua + '</span><div class="bar-a" style="height:' + m.uh + 'px"></div></div><div class="bcol"><span class="bv">' + m.ca + '</span><div class="bar-b" style="height:' + m.ch + 'px"></div></div></div><span class="dim" style="font-size:10px;letter-spacing:.08em;margin-top:3px">' + m.label + '</span></div>').join('');
   document.getElementById('ctl-cmp').innerHTML = p.cmp.map((r) => '<div class="cmp"><span class="dim">' + r.label + '</span><span class="num">' + r.u + '</span><span class="num">' + r.c + '</span></div>').join('');
 }
+/* external selection (sample link / feed row): keep the input in sync so it
+   never shows a different address than the panel below it */
+function setQ(v) { CTL.q = v; document.getElementById('ctl-addrq').value = v; ctlDraw(); }
 function ctlBind() {
   const addrPanel = document.querySelector('#v-ctl .stack .panel');
   addrPanel.addEventListener('mousedown', (e) => {
@@ -831,9 +841,9 @@ function ctlBind() {
       return;
     }
     const lnk = el.closest ? el.closest('.lnk') : null;
-    if (lnk) { CTL.q = lnk.getAttribute('data-addr') || ''; ctlDraw(); return; }
+    if (lnk) { setQ(lnk.getAttribute('data-addr') || ''); return; }
     const row = el.closest ? el.closest('.row') : null;
-    if (row && !row.classList.contains('row-h')) { CTL.q = row.getAttribute('data-addr') || ''; ctlDraw(); return; }
+    if (row && !row.classList.contains('row-h')) { setQ(row.getAttribute('data-addr') || ''); return; }
   });
 }
 ctlBind();
