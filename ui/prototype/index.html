@@ -171,7 +171,10 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #262a30}
 #v-ctl .feed-scroll{overflow:auto;max-height:520px}
 #v-ctl .feed-in{min-width:940px}
-#v-ctl .row{display:grid;grid-template-columns:132px 52px 100px minmax(140px,1fr) minmax(150px,1.3fr) 104px 104px 88px;gap:8px;align-items:center;width:100%;padding:4px 12px;border:0;border-bottom:1px solid #262a30;background:transparent;color:#e8eaed;text-align:left;cursor:pointer}
+#v-ctl .row{display:grid;grid-template-columns:132px 52px 100px minmax(140px,1fr) minmax(120px,1fr) 104px 104px 88px;gap:8px;align-items:center;width:100%;padding:4px 12px;border:0;border-bottom:1px solid #262a30;background:transparent;color:#e8eaed;text-align:left;cursor:pointer}
+#v-ctl .row > span:nth-child(6),
+#v-ctl .row > span:nth-child(7),
+#v-ctl .row > span:nth-child(8){margin-right:10px}
 #v-ctl .row:hover{background:#181b1f}
 #v-ctl .row:focus-visible{outline:1px solid #e8a317;outline-offset:-1px}
 #v-ctl .row.is-match{background:rgba(232,163,23,0.14)}
@@ -189,13 +192,20 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .lnk{padding:0;background:none;border:0;border-bottom:1px solid #3a3f47;color:#a3a9b2;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;cursor:pointer}
 #v-ctl .lnk:hover{color:#e8a317;border-color:#e8a317}
 #v-ctl .note{margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
-#v-ctl .addr{margin:12px 0 8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;word-break:break-all}
+#v-ctl .addr{margin:12px 0 8px;display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;word-break:break-all}
+#v-ctl .cp{flex:none;display:flex;align-items:center;padding:2px;background:none;border:1px solid #3a3f47;color:#a3a9b2;cursor:pointer}
+#v-ctl .cp:hover,#v-ctl .cp.ok{color:#e8a317;border-color:#e8a317}
+#v-ctl .cp svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #v-ctl .tk-row{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
 #v-ctl .st-neg{color:#f2564f}
 #v-ctl .st-hist{color:#e8eaed}
 #v-ctl .st-none{color:#80868f}
 #v-ctl .hist-h{margin-top:8px}
-#v-ctl .hist-row{display:grid;grid-template-columns:116px 52px 1fr auto auto;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px}
+#v-ctl .hist-row{display:grid;grid-template-columns:116px 52px auto 110px 1fr 14px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px}
+#v-ctl .hist-amt{text-align:right;font-variant-numeric:tabular-nums}
+#v-ctl .hist-row a{justify-self:end;color:#a3a9b2;cursor:pointer;display:flex;align-items:center}
+#v-ctl .hist-row a:hover{color:#e8a317}
+#v-ctl .hist-row a svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #v-ctl .cap{display:grid;grid-template-columns:1fr 108px 108px;gap:8px;padding:4px 0;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
 #v-ctl .cap-h{border-top:0;color:#80868f;font-size:11px;letter-spacing:0.08em}
 #v-ctl .evn{margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2;word-break:break-word}
@@ -708,7 +718,7 @@ function ctlRender() {
             frozen: o ? (o.amt == null ? '— FROZEN' : ctlFull(o.amt) + ' FROZEN') : '-'
           };
         }),
-        hist: mine.slice().reverse().map((e) => ({ time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type], amt: ctlAmtText(e) })),
+        hist: mine.slice().reverse().map((e) => ({ time: e.time, token: e.token, type: e.type, tagCls: tagCls[e.type], amt: ctlAmtText(e), tx: e.tx })),
         more: nAddr > 1,
         moreText: nAddr + ' ADDRESSES MATCH. SHOWING THE MOST RECENT. TYPE MORE CHARACTERS TO NARROW.'
       };
@@ -802,10 +812,10 @@ function ctlDraw() {
   if (lk.isEmpty) lkHtml = '<div class="note">NO ADDRESS IN SCOPE.</div>';
   else if (lk.isNone) lkHtml = '<div class="note">NO EVENTS FOR THIS ADDRESS IN THE CURRENT SET.</div>';
   else {
-    let h = '<div class="addr">' + lk.addr + '</div>';
+    let h = '<div class="addr"><span>' + lk.addr + '</span><button class="cp" type="button" data-cp="' + lk.addr + '" title="Copy address" aria-label="Copy address"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>';
     lk.tokens.forEach((tk2) => { h += '<div class="tk-row"><span>' + tk2.token + '</span><span class="' + tk2.cls + '">' + tk2.status + '</span><span class="dim">' + tk2.frozen + '</span></div>'; });
     h += '<div class="hist-h">HISTORY</div>';
-    lk.hist.forEach((x) => { h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim">' + (x.amt == null ? '—' : x.amt) + '</span><span class="c mono"><a href="https://etherscan.io/tx/' + x.tx + '" target="_blank" rel="noreferrer">↗</a></span></div>'; });
+    lk.hist.forEach((x) => { const txl = x.tx ? '<a href="https://etherscan.io/tx/' + x.tx + '" target="_blank" rel="noreferrer" title="' + ctlEsc(x.tx) + '"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>' : '<span class="dim">—</span>'; h += '<div class="hist-row"><span class="dim">' + x.time + '</span><span>' + x.token + '</span><span><span class="tag ' + x.tagCls + '">' + x.type + '</span></span><span class="dim hist-amt">' + (x.amt == null ? '—' : x.amt) + '</span>' + txl + '</div>'; });
     if (lk.more) h += '<div class="note">' + lk.moreText + '</div>';
     lkHtml = h;
   }
@@ -838,6 +848,14 @@ function ctlBind() {
     if (seg) {
       if (seg.dataset.group === 'token') { CTL.token = seg.getAttribute('data-value'); ctlDraw(); }
       else if (seg.dataset.group === 'type') { CTL.type = seg.getAttribute('data-value'); ctlDraw(); }
+      return;
+    }
+    const cp = el.closest ? el.closest('.cp') : null;
+    if (cp) {
+      const v = cp.getAttribute('data-cp') || '';
+      const done = () => { cp.classList.add('ok'); cp.title = 'COPIED'; setTimeout(() => { cp.classList.remove('ok'); cp.title = 'Copy address'; }, 1200); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, done);
+      else done();  // non-secure context: still give feedback rather than throw
       return;
     }
     const lnk = el.closest ? el.closest('.lnk') : null;
