@@ -165,7 +165,8 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .seg-b:focus-visible{outline:1px solid #e8a317;outline-offset:1px}
 #v-ctl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:#262a30;border:1px solid #262a30}
 #v-ctl .kpi{background:#121417;padding:12px}
-#v-ctl .kl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#80868f}
+#v-ctl .kl{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#80868f}
+#v-ctl .kseg .seg-b{padding:1px 4px;font-size:9px;letter-spacing:0.04em}
 #v-ctl .kv{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:22px;font-weight:500;margin:4px 0}
 #v-ctl .ks{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#a3a9b2}
 #v-ctl .filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #262a30}
@@ -584,7 +585,7 @@ drawTable();
 
 /* ── tabs ──────────────────────────────── */
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
-const CTL = { token: 'ALL', type: 'ALL', q: '' };
+const CTL = { token: 'ALL', type: 'ALL', q: '', r: { fz: 30, bl: 30, ev: 30, ds: 30, le: 30 } };  // r = per-card 7D/30D windows
 let CTL_DATA = null; // live blacklist events from /api/blacklist
 let CTL_STATUS = 'loading'; // 'loading' | 'ok' | 'err'
 let ctlDefaultAddr = false; // ADDRESS LOOKUP pre-picks one address, once per load
@@ -635,10 +636,12 @@ async function ctlLoad() {
 ctlLoad();
 
 function ctlMoney(n) {
-  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
-  return '$' + Math.round(n);
+  const s = n < 0 ? '−' : '';  // real minus (§7); net window figures can be negative
+  n = Math.abs(n);
+  if (n >= 1e9) return s + '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return s + '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return s + '$' + (n / 1e3).toFixed(1) + 'K';
+  return s + '$' + Math.round(n);
 }
 function ctlFull(n) { return '$' + n.toLocaleString('en-US'); }
 /* event-aware amount (P2.11 display): DESTROY → destroyed amount (exact, from
@@ -665,31 +668,51 @@ function ctlRender() {
   const now = Date.now();
   const toks = st.token === 'ALL' ? ['USDT', 'USDC'] : [st.token];
   const scoped = d.events.filter((e) => toks.indexOf(e.token) > -1);
-  let frozen = 0, frozenP = 0, openCount = 0, supplySum = 0, destroyed = 0;
-  toks.forEach((tk) => {
-    supplySum += supply[tk];
-    Object.keys(d.open || {}).forEach((k) => {
-      if (k.indexOf(tk) === 0) {  // frozen = balance at blacklist time (P2.11)
-        if (d.open[k].amt == null) frozenP += 1; else frozen += d.open[k].amt;
-        openCount += 1;
+  let supplySum = 0;
+  toks.forEach((tk) => { supplySum += supply[tk]; });
+  const cnt = (list, ty) => list.filter((e) => e.type === ty).length;
+  // per-card window stats — each KPI keeps its OWN 7D/30D choice (CTL.r). Net
+  // frozen = balances added by in-window blacklists − exactly what in-window
+  // closes released; pending (bal null) counted, never guessed (§9). Mirrors the
+  // chart walk. Cached per range value so a render only walks once per window.
+  const winCache = {};
+  const winStats = (r) => {
+    if (winCache[r]) return winCache[r];
+    const from = now - r * 86400000;
+    const rec = scoped.filter((e) => new Date(e.ts).getTime() >= from);
+    const openW = {};
+    let f = 0, fp = 0;
+    scoped.forEach((e) => {
+      const key = e.token + e.addr, inWin = new Date(e.ts).getTime() >= from;
+      if (e.type === 'BLACKLIST') {
+        if (e.bal == null) { if (inWin) fp += 1; }
+        else { if (inWin) f += e.bal; openW[key] = e.bal; }
+      } else if (openW[key] != null) {
+        if (inWin) f -= openW[key];
+        delete openW[key];
       }
     });
-  });
-  scoped.forEach((e) => { if (e.type === 'DESTROY') destroyed += e.amt; });
-  const recent = scoped.filter((e) => new Date(e.ts).getTime() >= now - 30 * 86400000);
-  const cnt = (list, ty) => list.filter((e) => e.type === ty).length;
-  const last = scoped[scoped.length - 1];
-  const ago = last ? now - new Date(last.ts).getTime() : 0;
-  const agoD = Math.floor(ago / 86400000);
-  const agoH = Math.floor((ago % 86400000) / 3600000);
+    const bl = rec.filter((e) => e.type === 'BLACKLIST');
+    const ad = {};
+    bl.forEach((e) => { ad[e.addr] = 1; });
+    let d = 0;
+    rec.forEach((e) => { if (e.type === 'DESTROY') d += e.amt; });
+    return (winCache[r] = { rec: rec, f: f, fp: fp, bl: bl, addrN: Object.keys(ad).length, d: d, last: rec[rec.length - 1] });
+  };
   const destroyNA = st.token === 'USDC';
+  const agoD = (ev) => Math.floor((now - new Date(ev.ts).getTime()) / 86400000);
+  const agoH = (ev) => Math.floor(((now - new Date(ev.ts).getTime()) % 86400000) / 3600000);
+  const kseg = (key) => '<span class="seg kseg">' + [7, 30].map((n) => '<button class="seg-b' + (CTL.r[key] === n ? ' is-on' : '') + '" data-group="r" data-key="' + key + '" data-value="' + n + '">' + n + 'D</button>').join('') + '</span>';
+  // one stats lookup per card (cache makes repeat calls free)
+  const win = { fz: winStats(CTL.r.fz), bl: winStats(CTL.r.bl), ev: winStats(CTL.r.ev), ds: winStats(CTL.r.ds), le: winStats(CTL.r.le) };
   const kpis = [
     { label: 'SUPPLY', value: ctlMoney(supplySum), sub: toks.join(' + ') + ' ON ETHEREUM' },
-    { label: 'FROZEN NOW', value: ctlMoney(frozen), sub: (frozen / supplySum * 100).toFixed(4) + '% OF SUPPLY' + (frozenP ? '  ' + frozenP + ' BALANCE PENDING' : '') },
-    { label: 'BLACKLISTED ADDRESSES', value: String(openCount), sub: 'CURRENTLY ON THE LIST' },
-    { label: 'EVENTS, LAST 30D', value: String(recent.length), sub: 'BL ' + cnt(recent, 'BLACKLIST') + '  UN ' + cnt(recent, 'UNBLACKLIST') + '  DS ' + cnt(recent, 'DESTROY') },
-    { label: 'DESTROYED, YTD', value: destroyNA ? 'N/A' : ctlMoney(destroyed), sub: destroyNA ? 'NO DESTROY FUNCTION IN CONTRACT' : cnt(scoped, 'DESTROY') + ' DESTROY EVENTS' },
-    { label: 'LAST EVENT', value: agoD + 'D ' + agoH + 'H', sub: 'AGO, ' + (last ? last.token + ' ' + last.type : '') }
+    { label: 'FROZEN, LAST ' + CTL.r.fz + 'D', value: ctlMoney(win.fz.f), sub: (win.fz.f / supplySum * 100).toFixed(4) + '% OF SUPPLY' + (win.fz.fp ? '  ' + win.fz.fp + ' BALANCE PENDING' : ''), ctl: kseg('fz') },
+    { label: 'BLACKLISTED, ' + CTL.r.bl + 'D', value: String(win.bl.addrN), sub: win.bl.bl.length + ' BLACKLIST EVENTS', ctl: kseg('bl') },
+    { label: 'EVENTS, LAST ' + CTL.r.ev + 'D', value: String(win.ev.rec.length), sub: 'BL ' + cnt(win.ev.rec, 'BLACKLIST') + '  UN ' + cnt(win.ev.rec, 'UNBLACKLIST') + '  DS ' + cnt(win.ev.rec, 'DESTROY'),
+      ctl: kseg('ev') },
+    { label: 'DESTROYED, ' + CTL.r.ds + 'D', value: destroyNA ? 'N/A' : ctlMoney(win.ds.d), sub: destroyNA ? 'NO DESTROY FUNCTION IN CONTRACT' : cnt(win.ds.rec, 'DESTROY') + ' DESTROY EVENTS', ctl: kseg('ds') },
+    { label: 'LAST EVENT, ' + CTL.r.le + 'D', value: win.le.last ? agoD(win.le.last) + 'D ' + agoH(win.le.last) + 'H' : '—', sub: win.le.last ? 'AGO, ' + win.le.last.token + ' ' + win.le.last.type : 'NONE IN LAST ' + CTL.r.le + 'D', ctl: kseg('le') }
   ];
 
   const q = st.q.trim().toLowerCase().replace(/^0x/, '');
@@ -803,7 +826,7 @@ function ctlDraw() {
   document.querySelectorAll('#v-ctl button[data-group="type"]').forEach((b) => { b.classList.toggle('is-on', b.getAttribute('data-value') === CTL.type); });
   const lnkBtns = document.querySelectorAll('#v-ctl .lnk');
   p.samples.forEach((s, i) => { if (lnkBtns[i]) lnkBtns[i].setAttribute('data-addr', s.addr); });
-  document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
+  document.getElementById('ctl-kpis').innerHTML = p.kpis.map((k) => '<div class="kpi"><div class="kl">' + k.label + (k.ctl || '') + '</div><div class="kv">' + k.value + '</div><div class="ks">' + k.sub + '</div></div>').join('');
   document.getElementById('ctl-rows').innerHTML = CTL_STATUS === 'err'
     ? '<div class="notice">BLACKLIST FEED OFFLINE — /api/blacklist UNREACHABLE. RETRY ON TAB SWITCH.</div>'
     : p.rows.map((r) => '<button class="row' + (r.cls ? ' ' + r.cls : '') + '" data-addr="' + r.addr + '"><span class="c mono dim">' + r.time + '</span><span class="c mono">' + r.token + '</span><span class="c"><span class="tag ' + r.tagCls + '">' + r.type + '</span></span><span class="c mono">' + r.short + '</span><span class="c mono" title="' + ctlEsc(r.entity) + '">' + (r.entity ? ctlEsc(r.entity) : '<span class="dim">—</span>') + '</span><span class="c mono num' + (r.zero ? ' dim' : '') + '" title="' + ctlEsc(r.amtTitle) + '">' + (r.amt == null ? '<span class="dim">—</span>' : r.amt) + '</span><span class="c mono">' + r.tx + '</span><span class="c mono num">' + r.block + '</span></button>').join('');
@@ -848,6 +871,7 @@ function ctlBind() {
     if (seg) {
       if (seg.dataset.group === 'token') { CTL.token = seg.getAttribute('data-value'); ctlDraw(); }
       else if (seg.dataset.group === 'type') { CTL.type = seg.getAttribute('data-value'); ctlDraw(); }
+      else if (seg.dataset.group === 'r') { CTL.r[seg.getAttribute('data-key')] = Number(seg.getAttribute('data-value')); ctlDraw(); }
       return;
     }
     const cp = el.closest ? el.closest('.cp') : null;
