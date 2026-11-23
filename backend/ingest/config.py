@@ -23,7 +23,6 @@ LLAMA_S2 = "https://stablecoins.llama.fi/stablecoin/{id}"        # per-coin + pe
 LLAMA_S3 = "https://stablecoins.llama.fi/stablecoincharts/all"   # totals by peg currency
 LLAMA_S4 = "https://stablecoins.llama.fi/stablecoinprices"       # current prices, all coins
 LLAMA_COINGECKO = "https://api.coingecko.com/api/v3"  # backup prices (§6.4)
-COINGECKO_BASE = "https://api.coingecko.com/api/v3"    # coin metadata + images (logo_url)
 
 # ── Ingest scope (P1.2: resolve ids at runtime from S1; these seed the core set)
 CORE_COIN_SYMBOLS = ("USDT", "USDC", "DAI", "USDS", "USDe", "PYUSD", "RLUSD")

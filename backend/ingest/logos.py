@@ -1,138 +1,159 @@
-"""CoinGecko logo ingest (B-D26) — populates raw_assets.logo_url.
+"""TrustWallet logo ingest (B-D37) — populates raw_assets.logo_url.
+
+Reads contract addresses harvested into raw_asset_addresses (make
+ingest-addresses) and derives TrustWallet logo URLs:
+
+  https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/
+  {chain}/assets/{address}/logo.png
 
 Flow:
-  1. Load all assets from raw_assets (id, symbol, gecko_id).
-  2. Fetch CoinGecko /coins/markets (2 pages × 250 = 500 coins, 2 API calls).
-  3. Match by gecko_id (= CoinGecko id) first, then by symbol (unique match only).
-  4. Upsert image.large URL into raw_assets.logo_url — idempotent, re-runnable.
+  1. Load stored addresses (join raw_assets, biggest-first).
+  2. Map chain → TW folder (bsc→smartchain, …; lowercase pass-through).
+  3. EIP-55 checksum 0x… addresses (TW stores EVM paths checksummed —
+     lowercase 404s; solana/ripple base58 passes through untouched).
+  4. HEAD each URL — only HTTP 200 is stored (§9: never ship a dead URL).
+  5. UPDATE raw_assets.logo_url on hits; legacy CoinGecko URLs (B-D26) stay
+     where TrustWallet misses; null → text letter chip in the UI.
 
-Rate-limit safe: 2 calls total, well under CoinGecko free-tier (~10-30/min).
-No landing files — payloads stay in memory (B-D16).
-
-Run:  uv run python -m backend.ingest.logos
+Idempotent, re-runnable. No address fetching here — storage is the contract.
+Run:  make ingest-logos   |   uv run python -m backend.ingest.logos
 """
 
 from __future__ import annotations
 
+import re
 import sys
 
+import httpx
+from eth_utils import to_checksum_address
 from psycopg.rows import dict_row
 
-from .config import COINGECKO_BASE
+from .config import HTTP_TIMEOUT, USER_AGENT
 from .db import get_conn
-from .http import FetchError, get_json
 from .logging_setup import get_logger
 
 log = get_logger("logos")
 
-MARKETS_URL = f"{COINGECKO_BASE}/coins/markets"
+TW_BASE = "https://raw.githubusercontent.com/trustwallet/assets/master"
+
+# DeFiLlama chain name → TrustWallet blockchains/ folder: renames only
+# (verified vs the live folder list 2026-11-23); any other chain name
+# lowercase-passes-through to a same-named folder, and unknown folders 404
+# at HEAD → skipped. Folders that exist but hold no assets/ (rootstock,
+# ethereumpow, hyperevm…) give no gain and stay unmapped.
+CHAIN_MAP = {
+    "bsc": "smartchain",             # TW folder is `smartchain`, not `bsc`
+    "avax": "avalanchec",            # DeFiLlama says avax; TW says avalanchec
+    "gnosis": "xdai",
+    "ethereumclassic": "classic",
+    "ripple": "ripple",              # TW folder is `ripple`, not `xrp`
+}
+
+EVM_ADDR = re.compile(r"^0x[0-9a-fA-F]{40}$")
 
 
-def fetch_markets_page(page: int) -> list[dict]:
-    """One page of CoinGecko markets data (250 coins)."""
-    return get_json(
-        MARKETS_URL,
-        params={
-            "vs_currency": "usd",
-            "order": "market_cap_desc",
-            "per_page": 250,
-            "page": page,
-            "sparkline": "false",
-        },
-    )
+def tw_url(chain: str, address: str) -> str:
+    """Derive the TrustWallet raw logo URL for one (chain, address) pair."""
+    folder = CHAIN_MAP.get(chain.lower(), chain.lower())
+    if EVM_ADDR.match(address):
+        address = to_checksum_address(address)   # TW paths are case-sensitive
+    return f"{TW_BASE}/blockchains/{folder}/assets/{address}/logo.png"
 
 
-def build_coin_index() -> dict[str, dict]:
-    """Fetch 2 pages of CoinGecko markets → {cg_id: {image, symbol}}.
-
-    Returns at most 500 entries — covers all ~333 DeFiLlama peggedUSD coins.
-    """
-    index: dict[str, dict] = {}
-    for page in (1, 2):
+def head_ok(url: str) -> bool:
+    """True only for HTTP 200 (§9: never store a dead or redirect-guessed URL)."""
+    for attempt in (1, 2):
         try:
-            page_coins = fetch_markets_page(page)
-        except FetchError as e:
-            log.warning("CoinGecko markets page %d failed: %s", page, e)
-            continue
-        for coin in page_coins or []:
-            cg_id = coin.get("id")
-            image = coin.get("image")  # /coins/markets returns image as a string URL
-            symbol = coin.get("symbol")
-            if cg_id and image:
-                index[cg_id] = {"image": image, "symbol": symbol}
-        log.info("CoinGecko page %d: %d coins indexed", page, len(index))
-    return index
+            r = httpx.head(
+                url,
+                timeout=HTTP_TIMEOUT,
+                headers={"User-Agent": USER_AGENT},
+                follow_redirects=True,
+            )
+            return r.status_code == 200
+        except httpx.HTTPError as e:
+            if attempt == 2:
+                log.debug("HEAD failed %s: %s", url, e)
+                return False
+    return False
 
 
 def main() -> int:
-    # ── 1. load existing assets ──
     with get_conn() as c:
-        assets = c.cursor(row_factory=dict_row).execute(
-            "select id, symbol, gecko_id from raw_assets order by circulating_usd desc nulls last"
-        ).fetchall()
-
-    if not assets:
-        log.error("raw_assets is empty — run ingest-supply first")
-        return 1
-
-    by_gecko: dict[str, str] = {}
-    by_symbol: dict[str, list[str]] = {}
-    for a in assets:
-        aid, sym, gecko = a["id"], a["symbol"], a["gecko_id"]
-        if gecko:
-            by_gecko[gecko] = aid
-        if sym:
-            by_symbol.setdefault(sym.upper(), []).append(aid)
-
-    log.info("assets in DB: %d (with gecko_id: %d)", len(assets), len(by_gecko))
-
-    # ── 2. fetch CoinGecko index ──
-    cg_index = build_coin_index()
-    if not cg_index:
-        log.error("no CoinGecko data fetched — aborting")
-        return 1
-
-    # ── 3. match + upsert ──
-    updates: list[tuple[str, str]] = []  # (logo_url, asset_id)
-    matched_gecko = 0
-    matched_symbol = 0
-    unmatched: list[str] = []
-
-    for cg_id, data in cg_index.items():
-        image_url = data["image"]
-        cg_symbol = (data["symbol"] or "").upper()
-
-        asset_id = by_gecko.get(cg_id)
-        if asset_id:
-            updates.append((image_url, asset_id))
-            matched_gecko += 1
-            continue
-
-        # fallback: symbol match, only when unique
-        symbol_matches = by_symbol.get(cg_symbol, [])
-        if len(symbol_matches) == 1:
-            updates.append((image_url, symbol_matches[0]))
-            matched_symbol += 1
-            continue
-
-        # multiple assets share this symbol — can't disambiguate safely
-        unmatched.append(cg_id)
-
-    with get_conn() as c:
-        c.cursor().executemany(
+        cur = c.cursor(row_factory=dict_row)
+        rows = cur.execute(
             """
-            UPDATE raw_assets SET logo_url = %s WHERE id = %s
-            """,
-            updates,
-        )
+            SELECT a.asset_id, a.chain, a.address,
+                   r.symbol, r.logo_url AS current_logo
+            FROM raw_asset_addresses a
+            JOIN raw_assets r ON r.id = a.asset_id
+            ORDER BY r.circulating_usd DESC NULLS LAST
+            """
+        ).fetchall()
+        # assets with no stored address row — they can never get a TW logo
+        no_addr = cur.execute(
+            """
+            SELECT count(*) FILTER (WHERE logo_url IS NOT NULL) AS legacy,
+                   count(*) FILTER (WHERE logo_url IS NULL)     AS nulls
+            FROM raw_assets
+            WHERE id NOT IN (SELECT asset_id FROM raw_asset_addresses)
+            """
+        ).fetchone()
 
-    log.info(
-        "logo_url upserted: %d (gecko match: %d, symbol match: %d, unmatched: %d)",
-        len(updates), matched_gecko, matched_symbol, len(unmatched),
+    if not rows:
+        log.error("raw_asset_addresses is empty — run make ingest-addresses first")
+        return 1
+
+    updates: list[tuple[str, str]] = []   # (logo_url, asset_id)
+    seen: set[str] = set()                # one logo per asset (first hit wins)
+    checked = hits = 0
+    missed_chains: dict[str, int] = {}
+
+    for row in rows:
+        aid = row["asset_id"]
+        if aid in seen:
+            continue                      # asset already has a TW hit
+        url = tw_url(row["chain"], row["address"])
+        checked += 1
+        if head_ok(url):
+            updates.append((url, aid))
+            seen.add(aid)
+            hits += 1
+        else:
+            missed_chains[row["chain"]] = missed_chains.get(row["chain"], 0) + 1
+        if checked % 50 == 0:
+            log.info("TrustWallet HEAD checks: %d/%d …", checked, len(rows))
+
+    if updates:
+        with get_conn() as c:
+            c.cursor().executemany(
+                "UPDATE raw_assets SET logo_url = %s WHERE id = %s", updates
+            )
+
+    assets_with_addr = {r["asset_id"] for r in rows}
+    missed_assets = assets_with_addr - seen               # had address, TW missed
+    first_row: dict[str, dict] = {}                       # per-asset logo state
+    for r in rows:
+        first_row.setdefault(r["asset_id"], r)
+    kept_legacy = sum(
+        1 for aid in missed_assets if first_row[aid]["current_logo"]
     )
-    if unmatched:
-        log.info("unmatched CoinGecko ids (sample): %s", unmatched[:10])
-
+    still_null = len(missed_assets) - kept_legacy
+    log.info(
+        "TrustWallet logos: %d/%d stored addresses verified HTTP 200 → logo_url",
+        hits, checked,
+    )
+    log.info(
+        "with address but TW miss: %d kept legacy CoinGecko (B-D26), %d still null; "
+        "no address at all: %d kept legacy, %d null (letter chip)",
+        kept_legacy, still_null, no_addr["legacy"], no_addr["nulls"],
+    )
+    if missed_chains:
+        top = sorted(missed_chains.items(), key=lambda kv: -kv[1])[:8]
+        log.info(
+            "no TW asset (chain → count): %s%s",
+            top, " …" if len(missed_chains) > 8 else "",
+        )
     log.info("logo ingest complete — raw_assets.logo_url updated")
     return 0
 

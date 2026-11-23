@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS raw_issuer_events (
     transaction_hash      TEXT         NOT NULL,
     log_index             INTEGER      NOT NULL,
     contract_address      TEXT         NOT NULL,  -- issuer contract the log came from
-    token                 TEXT         NOT NULL,  -- USDC | USDT
-    event_type            TEXT         NOT NULL,  -- MINT | BURN | BLACKLIST | UNBLACKLIST | DESTROY_BLACKLIST | TRANSFER
+    token                 TEXT         NOT NULL,  -- USDC | USDT | USD1 | PYUSD | USDP | frxUSD (last four added by 008-era ingest)
+    event_type            TEXT         NOT NULL,  -- MINT | BURN | FREEZE | UNFREEZE | DESTROY | TRANSFER
+    --                        (created as BLACKLIST|UNBLACKLIST|DESTROY_BLACKLIST; renamed by 008_freeze_rename.sql)
     topic1                TEXT,
     topic2                TEXT,
     data                  TEXT,                   -- raw log data (hex) — mint/burn amounts decode from word 1

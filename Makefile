@@ -5,6 +5,7 @@
 
 .PHONY: help setup lint test up down backend-logs migrate dbt-run dbt-test \
         ingest-supply ingest-prices ingest-transfers ingest-check ingest-issuer-events \
+        ingest-addresses ingest-logos \
         enrich-labels enrich-balances labels-check bq-dryrun serve digest verify export-issuer-events
 
 help: ## show available targets
@@ -42,11 +43,13 @@ ingest-check: ## smoke-test data source connectivity
 
 ingest-supply: ## DeFiLlama ingest (S1-S4 + ALL peggedUSD coin histories, ~10-20 min) → raw_*
 	uv run python -m backend.ingest.defillama --coins
-ingest-logos: ## CoinGecko logo fetch → raw_assets.logo_url (~2 API calls) (B-D26)
+ingest-addresses: ## DeFiLlama S2 contract-address harvest → raw_asset_addresses (B-D37)
+	uv run python -m backend.ingest.addresses
+ingest-logos: ## TrustWallet logo HEAD-check → raw_assets.logo_url, reads address storage (B-D37)
 	uv run python -m backend.ingest.logos
 ingest-prices: ## DeFiLlama snapshot (S1/S3/S4) → raw_* tables, no coin histories
 	uv run python -m backend.ingest.defillama
-ingest-issuer-events: ## BigQuery issuer events (USDC/USDT mint·burn·blacklist) → raw_issuer_events
+ingest-issuer-events: ## BigQuery issuer events (6 stables: mint·burn·freeze·unfreeze·destroy) → raw_issuer_events
 	uv run python -m indexer.bigquery.ingest
 ingest-transfers: ## BigQuery transfers (daily, P2.4)
 	@echo "TODO P2.4: transfers extractor not built yet" && exit 1

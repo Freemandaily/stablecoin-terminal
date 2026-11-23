@@ -1,0 +1,42 @@
+[33m8ead671[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m comitted
+[33m5c3df80[m comitted
+[33mbf8f950[m comitted
+[33mcfb1d4f[m comitted
+[33m722beda[m added
+[33m6164e1e[m CONTROL feed: newest-first order, 'Unknown' entity renders as —
+[33mc2b4398[m CONTROL feed: entity column + full event history
+[33m6787696[m ui: fix CUMULATIVE FROZEN peak display
+[33mfa5ea18[m P2.2: dual address-label providers — Arkham Intel alongside CryptoLabel
+[33m57c6227[m stagge2
+[33m70447cd[m staged
+[33m979e049[m  layout controll 2
+[33m05178ae[m  layout controll
+[33m2af4e03[m  layout control
+[33m79fe9af[m  layout
+[33m7bf0b34[m  control
+[33mf80d444[m third
+[33m043dddb[m second
+[33m5858c9f[m stable
+[33m4c37ead[m B-D26: remove Dev bps column from Assets table
+[33m46e356c[m B-D25: Assets 1D/7D/30D gain % change; 'Peg $' header -> 'Price'
+[33mb9bb335[m B-D24: Assets table = all 333 stablecoins with vertical scroll
+[33m1b08088[m B-D23: remove header status strip (as-of / STREAM OK / version)
+[33mf652079[m B-D22: recompose ticker — top-4 dominant coins replace issuance + peg cells
+[33m8dc99b9[m B-D21: $ prefix on market cap values
+[33m67f51b8[m B-D21: rename circulating supply -> market cap (DeFiLlama terminology)
+[33m47f3e8e[m B-D20: mobile-first responsive pass on the prototype
+[33m6b3694f[m B-D19: API contract + Phase-1 endpoints for views B & C
+[33m06cde26[m chore: untrack dbt runtime log (gitignore backend/transform/logs/)
+[33m42835ea[m B-D18: backend in Docker (sf-backend, host port 8081)
+[33me367da2[m B-D16: direct-to-Postgres ingest — no JSON landing zone
+[33m84661c6[m B-D15: reorganize into backend/ + ui/ + data/
+[33m76f3361[m P1.6: cron schedule (crontab.example) + real ingest-supply/prices make targets
+[33m8796f8c[m P1.5: peg mart (View C) — 30d rolling dev, event flag, 27 tests; schema collapse to public
+[33m6d0c3a2[m P1.4: marts for views A/B + full-market totals (S3), coverage column, 24 tests
+[33m94fd4ed[m P1.3: dbt staging views + 15 tests (composite keys, price bounds, totals invariant)
+[33m706d604[m P1.2: per-coin supply history ingest — raw tables, loaders, symbol-collision fix (USDS=209)
+[33md37958b[m P1.1: DeFiLlama asset+price ingest (cache-first landing), fix USDC id doc (2 not 4)
+[33md8f8b1e[m P0.4: docs baseline — README quickstart, MVP spec, architecture, decisions log; tick P0.2-P0.4
+[33m020ea97[m P0.3: dbt init — stg_load_log, source/schema tests (5 passing)
+[33m2ecf65c[m P0.2: postgres+metabase compose, migration runner, 001_init (load_log)
+[33ma8c5a5e[m P0.1: scaffold repo (pyproject, Makefile, .env.example, .gitignore, baseline docs+prototype)

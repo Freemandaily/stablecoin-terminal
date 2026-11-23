@@ -7,7 +7,7 @@ with decoded as (
         case
             when event_type in ('MINT', 'BURN', 'TRANSFER') and length(data) = 66
                 then ('x' || substr(data, 51, 16))::bit(64)::bigint  -- first word = amount
-            else destroyed_amount_raw  -- DESTROY parsed at ingest; blacklist rows → null
+            else destroyed_amount_raw  -- DESTROY parsed at ingest; freeze rows → null
         end as amount_raw
     from {{ source('raw', 'raw_issuer_events') }}
 

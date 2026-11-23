@@ -102,12 +102,12 @@ Connection string comes from `DATABASE_URL` (never hard-coded). Falls back to
 | log_index | int32 | |
 | contract_address | string | lowercase, 0x prefix |
 | token | string | USDC / USDT |
-| event_type | string | MINT / BURN / BLACKLIST / … |
+| event_type | string | MINT / BURN / FREEZE / UNFREEZE / DESTROY / … |
 | topic1_address | string | decoded from padded topic, lowercase 0x |
 | topic2_address | string | decoded from padded topic, lowercase 0x |
 | amount_raw | string | uint256 from hex `data`, as decimal string |
-| blacklisted_address | string | lowercase 0x, NULL unless BLACKLIST/UNBLACKLIST |
-| destroyed_amount_raw | int64 | NULL unless DESTROY_BLACKLIST |
+| blacklisted_address | string | lowercase 0x, NULL unless FREEZE/UNFREEZE/DESTROY |
+| destroyed_amount_raw | int64 | NULL unless DESTROY (USDT amount; wipe w/o amount stays NULL) |
 | destroyed_amount_usdt | decimal128(38, 6) | Spark-safe (max 38 digits) |
 | ingested_at | timestamp[us, tz=UTC] | ETL metadata |
 

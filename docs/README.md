@@ -14,7 +14,7 @@ Location: `/home/freeman/stablecoin-flow/data/raw_issuer_events/`
 | Total size | ~79 MB |
 | Date range | 2026-05-01 → 2026-11-06 |
 | Tokens | USDC, USDT |
-| Event types | MINT, BURN, BLACKLIST, UNBLACKLIST, DESTROY_BLACKLIST |
+| Event types | MINT, BURN, FREEZE, UNFREEZE, DESTROY (B-D34 names; rows ingested before 008 renamed in place) |
 
 Schema (flat, Spark-ready, one table — no normal forms):
 
@@ -26,13 +26,13 @@ Schema (flat, Spark-ready, one table — no normal forms):
 | `transaction_hash` | string | Lowercase, `0x` prefix |
 | `log_index` | int | Log index within the transaction |
 | `contract_address` | string | Lowercase, `0x` prefix |
-| `token` | string | `USDC` / `USDT` |
-| `event_type` | string | `MINT`, `BURN`, `BLACKLIST`, `UNBLACKLIST`, `DESTROY_BLACKLIST` |
+| `token` | string | `USDC` / `USDT` / `USD1` / `PYUSD` / `USDP` / `frxUSD` |
+| `event_type` | string | `MINT`, `BURN`, `FREEZE`, `UNFREEZE`, `DESTROY` |
 | `topic1_address` | string | Decoded from padded topic, lowercase `0x` |
 | `topic2_address` | string | Decoded from padded topic, lowercase `0x` |
 | `amount_raw` | string | uint256 from hex `data`, stored as decimal string |
-| `blacklisted_address` | string | Address being blacklisted/unblacklisted |
-| `destroyed_amount_raw` | long | Raw destroyed amount (DESTROY_BLACKLIST only) |
+| `blacklisted_address` | string | Address being frozen/unfrozen (or destroyed) |
+| `destroyed_amount_raw` | long | Raw destroyed amount (DESTROY only; NULL when the log encodes no amount) |
 | `destroyed_amount_usdt` | decimal(38,6) | USD value destroyed (Spark-safe precision) |
 | `ingested_at` | timestamp (UTC) | ETL load timestamp |
 
@@ -112,7 +112,7 @@ print("=== Rows per event type ===")
 df.groupBy("event_type").count().orderBy("count", ascending=False).show()
 ```
 
-**What to observe:** MINT and BURN dominate; BLACKLIST/UNBLACKLIST/DESTROY_BLACKLIST
+**What to observe:** MINT and BURN dominate; FREEZE/UNFREEZE/DESTROY
 are rare. This foreshadows data skew (Step 7 addition).
 
 ---

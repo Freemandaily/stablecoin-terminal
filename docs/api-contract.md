@@ -28,7 +28,7 @@ additive changes only; breaking a shape requires a `docs/decisions.md` entry.
 | 6 | `GET /api/flows/mintburn` | F — mint/burn analytics | ✅ LIVE | `marts.mart_mint_burn_daily` (was: `fct_daily_flows`) |
 | 7 | `GET /api/flows/exchanges` | G — exchange netflow + z-score | 🔒 501 (P2.8) | `fct_daily_flows`, exchange aggregates |
 | 8 | `GET /api/alerts` | H — recent alerts | 🔒 501 (P2.9) | alerts table + `fct_events` |
-| 9 | `GET /api/blacklist` | CONTROL — blacklist feed, KPIs, charts (B-D27) | ✅ LIVE | `marts.mart_blacklist_events` (issuer events + `stg_address_labels` entity labels) |
+| 9 | `GET /api/blacklist` | CONTROL — freeze feed, KPIs, charts (B-D27) | ✅ LIVE | `marts.mart_blacklist_events` (issuer events + `stg_address_labels` entity labels) |
 
 View D (daily digest) is a Telegram message, not an HTTP endpoint (B-D14).
 
@@ -80,6 +80,14 @@ objects as `overview.coins`. Added for the scrollable Assets table (B-D24);
   "coins": [ { "sym":"USDT", ... } ]   // same shape as overview.coins[0]
 }
 ```
+
+Coin rows also carry `logo_url` (B-D26/B-D37): a **same-origin proxy path** —
+`/api/tw/blockchains/{chain}/assets/{checksummed_addr}/logo.png` (TrustWallet)
+or `/api/logo/coins/images/{id}/large/{file}` (CoinGecko legacy) — or `null`
+when no verified logo exists (UI renders a letter chip). The proxies fetch
+upstream server-side (client networks may block the CDNs) and return `404`
+on upstream failure — never a placeholder image (§9). Success responses are
+cacheable (`max-age=86400`); all other responses stay no-cache.
 
 ## 2 · `GET /api/peg` — LIVE (View C)
 
@@ -184,25 +192,30 @@ Query params: `limit` (default 50, max 200), `type`
 
 ### 9 · `GET /api/blacklist` (CONTROL tab, B-D27) — LIVE
 
-Query params: `token` (`USDT|USDC`, optional), `since=YYYY-MM-DD` (optional),
+Query params: `token` (`USDT|USDC|USD1|PYUSD|USDP|frxUSD`, optional), `since=YYYY-MM-DD` (optional),
 `limit` (default **5000**, cap 10000 — covers the full event history; the feed
 derives KPIs client-side, so a truncated `events[]` would silently corrupt them).
 
 ```jsonc
-{ "asof":"...", "source":"api: token-contract blacklist events (Envio)",
+{ "asof":"...", "source":"api: marts.mart_blacklist_events (BigQuery issuer events, six stables)",
   "events":[ { "ts":"2026-11-05T09:14:00Z","token":"USDT",
-               "type":"BLACKLIST|UNBLACKLIST|DESTROY",
+               "type":"FREEZE|UNFREEZE|DESTROY", // canonical names across all six stables (B-D34)
                "addr":"0x…","entity":"Binance",   // entity_name from mart_blacklist_events; null = not yet labeled
-               "usd":1234567.0,
+               "usd":1234567.0,                   // DESTROY w/o an encoded amount (PYUSD/USDP wipe) → null, never 0 (§9)
                "bal":1234567.0,                   // P2.11: balanceOf at event block (USD); null = not fetched yet → renders `—`, never 0
                "tx":"0x…","block":26270000 } ] }
 ```
 
 `entity` is the address label joined in via `stg_address_labels` (CryptoLabel /
 Arkham, B-D31); `null` renders as `—` in the feed — never a fabricated name.
-`bal` is the blacklisted address's token balance read at the event's own block
+`bal` is the frozen address's token balance read at the event's own block
 (archive RPC → `raw_blacklist_balances`, B-D32); `null` = enrichment hasn't
 reached that event yet — also `—`, never `0`.
+
+`token` covers six stables (B-D34): USDC/USDT (mint/burn + freeze family) and
+USD1/PYUSD/USDP/frxUSD (freeze family only). USD1-only `caller` (the admin
+wallet that froze) is stored in `raw_issuer_events.caller` (migration 008) but
+not exposed on this endpoint yet.
 
 All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
 comparison are derived **client-side** from `events[]` — one payload, no extra

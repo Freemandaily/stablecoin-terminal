@@ -1,6 +1,6 @@
 """Blacklisted-address balance enrichment — raw_blacklist_balances (P2.11, B-D32).
 
-The BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST logs in raw_issuer_events carry
+The FREEZE / UNFREEZE / DESTROY logs in raw_issuer_events carry
 the blacklisted address but no amount — the balance is account state, not log
 data. This job reads it straight from the token contract at the event's own
 block:
@@ -44,7 +44,7 @@ log = get_logger("blacklist-balances")
 # ERC-20 balanceOf(address) — first 4 bytes of the keccak signature
 SELECTOR_BALANCE_OF = "0x70a08231"
 
-EVENT_TYPES = ("BLACKLIST", "UNBLACKLIST", "DESTROY_BLACKLIST")
+EVENT_TYPES = ("FREEZE", "UNFREEZE", "DESTROY")  # canonical names, B-D34
 
 PACE_S = 0.2  # polite pacing between eth_call requests
 MAX_CONSECUTIVE_FAILURES = 10  # abort: endpoint is down or rate-limiting
@@ -57,7 +57,7 @@ TODO_SQL = """
     left join raw_blacklist_balances b
       on b.transaction_hash = e.transaction_hash
      and b.log_index = e.log_index
-    where e.event_type in ('BLACKLIST', 'UNBLACKLIST', 'DESTROY_BLACKLIST')
+    where e.event_type in ('FREEZE', 'UNFREEZE', 'DESTROY')
       and b.transaction_hash is null
     order by e.block_number, e.log_index
 """

@@ -67,6 +67,7 @@ COLUMNS = (
     "blacklisted_address",
     "destroyed_amount_raw",
     "destroyed_amount_usdt",
+    "caller",
     "ingested_at",
 )
 
@@ -86,6 +87,7 @@ SCHEMA = pa.schema(
         ("blacklisted_address", pa.string()),
         ("destroyed_amount_raw", pa.int64()),
         ("destroyed_amount_usdt", pa.decimal256(40, 6)),
+        ("caller", pa.string()),  # migration 008: USD1 freeze/unfreeze caller (nullable)
         ("ingested_at", pa.timestamp("us", tz="UTC")),
     ]
 )

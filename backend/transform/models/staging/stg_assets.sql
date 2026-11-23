@@ -1,6 +1,7 @@
 -- P1.3: staging view over raw_assets (S1 metadata + current supply).
 -- Cleaning: null-guard money columns, normalize blank mechanism to 'unknown'.
--- logo_url: CoinGecko image.large (ingested by backend/ingest/logos.py), nullable.
+-- logo_url: TrustWallet PNG (backend/ingest/logos.py reads raw_asset_addresses,
+--           B-D37; legacy CoinGecko URLs from B-D26 kept where TW misses), nullable.
 select
     id,
     name,

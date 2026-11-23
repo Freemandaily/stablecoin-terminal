@@ -14,6 +14,8 @@ dependencies = [
     "google-cloud-bigquery>=3.47.0",
     "dbt-postgres>=1.11.0",
     "dbt-core>=1.12.6",
+    "eth-utils>=6.0.0",
+    "eth-hash[pycryptodome]>=0.7.0",   # keccak backend for EIP-55 (B-D37)
 ]
 
 [project.optional-dependencies]

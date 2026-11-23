@@ -8,7 +8,6 @@ Run:  make serve  →  http://localhost:8080  (UI + API, one origin)
 
 from __future__ import annotations
 
-import base64
 import urllib.request
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -42,9 +41,11 @@ app.add_middleware(
 class NoCacheMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: StarletteRequest, call_next):
         response = await call_next(request)
-        # Don't cache HTML, JS, CSS, or JSON API responses
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
+        # Don't cache HTML, JS, CSS, or JSON API responses — but logo images
+        # keep their own max-age (333-row table re-fetches on every sort).
+        if not response.headers.get("content-type", "").startswith("image/"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
         return response
 
 
@@ -577,14 +578,15 @@ def _blacklist(
     token: str | None = None, since: date | None = None, addr: str | None = None,
     limit: int = 5000,
 ) -> dict:
-    """CONTROL tab payload (B-D27) — blacklist ingest via Envio contract events.
+    """CONTROL tab payload (B-D27) — freeze events via issuer-events ingest.
 
-    Reads BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST events (and each
-    address's entity label) from marts.mart_blacklist_events.
-    All KPIs, monthly counts, the cumulative-frozen series and the USDT-vs-USDC
-    comparison are derived client-side from `events[]` (see docs/api-contract.md §9) —
-    so events[] must not be silently truncated: default covers the full history
-    (853 rows as of 2026-11-18), `limit` is a defensive cap only.
+    Reads FREEZE / UNFREEZE / DESTROY events (canonical names across all six
+    stables, B-D34) and each address's entity label from
+    marts.mart_blacklist_events.
+    All KPIs, monthly counts, the cumulative-frozen series and the token
+    comparison are derived client-side from `events[]` (see docs/api-contract.md §9)
+    — so events[] must not be silently truncated: default covers the full
+    history, `limit` is a defensive cap only.
     """
     clauses, params = [], []
     if token and token != "ALL":
@@ -611,15 +613,19 @@ def _blacklist(
         ).fetchall()
     events = []
     for r in rows:
-        is_destroy = r["event_type"] == "DESTROY_BLACKLIST" and r["destroyed"] is not None
+        # DESTROY amount is decoded from the log (USDT DestroyedBlackFunds);
+        # PYUSD/USDP wipes encode no amount → null, never a fabricated 0 (§9).
+        is_destroy = r["event_type"] == "DESTROY"
         usd = r["destroyed"] if is_destroy else r["amount_usd"]
         events.append({
             "ts": r["ts"].astimezone(UTC).isoformat().replace("+00:00", "Z"),
-            "type": "DESTROY" if r["event_type"] == "DESTROY_BLACKLIST" else r["event_type"],
+            "type": r["event_type"],  # FREEZE | UNFREEZE | DESTROY (B-D34)
             "token": r["token"],
             "addr": r["addr"],
             "entity": r["entity_name"],
-            "usd": _f(usd),
+            # destroy with no amount in the log (PYUSD/USDP wipe) stays null —
+            # a wipe whose size the chain didn't encode is unknown, not $0 (§9)
+            "usd": None if (is_destroy and usd is None) else _f(usd),
             # P2.11: balanceOf at event block — null = not fetched yet (renders `—`,
             # never 0; AGENTS.md §9). Unlike _f, a missing balance stays missing.
             "bal": float(r["bal"]) if r["bal"] is not None else None,
@@ -634,7 +640,7 @@ def _blacklist(
         ]
     return {
         "asof": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
-        "source": "api: token-contract blacklist events (Envio)",
+        "source": "api: marts.mart_blacklist_events (BigQuery issuer events, six stables)",
         "count": len(events),
         "events": events,
     }
@@ -647,7 +653,7 @@ def blacklist(
     addr: str | None = Query(None, alias="addr"),
     limit: int = Query(5000, ge=1, le=10000),
 ) -> JSONResponse:
-    """CONTROL tab payload (B-D27) — blacklist ingest (Envio contract events)."""
+    """CONTROL tab payload (B-D27) — freeze feed (BigQuery issuer events)."""
     try:
         return JSONResponse(_blacklist(token=token, since=since, addr=addr, limit=limit))
     except psycopg.OperationalError as e:
@@ -756,33 +762,28 @@ def health() -> dict:
 
 
 # ── logo proxy ───────────────────────────────────────────────────
-# CoinGecko CDN blocks requests from localhost/private IPs.
-# This endpoint proxies images through our backend so the browser
-# loads them from the same origin as the page.
+# CoinGecko CDN blocks requests from localhost/private IPs, and
+# raw.githubusercontent.com is unreachable on some client networks.
+# Both logo sources are proxied through our backend so the browser
+# only ever loads images from the same origin as the page (B-D37).
 
 
 def _proxy_logo_url(url: str) -> str:
-    """Rewrite CoinGecko URL to use our proxy endpoint."""
-    if not url or "coin-images.coingecko.com" not in url:
+    """Rewrite CoinGecko / TrustWallet URLs to our same-origin proxy."""
+    if not url:
         return url
-    # Extract path after the domain
-    path = url.split("coin-images.coingecko.com/")[1]
-    return f"/api/logo/{path}"
+    if "coin-images.coingecko.com" in url:
+        path = url.split("coin-images.coingecko.com/")[1]
+        return f"/api/logo/{path}"
+    if "raw.githubusercontent.com/trustwallet/assets/master/" in url:
+        path = url.split("raw.githubusercontent.com/trustwallet/assets/master/")[1]
+        return f"/api/tw/{path}"
+    return url
 
 
-# 1x1 transparent PNG fallback
-_TRANSPARENT_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-)
-
-
-@app.get("/api/logo/{path:path}")
-def proxy_logo(path: str) -> Response:
-    """Proxy coin images from CoinGecko CDN (blocks direct localhost requests)."""
-    # Only allow requests to coin-images.coingecko.com
-    allowed_host = "coin-images.coingecko.com"
-    url = f"https://{allowed_host}/{path}"
-
+def _fetch_logo(url: str) -> Response:
+    """Fetch one logo image; 404 on upstream failure (UI falls back to a
+    letter chip — never a fabricated image, §9)."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "StableFlow/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -794,12 +795,22 @@ def proxy_logo(path: str) -> Response:
                 headers={"Cache-Control": "public, max-age=86400"},  # Cache for 1 day
             )
     except Exception:
-        # Return transparent PNG as fallback
-        return Response(
-            content=_TRANSPARENT_PNG,
-            media_type="image/png",
-            headers={"Cache-Control": "public, max-age=3600"},
-        )
+        return Response(status_code=404)
+
+
+@app.get("/api/logo/{path:path}")
+def proxy_logo(path: str) -> Response:
+    """Proxy coin images from CoinGecko CDN (blocks direct localhost requests)."""
+    return _fetch_logo(f"https://coin-images.coingecko.com/{path}")
+
+
+@app.get("/api/tw/{path:path}")
+def proxy_tw_logo(path: str) -> Response:
+    """Proxy TrustWallet token logos (raw.githubusercontent.com is blocked
+    on some client networks — B-D37). Logos only: blockchains/…/logo.png."""
+    if not path.startswith("blockchains/") or not path.endswith("/logo.png"):
+        return Response(status_code=404)
+    return _fetch_logo(f"https://raw.githubusercontent.com/trustwallet/assets/master/{path}")
 
 
 # UI last — the "/" mount would otherwise swallow /api routes

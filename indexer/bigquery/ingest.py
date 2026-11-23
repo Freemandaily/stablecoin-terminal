@@ -2,14 +2,15 @@
 
 Flow (fetch → upsert in one pass, B-D16: no landing files):
   1. Dry-run the query → estimated bytes vs BQ_MAX_BYTES_BILLED (50 GB guard).
-  2. Run issuer_events.sql verbatim (USDC + USDT: mint, burn, blacklist,
-     unblacklist, destroy blacklisted funds; plain transfers excluded in SQL).
+  2. Run issuer_events.sql verbatim (USDC + USDT: mint, burn; USD1/PYUSD/USDP/
+     frxUSD: freeze family — FREEZE / UNFREEZE / DESTROY canonical across all
+     six stables, B-D34; plain transfers excluded in SQL).
   3. Upsert raw_issuer_events ON CONFLICT (transaction_hash, log_index) DO
      NOTHING — idempotent; re-running never duplicates rows (§3 rule 4).
   4. Log fetched rows, table delta, and per-token / per-event counts.
 
 issuer_events.sql is the source of truth and is used verbatim — this module
-never edits it.
+never edits it at runtime.
 
 Run:  uv run python -m indexer.bigquery.ingest
 """
@@ -34,6 +35,7 @@ log = get_logger("bq-issuer-events")
 SQL_FILE = Path(__file__).with_name("issuer_events.sql")
 
 # final SELECT column order of issuer_events.sql → raw_issuer_events columns
+# (by-name lookup in _cell; table order is set by migrations 005 + 008)
 COLUMNS = (
     "block_number",
     "block_timestamp",
@@ -48,6 +50,7 @@ COLUMNS = (
     "blacklisted_address",
     "destroyed_amount_raw",
     "destroyed_amount_usdt",
+    "caller",
 )
 
 INSERT_SQL = (

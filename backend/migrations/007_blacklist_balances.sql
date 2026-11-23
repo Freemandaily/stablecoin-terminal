@@ -1,6 +1,6 @@
 -- 007_blacklist_balances.sql — blacklisted-address token balances (P2.11, B-D32).
 --
--- BLACKLIST / UNBLACKLIST / DESTROY_BLACKLIST logs carry the address but no
+-- FREEZE / UNFREEZE / DESTROY logs (renamed by 008) carry the address but no
 -- amount: the balance lives in the token contract's balanceOf(), not in the
 -- log payload. This table stores that balance **read at the event's own block**
 -- via archive RPC (indexer/bigquery/enrich_balances.py), keyed 1:1 with
