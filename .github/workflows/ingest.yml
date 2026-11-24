@@ -1,20 +1,18 @@
 # Raw ingest in GitHub Actions (B-D50).
 #
-# Auth: OIDC Workload Identity Federation — no service-account key is stored.
-#   google-github-actions/auth@v2 exchanges the job's id-token for short-lived
-#   ADC credentials and exports GOOGLE_APPLICATION_CREDENTIALS for the
-#   google-cloud-storage client used by backend/ingest/sinks.py.
+# Auth: service-account JSON key stored as a GitHub repository secret.
+#   google-github-actions/auth@v2 exports GOOGLE_APPLICATION_CREDENTIALS for
+#   the google-cloud-storage client used by backend/ingest/sinks.py — no code
+#   change; the same ADC path as local runs.
 #
 # Repository configuration (Settings → Secrets and variables → Actions):
-#   Variables:
-#     GCP_WIF_PROVIDER   = projects/<num>/locations/global/workloadIdentityPools/<pool>/providers/<provider>
-#     GCS_INGEST_SA      = <service-account>@<project>.iam.gserviceaccount.com
-#     BQ_PROJECT         = <gcp project id for BigQuery jobs>   (optional)
-#   Secrets (only for the jobs that need them; blank is fine otherwise):
+#   Secret:  GCP_SA_KEY = full contents of the service-account JSON file
+#   Variable: BQ_PROJECT = <gcp project id for BigQuery jobs>   (optional)
+#   Other secrets (only for the jobs that need them):
 #     ARKHAM_API_KEY, CRYPTOLABEL_API_KEY, ETH_RPC_URL
 #
 # The service account needs roles/storage.objectAdmin on gs://term-flow.
-# For local runs, `gcloud auth application-default login` supplies the same ADC.
+# Rotate GCP_SA_KEY periodically; never commit the JSON file to the repo.
 
 name: Ingest raw data (Postgres / GCS)
 
@@ -43,13 +41,12 @@ on:
         description: Optional GCS backfill date (YYYY-MM-DD); blank = UTC today
         type: string
         required: false
-  # Optional daily run — enable when the WIF variables above are configured:
+  # Optional daily run — enable once GCP_SA_KEY is configured:
   # schedule:
   #   - cron: '30 5 * * *'
 
 permissions:
   contents: read
-  id-token: write # required for OIDC Workload Identity Federation
 
 concurrency:
   group: ingest-${{ inputs.job || 'all-gcs' }}-${{ inputs.sink || 'gcs' }}
@@ -91,12 +88,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud (OIDC WIF, no keys)
+      - name: Authenticate to Google Cloud (service-account key)
         if: env.RAW_SINK != 'postgres'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-          service_account: ${{ vars.GCS_INGEST_SA }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
