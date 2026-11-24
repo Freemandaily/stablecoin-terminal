@@ -98,7 +98,7 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   .notice{margin:10px}
   .railhead{padding:9px 16px}
   .railnote{padding:8px 10px}
-  .feed-h{padding:9px 10px}
+  .feed-h{grid-template-columns:64px 1fr 12px;padding:9px 10px}
   .fd-detail{padding:9px 10px}
   .fd-detail dl{grid-template-columns:1fr;gap:2px}
   .railfoot{padding:9px 10px}
@@ -288,7 +288,7 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 
 /* ── Activity rail: expandable MINT/BURN rows + LOAD MORE (B-D45) ── */
 .feed li{border-bottom:1px solid var(--line)}
-.feed-h{display:grid;grid-template-columns:46px 1fr 12px;gap:10px;align-items:start;
+.feed-h{display:grid;grid-template-columns:72px 1fr 12px;gap:10px;align-items:start;
   width:100%;padding:9px 20px;border:0;background:transparent;color:var(--txt);cursor:pointer;
   font:inherit;text-align:left}
 .feed-h:hover{background:#121619}
@@ -635,9 +635,26 @@ drawTable();
      One newest-first fetch (API cap 200); 20 rows visible, +20 per click.
      Detail uses only real API fields — no bps, no invented data (§9). */
 const FEED_STEP = 20;
-const FEED = { all: [], shown: 0, open: new Set(), loaded: false };
+const FEED = { all: [], shown: 0, open: new Set(), loaded: false, now: 0 };
 const feedKey = e => (e.tx || e.ts + '|' + e.sym + '|' + e.type);
 const feedTs = ts => !ts ? '—' : ts.replace('T', ' ').replace(/Z$/, '') + ' UTC';
+/* left column = event age (readable units), computed once against the API as-of —
+   the full UTC timestamp stays in the expanded detail (B-D47) */
+const feedAge = ts => {
+  const t = Date.parse(ts || '');
+  if (!isFinite(t)) return '—';
+  const s = Math.max(0, Math.floor((FEED.now - t) / 1000));
+  const units = [[31536000, 'YR'], [2592000, 'MO'], [86400, 'D'], [3600, 'HR'], [60, 'MIN']];
+  for (const [n, label] of units) {
+    if (s >= n) {
+      const v = Math.floor(s / n);
+      const gap = label.length === 1 ? '' : ' ';  // B-D48: single-letter unit attaches → 4D
+      const suf = v > 1 && label.length > 1 && label !== 'MO' && label !== 'YR' ? 'S' : '';
+      return v + gap + label + suf;
+    }
+  }
+  return s + ' SEC';
+};
 const feedUSD = v => v == null ? '—' : '$' + v.toLocaleString('en-US',
   { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const feedDetail = e => {
@@ -656,11 +673,11 @@ function feedDraw() {
   $('#feed').innerHTML = FEED.all.slice(0, FEED.shown).map((e, i) => {
     const mint = e.type === 'MINT';
     const open = FEED.open.has(feedKey(e));
-    const hhmm = e.ts && e.ts.length > 10 ? e.ts.slice(11, 16) : '--:--';
+    const age = feedAge(e.ts);
     const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
     return `<li class="${open ? 'open' : ''}" data-i="${i}">
       <button class="feed-h" type="button" aria-expanded="${open}">
-        <span class="ts">${esc(hhmm)}</span>
+        <span class="ts">${esc(age)}</span>
         <span class="ev"><span class="tag ${mint ? 'mint' : 'burn'}">${e.type}</span>
           <span class="amt">${esc(e.usd == null ? '—' : sgn(e.usd))}</span>
           <span class="dim">${esc(e.sym || '')}</span>
@@ -680,6 +697,7 @@ async function loadFeed() {
       const r = await fetch(url, { cache: 'no-store' });
       const d = await r.json();
       if (!r.ok || !Array.isArray(d.events)) continue;
+      FEED.now = Date.parse(String(d.asof || '').replace(' ', 'T').replace(' UTC', 'Z')) || Date.now();
       FEED.all = d.events
         .filter(e => e.type === 'MINT' || e.type === 'BURN')
         .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
