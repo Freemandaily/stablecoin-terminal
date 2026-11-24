@@ -9,7 +9,7 @@
 <style>
 :root{
   --bg:#0B0D0E; --panel:#101315; --panel2:#14181B; --line:#1E2429; --line2:#2A3238;
-  --txt:#DBD8D2; --dim:#77818B; --dim2:#525C65;
+  --txt:#DBD8D2; --dim:#77818B; --dim2:#525C65; --white:#FFFFFF;
   --up:#4FB477; --down:#E0564E; --acc:#E8B33C; --acc-dim:#8A6A24;
   --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
   --sans:'Inter',system-ui,-apple-system,sans-serif;
@@ -47,7 +47,7 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 /* the rail is bounded by the main column (Assets panel bottom); its feed
    scrolls inside. No min-height on .wrap — a tall viewport would otherwise
    stretch the row (and the rail) past the Assets panel */
-.wrap{display:grid;grid-template-columns:1fr 340px}
+.wrap{display:grid;grid-template-columns:1fr 420px}
 .wrap.no-rail{grid-template-columns:1fr}
 .main{border-right:1px solid var(--line2);min-width:0}
 .rail{background:var(--panel);min-width:0;min-height:0;position:relative}
@@ -96,9 +96,12 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   td,th{padding:7px 9px}
   .chainrow{grid-template-columns:96px 1fr 74px 62px;gap:8px;padding:8px 10px;font-size:11px}
   .notice{margin:10px}
-  .railhead{padding:9px 10px}
+  .railhead{padding:9px 16px}
   .railnote{padding:8px 10px}
-  .feed li{padding:9px 10px}
+  .feed-h{padding:9px 10px}
+  .fd-detail{padding:9px 10px}
+  .fd-detail dl{grid-template-columns:1fr;gap:2px}
+  .railfoot{padding:9px 10px}
   footer{padding:10px;gap:10px}
 }
 @media(max-width:480px){
@@ -263,12 +266,12 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .eh.sorted{color:#e8a317}
 #v-ctl .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 12px;border:1px solid #262a30;background:#121417;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
 /* ── feed (right rail) ──────────────────── */
-.railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
+.railhead{display:flex;align-items:center;gap:8px;padding:9px 20px;border-bottom:1px solid var(--line2);
   background:var(--panel2);flex:none}
 .railhead .t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .feed{list-style:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
   scrollbar-color:var(--line2) var(--panel);scrollbar-width:thin}
-.feed li{display:grid;grid-template-columns:46px 1fr;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.feed li{list-style:none}
 .feed .ts{font-family:var(--mono);font-size:10px;color:var(--dim2);padding-top:2px}
 .feed .ev{font-family:var(--mono);font-size:12px}
 .feed .ev .tag{display:inline-block;font-size:9px;letter-spacing:.08em;padding:1px 5px;
@@ -282,6 +285,33 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 .feed .route .hl{color:var(--acc)}
 .railnote{padding:8px 14px;font-size:10.5px;color:var(--dim2);border-bottom:1px solid var(--line);
   font-family:var(--mono);letter-spacing:.02em}
+
+/* ── Activity rail: expandable MINT/BURN rows + LOAD MORE (B-D45) ── */
+.feed li{border-bottom:1px solid var(--line)}
+.feed-h{display:grid;grid-template-columns:46px 1fr 12px;gap:10px;align-items:start;
+  width:100%;padding:9px 20px;border:0;background:transparent;color:var(--txt);cursor:pointer;
+  font:inherit;text-align:left}
+.feed-h:hover{background:#121619}
+.feed li.open>.feed-h{background:var(--panel2)}
+.feed-h:focus-visible{outline:1px solid var(--acc);outline-offset:-1px}
+.feed-h .chev{font-size:11px;color:var(--dim2);text-align:right}
+.feed li.open .chev{color:var(--acc)}
+.fd-detail{padding:9px 20px 10px;border-top:1px solid var(--line);background:var(--panel2);
+  font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.fd-detail dl{display:grid;grid-template-columns:110px 1fr;gap:5px 10px}
+.fd-detail dt{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2)}
+.fd-detail dd{color:var(--txt);overflow-wrap:anywhere}
+.fd-detail .hash{color:var(--acc)}
+.railfoot{display:flex;align-items:center;gap:10px;padding:9px 20px;border-top:1px solid var(--line2);flex:none}
+.fd-count{font-family:var(--mono);font-size:10.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.fd-more{margin-left:auto;padding:5px 10px;border:1px solid var(--line2);background:transparent;
+  color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.fd-more:hover{color:var(--acc);border-color:var(--acc-dim)}
+.fd-more:focus-visible{outline:1px solid var(--acc);outline-offset:1px}
+.fd-more[hidden]{display:none}
+/* B-D46: all Activity rail text pure white; semantic tags + tx link keep their colors */
+.rail .railhead .t,.rail .feed .ts,.rail .feed .ev,.rail .feed .route,.rail .feed .route b,
+.rail .feed .dim,.rail .feed-h .chev,.rail .fd-detail dt,.rail .fd-detail dd,.rail .fd-count{color:var(--white)}
 
 /* ── phase-2 placeholder ────────────────── */
 .notice{margin:16px;padding:11px 14px;border:1px dashed var(--line2);color:var(--dim);
@@ -440,6 +470,10 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
   <div class="railin">
     <div class="railhead"><span class="t">Activity</span></div>
     <ul class="feed" id="feed"></ul>
+    <div class="railfoot">
+      <span class="fd-count" id="feedcount"></span>
+      <button class="fd-more" id="feedmore" type="button" hidden>LOAD MORE</button>
+    </div>
   </div>
 </aside>
 </div>
@@ -597,36 +631,83 @@ drawTable();
 
 /* ── activity feed (live: /api/events → issuer/peg events) ───── */
   const fmtAddr = a => !a ? '—' : `${a.slice(0,6)}…${a.slice(-4)}`;
-  const kindFor = t => t === 'MINT' ? 'mint' : t === 'BURN' ? 'burn' :
-    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'ex' : 'peg';
-  const tagFor = t => t === 'MINT' ? 'MINT' : t === 'BURN' ? 'BURN' :
-    (t === 'EXCHANGE_IN' || t === 'EXCHANGE_OUT') ? 'EXCHANGE' : 'PEG_BREAK';
-
-  let events = [];
-  const loadFeed = async () => {
-    for (const url of ['/api/events?limit=50', 'http://localhost:8081/api/events?limit=50']) {
-      try {
-        const r = await fetch(url, { cache: 'no-store' });
-        const d = await r.json();
-        if (r.ok && Array.isArray(d.events)) { events = d.events; break; }
-      } catch (e) { /* live feed unreachable */ }
-    }
-    $('#feed').innerHTML = events.filter(e => e.type === 'MINT' || e.type === 'BURN').map(e => {
-      const ts = e.ts ? e.ts.slice(11,16) : '--:--';
-      const kind = kindFor(e.type);
-      const tag = tagFor(e.type);
-      const amt = e.usd != null ? sgn(e.usd) : '—';
-      const unit = e.sym || '';
-      const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
-      return `<li><span class="ts">${ts}</span>
-        <span class="ev"><span class="tag ${kind}">${tag}</span>
-          <span class="amt">${amt}</span> <span class="dim">${unit}</span>
+  /* Activity rail (B-D45): expandable MINT/BURN rows + LOAD MORE.
+     One newest-first fetch (API cap 200); 20 rows visible, +20 per click.
+     Detail uses only real API fields — no bps, no invented data (§9). */
+const FEED_STEP = 20;
+const FEED = { all: [], shown: 0, open: new Set(), loaded: false };
+const feedKey = e => (e.tx || e.ts + '|' + e.sym + '|' + e.type);
+const feedTs = ts => !ts ? '—' : ts.replace('T', ' ').replace(/Z$/, '') + ' UTC';
+const feedUSD = v => v == null ? '—' : '$' + v.toLocaleString('en-US',
+  { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const feedDetail = e => {
+  const mint = e.type === 'MINT';
+  const who = mint ? e.to : e.from;
+  return `<div class="fd-detail"><dl>
+    <dt>DATE</dt><dd>${esc(feedTs(e.ts))}</dd>
+    <dt>USD</dt><dd>${esc(feedUSD(e.usd))}</dd>
+    <dt>${mint ? 'MINT RECIPIENT' : 'BURN SENDER'}</dt><dd>${who ? esc(who) : '—'}</dd>
+    <dt>TRANSACTION</dt><dd>${e.tx
+      ? `<a class="hash" href="https://etherscan.io/tx/${escA(e.tx)}" target="_blank" rel="noopener">${esc(e.tx)} <span aria-hidden="true">↗</span></a>`
+      : '—'}</dd>
+  </dl></div>`;
+};
+function feedDraw() {
+  $('#feed').innerHTML = FEED.all.slice(0, FEED.shown).map((e, i) => {
+    const mint = e.type === 'MINT';
+    const open = FEED.open.has(feedKey(e));
+    const hhmm = e.ts && e.ts.length > 10 ? e.ts.slice(11, 16) : '--:--';
+    const route = e.label ? esc(e.label) : `${fmtAddr(e.from)} → ${fmtAddr(e.to)}`;
+    return `<li class="${open ? 'open' : ''}" data-i="${i}">
+      <button class="feed-h" type="button" aria-expanded="${open}">
+        <span class="ts">${esc(hhmm)}</span>
+        <span class="ev"><span class="tag ${mint ? 'mint' : 'burn'}">${e.type}</span>
+          <span class="amt">${esc(e.usd == null ? '—' : sgn(e.usd))}</span>
+          <span class="dim">${esc(e.sym || '')}</span>
           <div class="route">${route}</div>
-        </span></li>`;
-    }).join('');
-  };
-  loadFeed();
-
+        </span>
+        <span class="chev" aria-hidden="true">${open ? '−' : '+'}</span>
+      </button>${open ? feedDetail(e) : ''}</li>`;
+  }).join('');
+  $('#feedcount').textContent = FEED.all.length
+    ? FEED.shown + ' / ' + FEED.all.length
+    : (FEED.loaded ? 'NO ACTIVITY' : 'FEED OFFLINE');
+  $('#feedmore').hidden = FEED.shown >= FEED.all.length;
+}
+async function loadFeed() {
+  for (const url of ['/api/events?limit=200', 'http://localhost:8081/api/events?limit=200']) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      const d = await r.json();
+      if (!r.ok || !Array.isArray(d.events)) continue;
+      FEED.all = d.events
+        .filter(e => e.type === 'MINT' || e.type === 'BURN')
+        .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+      FEED.shown = Math.min(FEED_STEP, FEED.all.length);
+      FEED.loaded = true;
+      break;
+    } catch (e) { /* next candidate */ }
+  }
+  feedDraw();
+}
+$('#feed').addEventListener('click', (ev) => {
+  const b = ev.target.closest ? ev.target.closest('.feed-h') : null;
+  if (!b) return;
+  const i = Number(b.parentElement.dataset.i);
+  const e = FEED.all[i];
+  if (!e) return;
+  const k = feedKey(e);
+  if (FEED.open.has(k)) FEED.open.delete(k); else FEED.open.add(k);
+  feedDraw();
+  // redraw replaces the row — keep keyboard focus on the same button
+  const again = $('#feed').querySelector('li[data-i="' + i + '"] .feed-h');
+  if (again) again.focus();
+});
+$('#feedmore').addEventListener('click', () => {
+  FEED.shown = Math.min(FEED.shown + FEED_STEP, FEED.all.length);
+  feedDraw();
+});
+loadFeed();
 
 /* ── tabs ──────────────────────────────── */
 /* ── CONTROL view (ported from stablecoin-control.html) ───────── */
