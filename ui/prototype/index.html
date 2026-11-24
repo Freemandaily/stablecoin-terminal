@@ -44,10 +44,14 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 .sample .v{color:var(--dim2)}
 
 /* ── layout ─────────────────────────────── */
-.wrap{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 44px - 74px)}
+/* the rail is bounded by the main column (Assets panel bottom); its feed
+   scrolls inside. No min-height on .wrap — a tall viewport would otherwise
+   stretch the row (and the rail) past the Assets panel */
+.wrap{display:grid;grid-template-columns:1fr 340px}
 .wrap.no-rail{grid-template-columns:1fr}
 .main{border-right:1px solid var(--line2);min-width:0}
-.rail{background:var(--panel);min-width:0;display:block}
+.rail{background:var(--panel);min-width:0;min-height:0;position:relative}
+.railin{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
 .wrap.no-rail .rail{display:none}
 .wrap.no-rail .main{border-right:0}
 .view{display:none} .view.on{display:block}
@@ -67,7 +71,10 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
   .grid2{grid-template-columns:1fr}
   .grid2>*:first-child{border-right:none}
   .wrap{grid-template-columns:1fr}
-  .rail{border-top:1px solid var(--line2)}
+  /* rail drops below main: no inner scroll there, natural height */
+  .rail{border-top:1px solid var(--line2);position:static;min-height:auto}
+  .railin{position:static;display:block}
+  .feed{flex:none;overflow:visible}
   .strip{grid-template-columns:repeat(3,1fr)}
   .cell{border-bottom:1px solid var(--line)}
   .cell:nth-last-child(-n+3){border-bottom:none}
@@ -79,7 +86,6 @@ nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 
   nav{order:3;flex-basis:100%;height:40px;margin-left:0;border-top:1px solid var(--line)}
   nav button{flex:1;padding:0 8px;font-size:10px;letter-spacing:.06em}
-  .railhead{top:84px}
   /* strip → 2 columns */
   .strip{grid-template-columns:repeat(2,1fr)}
   .cell{padding:8px 10px}
@@ -258,9 +264,10 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 12px;border:1px solid #262a30;background:#121417;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
 /* ── feed (right rail) ──────────────────── */
 .railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
-  background:var(--panel2);position:sticky;top:44px;z-index:10}
+  background:var(--panel2);flex:none}
 .railhead .t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-.feed{list-style:none}
+.feed{list-style:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-color:var(--line2) var(--panel);scrollbar-width:thin}
 .feed li{display:grid;grid-template-columns:46px 1fr;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
 .feed .ts{font-family:var(--mono);font-size:10px;color:var(--dim2);padding-top:2px}
 .feed .ev{font-family:var(--mono);font-size:12px}
@@ -430,8 +437,10 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
 </div>
 
 <aside class="rail">
-  <div class="railhead"><span class="t">Activity</span></div>
-  <ul class="feed" id="feed"></ul>
+  <div class="railin">
+    <div class="railhead"><span class="t">Activity</span></div>
+    <ul class="feed" id="feed"></ul>
+  </div>
 </aside>
 </div>
 
