@@ -46,6 +46,7 @@ import argparse
 import json
 import sys
 import time
+from contextlib import nullcontext
 
 import httpx
 from psycopg.types.json import Json
@@ -62,6 +63,7 @@ from .config import (
 from .db import get_conn
 from .http import FetchError
 from .logging_setup import get_logger
+from .sinks import SinkConfig, gcs_manifest, gcs_read_part, gcs_run
 
 log = get_logger("cryptolabel")
 
@@ -81,6 +83,7 @@ UPSERT_SQL = """
 
 PACING_S = 0.1  # polite gap between requests
 MAX_CONSECUTIVE_FAILURES = 5  # abort if the API looks down
+GCS_LABEL_CHUNK = 1000  # rows per JSONL part in GCS (B-D50)
 SOURCES = ("cryptolabel", "arkham")
 
 
@@ -232,79 +235,120 @@ def main() -> int:
             log.warning("provider: CryptoLabel — no key, anonymous tier (1,000 requests/day)")
         fetch, to_row = fetch_label, cryptolabel_row
 
-    with get_conn() as conn, conn.cursor() as cur:
-        # ── 1. addresses to fetch: in events, not yet labeled ──────
-        #     entity_name 'Unknown' = no label — stored as an attempt but
-        #     retried each run; only real entity names are skipped
-        cur.execute(
-            """
-            SELECT DISTINCT lower(blacklisted_address)
-            FROM raw_issuer_events
-            WHERE blacklisted_address IS NOT NULL AND blacklisted_address <> ''
-            """
-        )
-        want = {r[0] for r in cur.fetchall()}
-        cur.execute(
-            "SELECT address FROM raw_address_labels "
-            "WHERE entity_name IS NOT NULL AND entity_name <> 'Unknown'"
-        )
-        labeled = {r[0] for r in cur.fetchall()}
-        todo = sorted(want - labeled)
-        if args.limit:
-            todo = todo[: args.limit]
-        log.info(
-            "addresses: %d in events · %d labeled (skip) · %d to fetch",
-            len(want),
-            len(want & labeled),
-            len(todo),
-        )
-        if not todo:
-            log.info("every address already labeled — nothing to fetch")
-            return 0
+    cfg = SinkConfig.from_env()
 
-        # ── 2. fetch + upsert, one address at a time ───────────────
-        ok = got_labels = failed = consecutive = 0
-        for i, addr in enumerate(todo, 1):
-            log.info("[%d/%d] requesting %s", i, len(todo), addr)
-            try:
-                payload = fetch(addr)
-            except AuthError as e:
-                log.error("%s", e)
-                return 1
-            except FetchError as e:
-                failed += 1
-                consecutive += 1
-                log.warning("fetch failed (%d consecutive): %s", consecutive, e)
-                if consecutive >= MAX_CONSECUTIVE_FAILURES:
-                    log.error("%d consecutive failures — aborting; resume next run", consecutive)
-                    return 1
-                continue
-            if payload is None:  # rate / spend limit
-                log.warning("rate limited at %d/%d — stopping; resume next run", i, len(todo))
-                break
-            consecutive = 0
-
-            entity_name, category, addr_type, explorer, labels = to_row(addr, payload)
+    # ── 1. addresses to fetch: in events, not yet labeled ─────────
+    #     entity_name 'Unknown' = no label — stored as an attempt but
+    #     retried each run; only real entity names are skipped
+    if cfg.wants_pg:
+        with get_conn() as conn, conn.cursor() as cur:
             cur.execute(
-                UPSERT_SQL,
-                (
-                    addr,
-                    entity_name,
-                    category,
-                    addr_type,
-                    explorer,
-                    Json(labels),
-                    args.source,
-                ),
+                """
+                SELECT DISTINCT lower(blacklisted_address)
+                FROM raw_issuer_events
+                WHERE blacklisted_address IS NOT NULL AND blacklisted_address <> ''
+                """
             )
-            ok += 1
-            if entity_name and entity_name != "Unknown":
-                got_labels += 1
-            if i % 50 == 0:
-                log.info("… %d/%d fetched", i, len(todo))
-            time.sleep(PACING_S)
+            want = {r[0] for r in cur.fetchall()}
+            cur.execute(
+                "SELECT address FROM raw_address_labels "
+                "WHERE entity_name IS NOT NULL AND entity_name <> 'Unknown'"
+            )
+            labeled = {r[0] for r in cur.fetchall()}
+    else:
+        # GCS-only: derive the work list from today's raw parts, not Postgres.
+        want, labeled = set(), set()
+        events_manifest = gcs_manifest("raw_issuer_events", cfg)
+        if events_manifest:
+            for part in events_manifest.get("parts", []):
+                text = gcs_read_part("raw_issuer_events", part["name"], cfg) or ""
+                for line in text.splitlines():
+                    addr = str(json.loads(line).get("blacklisted_address") or "").lower()
+                    if addr:
+                        want.add(addr)
+        labels_manifest = gcs_manifest("raw_address_labels", cfg)
+        if labels_manifest:
+            for part in labels_manifest.get("parts", []):
+                text = gcs_read_part("raw_address_labels", part["name"], cfg) or ""
+                for line in text.splitlines():
+                    row = json.loads(line)
+                    if row.get("entity_name") and row["entity_name"] != "Unknown":
+                        labeled.add(row["address"])
+        log.info("GCS-only labels: %d addresses in events from today's parts", len(want))
 
-        total = cur.execute("SELECT count(*) FROM raw_address_labels").fetchone()[0]
+    todo = sorted(want - labeled)
+    if args.limit:
+        todo = todo[: args.limit]
+    log.info(
+        "addresses: %d in events · %d labeled (skip) · %d to fetch",
+        len(want),
+        len(want & labeled),
+        len(todo),
+    )
+    if not todo:
+        log.info("every address already labeled — nothing to fetch")
+        return 0
+
+    # ── 2. fetch + upsert, one address at a time ──────────────────
+    ok = got_labels = failed = consecutive = total = 0
+    with gcs_run("raw_address_labels", source=f"address-enrich:{args.source}", cfg=cfg) as run:
+        with (get_conn() if cfg.wants_pg else nullcontext()) as conn:
+            cur = conn.cursor() if conn is not None else None
+            gcs_buf: list[dict] = []
+            part_no = 0
+            for i, addr in enumerate(todo, 1):
+                log.info("[%d/%d] requesting %s", i, len(todo), addr)
+                try:
+                    payload = fetch(addr)
+                except AuthError as e:
+                    log.error("%s", e)
+                    run.skip_manifest()
+                    return 1
+                except FetchError as e:
+                    failed += 1
+                    consecutive += 1
+                    log.warning("fetch failed (%d consecutive): %s", consecutive, e)
+                    if consecutive >= MAX_CONSECUTIVE_FAILURES:
+                        log.error(
+                            "%d consecutive failures — aborting; resume next run", consecutive
+                        )
+                        run.skip_manifest()
+                        return 1
+                    continue
+                if payload is None:  # rate / spend limit
+                    log.warning("rate limited at %d/%d — stopping; resume next run", i, len(todo))
+                    run.skip_manifest()
+                    break
+                consecutive = 0
+
+                entity_name, category, addr_type, explorer, labels = to_row(addr, payload)
+                if cur is not None:
+                    cur.execute(
+                        UPSERT_SQL,
+                        (
+                            addr, entity_name, category, addr_type,
+                            explorer, Json(labels), args.source,
+                        ),
+                    )
+                gcs_buf.append({
+                    "address": addr, "entity_name": entity_name, "entity_category": category,
+                    "address_type": addr_type, "explorer_url": explorer,
+                    "labels": labels, "source": args.source,
+                })
+                if len(gcs_buf) >= GCS_LABEL_CHUNK:
+                    run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                    gcs_buf = []
+                    part_no += 1
+                ok += 1
+                if entity_name and entity_name != "Unknown":
+                    got_labels += 1
+                if i % 50 == 0:
+                    log.info("… %d/%d fetched", i, len(todo))
+                time.sleep(PACING_S)
+            if gcs_buf:
+                run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+            if cur is not None:
+                total = cur.execute("SELECT count(*) FROM raw_address_labels").fetchone()[0]
 
     # ── 3. summary ────────────────────────────────────────────────
     log.info(

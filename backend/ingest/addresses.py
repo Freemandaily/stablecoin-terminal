@@ -21,14 +21,16 @@ Run:  make ingest-addresses   |   uv run python -m backend.ingest.addresses [--r
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from psycopg.rows import dict_row
 
-from .config import LLAMA_S2
+from .config import LLAMA_S1, LLAMA_S2
 from .db import get_conn
 from .http import FetchError, get_json
 from .logging_setup import get_logger
+from .sinks import SinkConfig, gcs_read_part, save
 
 log = get_logger("addresses")
 
@@ -58,20 +60,48 @@ def main() -> int:
                     help="re-fetch even for assets already stored")
     args = ap.parse_args()
 
-    with get_conn() as c:
-        cur = c.cursor(row_factory=dict_row)
-        assets = cur.execute(
-            "select id, symbol from raw_assets order by circulating_usd desc nulls last"
-        ).fetchall()
-        if not assets:
-            log.error("raw_assets is empty — run ingest-supply first")
-            return 1
-        have_ids = (
-            set()
-            if args.refresh
-            else {r["asset_id"] for r in cur.execute(
-                "select distinct asset_id from raw_asset_addresses"
-            ).fetchall()}
+    cfg = SinkConfig.from_env()
+    if cfg.wants_pg:
+        with get_conn() as c:
+            cur = c.cursor(row_factory=dict_row)
+            assets = cur.execute(
+                "select id, symbol from raw_assets order by circulating_usd desc nulls last"
+            ).fetchall()
+            if not assets:
+                log.error("raw_assets is empty — run ingest-supply first")
+                return 1
+            have_ids = (
+                set()
+                if args.refresh
+                else {r["asset_id"] for r in cur.execute(
+                    "select distinct asset_id from raw_asset_addresses"
+                ).fetchall()}
+            )
+    else:
+        # GCS-only is an alternative store: derive the work list from the source,
+        # never from Postgres. Resume state comes from today's GCS part.
+        s1 = get_json(LLAMA_S1)
+        assets = sorted(
+            (
+                {
+                    "id": str(a["id"]),
+                    "symbol": a.get("symbol") or "?",
+                    "circ": (a.get("circulating") or {}).get("peggedUSD") or 0,
+                }
+                for a in s1["peggedAssets"]
+            ),
+            key=lambda a: -a["circ"],
+        )
+        have_ids: set[str] = set()
+        prior = gcs_read_part("raw_asset_addresses", "addresses.jsonl", cfg)
+        if prior and not args.refresh:
+            try:
+                have_ids = {json.loads(line)["asset_id"] for line in prior.splitlines() if line}
+            except (KeyError, json.JSONDecodeError) as e:
+                log.warning("could not parse GCS resume part: %s", e)
+        log.info(
+            "GCS-only harvest: %d assets from S1, %d already stored this date",
+            len(assets), len(have_ids),
         )
 
     todo = [a for a in assets if a["id"] not in have_ids]
@@ -85,6 +115,7 @@ def main() -> int:
         return 0
 
     saved = no_addr = failed = 0
+    saved_rows: list[dict] = []
     for i, a in enumerate(todo, 1):
         aid, sym = a["id"], a["symbol"] or "?"
         try:
@@ -100,21 +131,26 @@ def main() -> int:
             log.info("no address: %s (id=%s)", sym, aid)
             continue
         chain, addr = parsed
-        with get_conn() as c:
-            c.cursor().execute(
-                """
-                INSERT INTO raw_asset_addresses (asset_id, chain, address, source)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (asset_id, chain) DO UPDATE SET
-                    address = EXCLUDED.address,
-                    source = EXCLUDED.source,
-                    ingested_at = now()
-                """,
-                (aid, chain, addr, SOURCE),
-            )
+        if cfg.wants_pg:
+            with get_conn() as c:
+                c.cursor().execute(
+                    """
+                    INSERT INTO raw_asset_addresses (asset_id, chain, address, source)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (asset_id, chain) DO UPDATE SET
+                        address = EXCLUDED.address,
+                        source = EXCLUDED.source,
+                        ingested_at = now()
+                    """,
+                    (aid, chain, addr, SOURCE),
+                )
+        saved_rows.append({"asset_id": aid, "chain": chain, "address": addr, "source": SOURCE})
         saved += 1
         if i % 25 == 0:
             log.info("addresses: %d/%d stored …", i, len(todo))
+
+    # Postgres rows were already upserted above; this call only handles GCS.
+    save("raw_asset_addresses", parts=[("addresses.jsonl", saved_rows)], source=SOURCE, cfg=cfg)
 
     log.info(
         "address harvest complete: %d stored, %d without address, %d failed (of %d fetched)",

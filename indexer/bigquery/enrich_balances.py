@@ -24,8 +24,10 @@ plain full nodes return "missing trie node" for old blocks.
 
 from __future__ import annotations
 
+import json
 import sys
 import time
+from contextlib import nullcontext
 
 import httpx
 import psycopg
@@ -38,6 +40,7 @@ from backend.ingest.config import (
 )
 from backend.ingest.db import get_conn
 from backend.ingest.logging_setup import get_logger
+from backend.ingest.sinks import SinkConfig, gcs_manifest, gcs_read_part, gcs_run
 
 log = get_logger("blacklist-balances")
 
@@ -48,6 +51,7 @@ EVENT_TYPES = ("FREEZE", "UNFREEZE", "DESTROY")  # canonical names, B-D34
 
 PACE_S = 0.2  # polite pacing between eth_call requests
 MAX_CONSECUTIVE_FAILURES = 10  # abort: endpoint is down or rate-limiting
+GCS_BAL_CHUNK = 1000  # rows per JSONL part in GCS (B-D50)
 
 TODO_SQL = """
     select e.transaction_hash, e.log_index, e.token, e.contract_address,
@@ -113,53 +117,106 @@ def main() -> int:
         )
         return 1
 
-    with get_conn() as conn, conn.cursor() as cur:
-        try:
-            before = cur.execute("SELECT count(*) FROM raw_blacklist_balances").fetchone()[0]
-        except psycopg.errors.UndefinedTable:
-            log.error("raw_blacklist_balances missing — run `make migrate` first")
-            return 1
+    cfg = SinkConfig.from_env()
+    before = after = pending = 0
+    if cfg.wants_pg:
+        with get_conn() as conn, conn.cursor() as cur:
+            try:
+                before = cur.execute("SELECT count(*) FROM raw_blacklist_balances").fetchone()[0]
+            except psycopg.errors.UndefinedTable:
+                log.error("raw_blacklist_balances missing — run `make migrate` first")
+                return 1
+            todo = cur.execute(TODO_SQL).fetchall()
+    else:
+        # GCS-only: derive todo from today's event + balance parts, not Postgres.
+        done_keys: set[tuple] = set()
+        bal_manifest = gcs_manifest("raw_blacklist_balances", cfg)
+        if bal_manifest:
+            for part in bal_manifest.get("parts", []):
+                text = gcs_read_part("raw_blacklist_balances", part["name"], cfg) or ""
+                for line in text.splitlines():
+                    r = json.loads(line)
+                    done_keys.add((r["transaction_hash"], r["log_index"]))
+        todo = []
+        ev_manifest = gcs_manifest("raw_issuer_events", cfg)
+        if ev_manifest:
+            for part in ev_manifest.get("parts", []):
+                text = gcs_read_part("raw_issuer_events", part["name"], cfg) or ""
+                for line in text.splitlines():
+                    r = json.loads(line)
+                    if r.get("event_type") not in EVENT_TYPES:
+                        continue
+                    key = (r["transaction_hash"], r["log_index"])
+                    if key in done_keys:
+                        continue
+                    todo.append((
+                        r["transaction_hash"], r["log_index"], r["token"],
+                        r["contract_address"], str(r.get("blacklisted_address") or "").lower(),
+                        r["block_number"],
+                    ))
+        log.info("GCS-only balances: %d events missing a balance", len(todo))
 
-        todo = cur.execute(TODO_SQL).fetchall()
-        log.info("%d events missing a balance (%d known)", len(todo), before)
-        if not todo:
-            log.info("nothing to do — balances complete")
-            return 0
+    log.info("%d events missing a balance (%d known)", len(todo), before)
+    if not todo:
+        log.info("nothing to do — balances complete")
+        return 0
 
-        fetched = failed = 0
-        streak = 0
-        with httpx.Client(
-            timeout=HTTP_TIMEOUT,
-            headers={"User-Agent": USER_AGENT},
-            follow_redirects=True,
-        ) as client:
-            for tx, log_idx, token, contract, addr, block in todo:
-                bal = balance_of(client, contract, addr, block)
-                if bal is None:
-                    failed += 1
-                    streak += 1
-                    if streak >= MAX_CONSECUTIVE_FAILURES:
-                        log.error(
-                            "%d consecutive RPC failures — aborting; %d rows "
-                            "stay todo for the next run",
-                            streak,
-                            len(todo) - fetched - failed,
+    fetched = failed = 0
+    streak = 0
+    with gcs_run("raw_blacklist_balances", source="eth_call_balanceOf", cfg=cfg) as run:
+        with (get_conn() if cfg.wants_pg else nullcontext()) as conn:
+            cur = conn.cursor() if conn is not None else None
+            gcs_buf: list[dict] = []
+            part_no = 0
+            with httpx.Client(
+                timeout=HTTP_TIMEOUT,
+                headers={"User-Agent": USER_AGENT},
+                follow_redirects=True,
+            ) as client:
+                for tx, log_idx, token, contract, addr, block in todo:
+                    bal = balance_of(client, contract, addr, block)
+                    if bal is None:
+                        failed += 1
+                        streak += 1
+                        if streak >= MAX_CONSECUTIVE_FAILURES:
+                            log.error(
+                                "%d consecutive RPC failures — aborting; %d rows "
+                                "stay todo for the next run",
+                                streak,
+                                len(todo) - fetched - failed,
+                            )
+                            run.skip_manifest()
+                            return 1
+                        continue
+                    streak = 0
+                    if cur is not None:
+                        cur.execute(
+                            INSERT_SQL,
+                            (tx, log_idx, token, addr, str(bal), block, "eth_call_balanceOf"),
                         )
-                        return 1
-                    continue
-                streak = 0
-                cur.execute(
-                    INSERT_SQL, (tx, log_idx, token, addr, str(bal), block, "eth_call_balanceOf")
-                )
-                fetched += 1
-                if fetched % 50 == 0:
-                    log.info("… %d/%d fetched", fetched, len(todo))
-                time.sleep(PACE_S)
+                    gcs_buf.append({
+                        "transaction_hash": tx, "log_index": log_idx, "token": token,
+                        "blacklisted_address": addr, "balance_raw": str(bal),
+                        "balance_block": block, "source": "eth_call_balanceOf",
+                    })
+                    if len(gcs_buf) >= GCS_BAL_CHUNK:
+                        run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                        gcs_buf = []
+                        part_no += 1
+                    fetched += 1
+                    if fetched % 50 == 0:
+                        log.info("… %d/%d fetched", fetched, len(todo))
+                    time.sleep(PACE_S)
+            if gcs_buf:
+                run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+            if cur is not None:
+                after = cur.execute("SELECT count(*) FROM raw_blacklist_balances").fetchone()[0]
+                pending = len(cur.execute(TODO_SQL).fetchall())
+            else:
+                pending = failed
 
-        after = cur.execute("SELECT count(*) FROM raw_blacklist_balances").fetchone()[0]
-        pending = len(cur.execute(TODO_SQL).fetchall())
-
-    log.info("raw_blacklist_balances: %d → %d rows (+%d new)", before, after, after - before)
+    if cfg.wants_pg:
+        log.info("raw_blacklist_balances: %d → %d rows (+%d new)", before, after, after - before)
     log.info("fetched %d, failed %d, %d still pending", fetched, failed, pending)
     if failed:
         log.warning("incomplete run — failed rows stay NULL and are retried next run")

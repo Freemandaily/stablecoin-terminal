@@ -19,12 +19,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+from contextlib import nullcontext
 
 from .config import CORE_COIN_SYMBOLS, LLAMA_S1, LLAMA_S2, LLAMA_S3, LLAMA_S4
 from .db import get_conn
 from .http import FetchError, get_json
 from .loaders import load_assets, load_chain_current, load_coin_history, load_market, load_prices
 from .logging_setup import get_logger
+from .sinks import SinkConfig, gcs_run, save
 
 log = get_logger("defillama")
 
@@ -137,12 +139,26 @@ def main() -> int:
         a["gecko_id"]: str(a["id"]) for a in assets["peggedAssets"] if a.get("gecko_id")
     }
 
-    # ── upsert → raw_* tables (idempotent, §3 rule 4) ──
-    with get_conn() as c:
-        load_assets(c, assets)
-        load_chain_current(c, assets)
-        load_market(c, market)
-        load_prices(c, prices, gecko_to_id)
+    # ── write to the configured sink(s) — Postgres and/or GCS (B-D50) ──
+    cfg = SinkConfig.from_env()
+    log.info(
+        "raw sink: %s%s",
+        cfg.mode,
+        f" → gs://{cfg.bucket}/{cfg.prefix}" if cfg.wants_gcs else "",
+    )
+
+    # GCS-only mode must not open a Postgres connection at all.
+    with (get_conn() if cfg.wants_pg else nullcontext()) as c:
+        save("raw_assets", assets, conn=c, pg_load=lambda cc: load_assets(cc, assets),
+             source="defillama.s1", cfg=cfg)
+        save("raw_chain_current", assets, conn=c,
+             pg_load=lambda cc: load_chain_current(cc, assets),
+             source="defillama.s1", cfg=cfg)
+        save("raw_market_daily", market, conn=c, pg_load=lambda cc: load_market(cc, market),
+             source="defillama.s3", cfg=cfg)
+        save("raw_price_daily", {"prices": prices, "gecko_to_id": gecko_to_id}, conn=c,
+             pg_load=lambda cc: load_prices(cc, prices, gecko_to_id),
+             source="defillama.s4", cfg=cfg)
 
         if args.coins:
             targets = (
@@ -151,18 +167,27 @@ def main() -> int:
                 else resolve_all_usd_ids(assets)
             )
             done = failed = 0
-            for cid, sym in targets:
-                try:
-                    hist = fetch_coin_history(cid)
-                    load_coin_history(c, cid, hist)
+            # One GCS run for the whole loop: every coin lands in a separate
+            # part under the same ingest_date, and one manifest covers them all.
+            with gcs_run(
+                "raw_supply_daily", source="defillama.s2",
+                meta={"coins_targeted": len(targets)}, cfg=cfg,
+            ) as supply:
+                for cid, sym in targets:
+                    try:
+                        hist = fetch_coin_history(cid)
+                    except FetchError as e:
+                        failed += 1
+                        log.warning("supply history failed %s (id=%s): %s", sym, cid, e)
+                        continue
+                    # Postgres path is unchanged (GCS-only never opens a conn).
+                    if c is not None:
+                        load_coin_history(c, cid, hist)
+                    supply.add_part(f"coin_{cid}.json", hist)
                     del hist  # large parsed payload — release before the next fetch
-                except FetchError as e:
-                    failed += 1
-                    log.warning("supply history failed %s (id=%s): %s", sym, cid, e)
-                    continue
-                done += 1
-                if done % 50 == 0:
-                    log.info("supply histories: %d/%d loaded …", done, len(targets))
+                    done += 1
+                    if done % 50 == 0:
+                        log.info("supply histories: %d/%d loaded …", done, len(targets))
             log.info(
                 "coin histories loaded: %d ok, %d failed (scope: %s)",
                 done, failed, "core" if args.core_only else "all peggedUSD",

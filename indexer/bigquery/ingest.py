@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import sys
 from collections import Counter
+from contextlib import nullcontext
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,7 @@ from google.cloud import bigquery
 from backend.ingest.config import BQ_MAX_BYTES_BILLED, BQ_PROJECT
 from backend.ingest.db import get_conn
 from backend.ingest.logging_setup import get_logger
+from backend.ingest.sinks import SinkConfig, gcs_run
 
 log = get_logger("bq-issuer-events")
 
@@ -62,6 +64,7 @@ INSERT_SQL = (
 )
 
 BATCH = 1000  # rows per executemany — keeps memory flat on large result sets
+GCS_CHUNK = 50_000  # rows per JSONL part in GCS (B-D50)
 
 
 def _cell(row: Any, col: str) -> Any:
@@ -104,33 +107,56 @@ def main() -> int:
     rows = job.result()
     log.info("query finished: %.2f GB billed", (job.total_bytes_processed or 0) / 1e9)
 
-    # ── 3. stream results into raw_issuer_events ───────────────────
+    # ── 3. stream results → Postgres and/or GCS (B-D50) ────────────
+    cfg = SinkConfig.from_env()
     counts: Counter[tuple[str, str]] = Counter()
     fetched = 0
-    with get_conn() as conn, conn.cursor() as cur:
-        try:
-            before = cur.execute("SELECT count(*) FROM raw_issuer_events").fetchone()[0]
-        except psycopg.errors.UndefinedTable:
-            log.error("raw_issuer_events missing — run `make migrate` first")
-            return 1
+    before = after = 0
+    with gcs_run(
+        "raw_issuer_events",
+        source="bigquery.issuer_events",
+        meta={"query_file": SQL_FILE.name, "columns": list(COLUMNS)},
+        cfg=cfg,
+    ) as run:
+        with (get_conn() if cfg.wants_pg else nullcontext()) as conn:
+            cur = conn.cursor() if conn is not None else None
+            if cur is not None:
+                try:
+                    before = cur.execute("SELECT count(*) FROM raw_issuer_events").fetchone()[0]
+                except psycopg.errors.UndefinedTable:
+                    log.error("raw_issuer_events missing — run `make migrate` first")
+                    run.skip_manifest()
+                    return 1
 
-        batch: list[tuple] = []
-        for row in rows:
-            batch.append(tuple(_cell(row, c) for c in COLUMNS))
-            counts[(row["token"], row["event_type"])] += 1
-            fetched += 1
-            if len(batch) >= BATCH:
+            batch: list[tuple] = []
+            gcs_buf: list[dict] = []
+            part_no = 0
+            for row in rows:
+                values = tuple(_cell(row, c) for c in COLUMNS)
+                if cur is not None:
+                    batch.append(values)
+                gcs_buf.append(dict(zip(COLUMNS, values)))
+                if len(gcs_buf) >= GCS_CHUNK:
+                    run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                    gcs_buf = []
+                    part_no += 1
+                counts[(row["token"], row["event_type"])] += 1
+                fetched += 1
+                if len(batch) >= BATCH:
+                    cur.executemany(INSERT_SQL, batch)
+                    batch.clear()
+                    log.info("… %d rows streamed", fetched)
+            if batch and cur is not None:
                 cur.executemany(INSERT_SQL, batch)
-                batch.clear()
-                log.info("… %d rows streamed", fetched)
-        if batch:
-            cur.executemany(INSERT_SQL, batch)
-
-        after = cur.execute("SELECT count(*) FROM raw_issuer_events").fetchone()[0]
+            if gcs_buf:
+                run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+            if cur is not None:
+                after = cur.execute("SELECT count(*) FROM raw_issuer_events").fetchone()[0]
 
     # ── 4. summary ─────────────────────────────────────────────────
     log.info("fetched %d rows from BigQuery", fetched)
-    log.info("raw_issuer_events: %d → %d rows (+%d new)", before, after, after - before)
+    if cfg.wants_pg:
+        log.info("raw_issuer_events: %d → %d rows (+%d new)", before, after, after - before)
     for (token, event), n in sorted(counts.items()):
         log.info("  %-4s %-17s %6d", token, event, n)
     log.info("issuer-events ingest complete — raw_issuer_events updated")

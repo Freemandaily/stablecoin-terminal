@@ -21,6 +21,7 @@ Run:  make ingest-logos   |   uv run python -m backend.ingest.logos
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 
@@ -31,6 +32,7 @@ from psycopg.rows import dict_row
 from .config import HTTP_TIMEOUT, USER_AGENT
 from .db import get_conn
 from .logging_setup import get_logger
+from .sinks import SinkConfig, gcs_read_part, save
 
 log = get_logger("logos")
 
@@ -79,26 +81,55 @@ def head_ok(url: str) -> bool:
 
 
 def main() -> int:
-    with get_conn() as c:
-        cur = c.cursor(row_factory=dict_row)
-        rows = cur.execute(
-            """
-            SELECT a.asset_id, a.chain, a.address,
-                   r.symbol, r.logo_url AS current_logo
-            FROM raw_asset_addresses a
-            JOIN raw_assets r ON r.id = a.asset_id
-            ORDER BY r.circulating_usd DESC NULLS LAST
-            """
-        ).fetchall()
-        # assets with no stored address row — they can never get a TW logo
-        no_addr = cur.execute(
-            """
-            SELECT count(*) FILTER (WHERE logo_url IS NOT NULL) AS legacy,
-                   count(*) FILTER (WHERE logo_url IS NULL)     AS nulls
-            FROM raw_assets
-            WHERE id NOT IN (SELECT asset_id FROM raw_asset_addresses)
-            """
-        ).fetchone()
+    cfg = SinkConfig.from_env()
+    if cfg.wants_pg:
+        with get_conn() as c:
+            cur = c.cursor(row_factory=dict_row)
+            rows = cur.execute(
+                """
+                SELECT a.asset_id, a.chain, a.address,
+                       r.symbol, r.logo_url AS current_logo
+                FROM raw_asset_addresses a
+                JOIN raw_assets r ON r.id = a.asset_id
+                ORDER BY r.circulating_usd DESC NULLS LAST
+                """
+            ).fetchall()
+            # assets with no stored address row — they can never get a TW logo
+            no_addr = cur.execute(
+                """
+                SELECT count(*) FILTER (WHERE logo_url IS NOT NULL) AS legacy,
+                       count(*) FILTER (WHERE logo_url IS NULL)     AS nulls
+                FROM raw_assets
+                WHERE id NOT IN (SELECT asset_id FROM raw_asset_addresses)
+                """
+            ).fetchone()
+    else:
+        # GCS-only: read today's raw parts, no Postgres lookup (B-D50).
+        addr_text = gcs_read_part("raw_asset_addresses", "addresses.jsonl", cfg)
+        if not addr_text:
+            log.error("no GCS address part — run ingest-addresses with RAW_SINK=gcs")
+            return 1
+        s1_text = gcs_read_part("raw_assets", "raw_assets.json", cfg)
+        meta: dict[str, dict] = {}
+        if s1_text:
+            for a in json.loads(s1_text).get("peggedAssets", []):
+                meta[str(a["id"])] = {
+                    "symbol": a.get("symbol") or "?",
+                    "circ": (a.get("circulating") or {}).get("peggedUSD") or 0,
+                }
+        rows = []
+        for line in addr_text.splitlines():
+            if not line:
+                continue
+            r = json.loads(line)
+            rows.append({
+                "asset_id": r["asset_id"], "chain": r["chain"], "address": r["address"],
+                "symbol": meta.get(r["asset_id"], {}).get("symbol", "?"),
+                "current_logo": None,  # legacy CoinGecko state lives in Postgres only
+            })
+        rows.sort(key=lambda r: -meta.get(r["asset_id"], {}).get("circ", 0))
+        no_addr = {"legacy": 0, "nulls": 0}
+        log.info("GCS-only logo check: %d stored addresses from today's parts", len(rows))
 
     if not rows:
         log.error("raw_asset_addresses is empty — run make ingest-addresses first")
@@ -124,11 +155,19 @@ def main() -> int:
         if checked % 50 == 0:
             log.info("TrustWallet HEAD checks: %d/%d …", checked, len(rows))
 
-    if updates:
+    if updates and cfg.wants_pg:
         with get_conn() as c:
             c.cursor().executemany(
                 "UPDATE raw_assets SET logo_url = %s WHERE id = %s", updates
             )
+
+    # GCS keeps the verified URL mapping under the raw_assets directory, in a
+    # separate part so it never clashes with the DeFiLlama raw_assets.json.
+    save(
+        "raw_assets",
+        parts=[("logos.jsonl", [{"asset_id": aid, "logo_url": url} for url, aid in updates])],
+        source="trustwallet", cfg=cfg,
+    )
 
     assets_with_addr = {r["asset_id"] for r in rows}
     missed_assets = assets_with_addr - seen               # had address, TW missed

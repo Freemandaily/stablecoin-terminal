@@ -1,0 +1,129 @@
+# Raw ingest in GitHub Actions (B-D50).
+#
+# Auth: OIDC Workload Identity Federation — no service-account key is stored.
+#   google-github-actions/auth@v2 exchanges the job's id-token for short-lived
+#   ADC credentials and exports GOOGLE_APPLICATION_CREDENTIALS for the
+#   google-cloud-storage client used by backend/ingest/sinks.py.
+#
+# Repository configuration (Settings → Secrets and variables → Actions):
+#   Variables:
+#     GCP_WIF_PROVIDER   = projects/<num>/locations/global/workloadIdentityPools/<pool>/providers/<provider>
+#     GCS_INGEST_SA      = <service-account>@<project>.iam.gserviceaccount.com
+#     BQ_PROJECT         = <gcp project id for BigQuery jobs>   (optional)
+#   Secrets (only for the jobs that need them; blank is fine otherwise):
+#     ARKHAM_API_KEY, CRYPTOLABEL_API_KEY, ETH_RPC_URL
+#
+# The service account needs roles/storage.objectAdmin on gs://term-flow.
+# For local runs, `gcloud auth application-default login` supplies the same ADC.
+
+name: Ingest raw data (Postgres / GCS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sink:
+        description: Destination for raw payloads
+        type: choice
+        default: gcs
+        options: [gcs, both, postgres]
+      job:
+        description: Ingest job (all-gcs = full ordered chain, GCS only)
+        type: choice
+        default: all-gcs
+        options:
+          - all-gcs
+          - ingest-prices
+          - ingest-supply
+          - ingest-addresses
+          - ingest-logos
+          - ingest-issuer-events
+          - enrich-labels
+          - enrich-balances
+      ingest_date:
+        description: Optional GCS backfill date (YYYY-MM-DD); blank = UTC today
+        type: string
+        required: false
+  # Optional daily run — enable when the WIF variables above are configured:
+  # schedule:
+  #   - cron: '30 5 * * *'
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC Workload Identity Federation
+
+concurrency:
+  group: ingest-${{ inputs.job || 'all-gcs' }}-${{ inputs.sink || 'gcs' }}
+  cancel-in-progress: false # never interrupt a half-written ingest-date prefix
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      # Only used when RAW_SINK includes Postgres; harmless but idle in gcs mode.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stableflow
+          POSTGRES_PASSWORD: stableflow
+          POSTGRES_DB: stableflow
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U stableflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: stableflow
+      PGPASSWORD: stableflow
+      PGDATABASE: stableflow
+      RAW_SINK: ${{ inputs.sink || 'gcs' }}
+      GCS_BUCKET: term-flow
+      GCS_PREFIX: raw
+      GCS_INGEST_DATE: ${{ inputs.ingest_date }}
+      BQ_PROJECT: ${{ vars.BQ_PROJECT }}
+      ARKHAM_API_KEY: ${{ secrets.ARKHAM_API_KEY }}
+      CRYPTOLABEL_API_KEY: ${{ secrets.CRYPTOLABEL_API_KEY }}
+      ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (OIDC WIF, no keys)
+        if: env.RAW_SINK != 'postgres'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCS_INGEST_SA }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Apply migrations (Postgres modes only)
+        if: env.RAW_SINK != 'gcs'
+        run: make migrate
+
+      - name: Run ingest job
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ inputs.job || 'all-gcs' }}" in
+            all-gcs)
+              # GCS-only chain: each step reads the same ingest_date prefix,
+              # so no Postgres is required and order satisfies dependencies.
+              make ingest-prices
+              make ingest-addresses
+              make ingest-logos
+              make ingest-issuer-events
+              make enrich-labels
+              make enrich-balances
+              ;;
+            *) make "${{ inputs.job }}" ;;
+          esac
