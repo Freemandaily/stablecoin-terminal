@@ -170,6 +170,9 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .seg-b:hover{color:#e8eaed}
 #v-ctl .seg-b.is-on{position:relative;background:rgba(232,163,23,0.14);border-color:#e8a317;color:#e8a317}
 #v-ctl .seg-b:focus-visible{outline:1px solid #e8a317;outline-offset:1px}
+/* token-seg coin logos (B-D37) — artifact palette backing */
+#v-ctl .seg-b .clogo{width:14px;height:14px;margin-right:5px;vertical-align:-2px;background:#121417}
+#v-ctl .seg-b .clet{width:14px;height:14px;margin-right:5px;vertical-align:-2px;font-size:9px;border-color:#3a3f47;color:#a3a9b2;background:#121417}
 #v-ctl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:#262a30;border:1px solid #262a30}
 #v-ctl .kpi{background:#121417;padding:12px}
 #v-ctl .kl{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;color:#80868f}
@@ -252,7 +255,6 @@ td .nm{color:var(--dim2);font-size:10px;letter-spacing:.05em}
 #v-ctl .eh{cursor:pointer;user-select:none}
 #v-ctl .eh:hover{color:#e8eaed}
 #v-ctl .eh.sorted{color:#e8a317}
-#v-ctl .ent-foot{padding:6px 12px;border-top:1px solid #262a30;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;color:#80868f;font-variant-numeric:tabular-nums}
 #v-ctl .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 12px;border:1px solid #262a30;background:#121417;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:#80868f}
 /* ── feed (right rail) ──────────────────── */
 .railhead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line2);
@@ -385,7 +387,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
         <section class="panel">
           <div class="ph">
             <h2 class="pt">CUMULATIVE FROZEN</h2>
-            <span class="faint">ALL STABLES · USD · ETHEREUM</span>
           </div>
           <div class="pb">
             <div class="legend">
@@ -418,7 +419,6 @@ footer{padding:10px 16px;border-top:1px solid var(--line2);color:var(--dim2);fon
             </div>
             <div id="ctl-ents"></div>
           </div>
-          <div class="ent-foot" id="ctl-entfoot"></div>
         </section>
       </div>
 
@@ -550,13 +550,13 @@ const escA = s => esc(s).replace(/"/g,'&quot;');
 const coinLogo = r => r.logo_url
   ? `<img class="clogo" src="${escA(r.logo_url)}" data-let="${escA(r.sym.charAt(0))}" alt="" loading="lazy" decoding="async">`
   : `<span class="clet">${esc(r.sym.charAt(0))}</span>`;
-$('#coinstable tbody').addEventListener('error', e => {
+document.addEventListener('error', e => {
   const img = e.target;
   if (img.tagName !== 'IMG' || !img.classList.contains('clogo')) return;
   const s = document.createElement('span');
   s.className = 'clet'; s.textContent = img.dataset.let || '?';
   img.replaceWith(s);
-}, true);  // capture: error events don't bubble
+}, true);  // capture: error events don't bubble; covers table + CONTROL token seg
 const rows = ALL.map((c,i)=>({rank:i+1, ...c,
   share:c.supply/M.total*100,
   p1:rel(c.d1,c.supply), p7:rel(c.d7,c.supply), p30:rel(c.d30,c.supply)}));
@@ -674,6 +674,18 @@ async function ctlLoad() {
   ctlDraw();
   return false;
 }
+/* token-seg logos (B-D37): from the full coin list — case-insensitive symbol
+   match (frxUSD→FRXUSD), first logo-bearing row wins (USDP has duplicate assets) */
+const ctlLogoBySym = {};
+for (const c of ALL) {
+  const k = c.sym.toLowerCase();
+  if (c.logo_url && !ctlLogoBySym[k]) ctlLogoBySym[k] = c.logo_url;
+}
+document.querySelectorAll('#v-ctl .seg-b[data-group="token"]').forEach((b) => {
+  const v = b.getAttribute('data-value');
+  if (v === 'ALL') return;
+  b.insertAdjacentHTML('afterbegin', coinLogo({ sym: v, logo_url: ctlLogoBySym[v.toLowerCase()] || null }));
+});
 ctlLoad();
 
 function ctlMoney(n) {
@@ -844,7 +856,6 @@ function ctlRender() {
      Scoped to the token seg; `''` = unattributed (null/'Unknown' normalized
      in ctlLoad). Pending freezes (bal null) counted, never guessed (§9). */
   const eMap = {}, openE = {};
-  let pend = 0;
   scoped.forEach((e) => {
     const k = e.entity || '';
     const r = eMap[k] || (eMap[k] = { key: k, label: k || '— UNATTRIBUTED', net: 0, addrs: {}, fz: 0, unf: 0, ds: 0 });
@@ -854,8 +865,7 @@ function ctlRender() {
     else r.unf += 1;
     const pkey = e.token + e.addr;
     if (e.type === 'FREEZE') {
-      if (e.bal == null) pend += 1;            // balance pending → not added (honest)
-      else { openE[pkey] = e.bal; r.net += e.bal; }
+      if (e.bal != null) { openE[pkey] = e.bal; r.net += e.bal; }  // pending → not added (honest)
     } else if (openE[pkey] != null) {           // UNFREEZE / DESTROY closes the position
       r.net -= openE[pkey];
       delete openE[pkey];
@@ -873,34 +883,13 @@ function ctlRender() {
   const sk = CTL.ek, sd = CTL.ed;
   ents.sort((a, b) => ((a[sk] - b[sk]) * sd) || ((b.net - a.net)) || (a.label < b.label ? -1 : a.label > b.label ? 1 : 0));
   ents.forEach((r, i) => { r.rank = i + 1; });   // `#` = row position in current sort
-  let sum = 0;
-  ents.forEach((r) => { sum += r.net; });
-  // FROZEN NOW = open positions (d.open) in this token scope, null = pending
-  let openNow = 0;
-  const open = d.open || {};
-  Object.keys(open).forEach((k) => {
-    if (open[k].amt != null && toks.some((tk) => k.indexOf(tk) === 0)) openNow += open[k].amt;
-  });
-  let entMeta, entFoot;
-  // reconciliation at panel precision: hidden $0 rows make exact float
-  // equality impossible by design — equal readings print as a single claim,
-  // differing readings both stay visible (honest, §9)
-  const sTxt = ctlMoney(sum), oTxt = ctlMoney(openNow);
-  const foot = sTxt === oTxt
-    ? 'Σ NET = FROZEN NOW = ' + sTxt
-    : 'Σ NET = ' + sTxt + ' · FROZEN NOW = ' + oTxt;
-  if (offline) { entMeta = 'FEED OFFLINE'; entFoot = 'Σ NET = —'; }
-  else if (!scoped.length) { entMeta = 'NO ACTIVITY IN SCOPE'; entFoot = 'Σ NET = —'; }
-  else if (!ents.length) { entMeta = 'NO OPEN POSITIONS'; entFoot = foot; }
-  else {
-    const unatt = (eMap[''] && eMap[''].net) || 0;
-    const att = sum ? ((1 - unatt / sum) * 100).toFixed(1) + '%' : '—';
-    entMeta = 'ATTRIBUTED ' + att + (pend ? ' · ' + pend + ' BALANCE PENDING' : '');
-    entFoot = foot;
-  }
+  let entMeta = '';
+  if (offline) entMeta = 'FEED OFFLINE';
+  else if (!scoped.length) entMeta = 'NO ACTIVITY IN SCOPE';
+  else if (!ents.length) entMeta = 'NO OPEN POSITIONS';
 
   return { kpis: kpis, q: st.q, lk: lk, samples: samples, rows: rows, feedCount: rows.length, chart: chart,
-    ents: ents, entMeta: entMeta, entFoot: entFoot };
+    ents: ents, entMeta: entMeta };
 }
 function ctlDraw() {
   const p = ctlRender();
@@ -938,7 +927,6 @@ function ctlDraw() {
   document.getElementById('ctl-chartlinee').setAttribute('d', p.chart.lineE);
   /* ENTITY FREEZE panel (B-D35) */
   document.getElementById('ctl-entmeta').textContent = p.entMeta;
-  document.getElementById('ctl-entfoot').textContent = p.entFoot;
   document.getElementById('ctl-ents').innerHTML = p.ents.map((r) =>
     '<button class="erow' + (CTL.ent === r.key ? ' is-match' : '') + (r.key === '' ? ' is-unatt' : '') + '" data-ent="' + ctlEsc(r.key) + '" title="' + ctlEsc(r.label) + '">' +
     '<span class="rk">' + String(r.rank).padStart(2, '0') + '</span>' +
