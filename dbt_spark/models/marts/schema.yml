@@ -1,0 +1,59 @@
+version: 2
+models:
+  - name: mart_market_overview
+    description: Full-market daily totals with explicit core-7 coverage.
+    columns:
+      - name: date
+        tests: [unique, not_null]
+      - name: total_supply_usd
+        tests: [not_null]
+
+  - name: mart_supply_daily
+    description: Per-coin daily supply and issuance deltas.
+    columns:
+      - name: date
+        tests: [not_null]
+      - name: asset_id
+        tests: [not_null]
+
+  - name: mart_supply_chain
+    description: Per-coin per-chain supply share.
+    columns:
+      - name: date
+        tests: [not_null]
+      - name: asset_id
+        tests: [not_null]
+      - name: chain
+        tests: [not_null]
+
+  - name: mart_peg_daily
+    description: USD-pegged daily deviation and rolling 30d stats.
+    columns:
+      - name: date
+        tests: [not_null]
+      - name: asset_id
+        tests: [not_null]
+
+  - name: mart_mint_burn_daily
+    description: Daily mint/burn/net by token.
+    columns:
+      - name: date
+        tests: [not_null]
+      - name: token
+        tests: [not_null]
+
+  - name: mart_issuer_events
+    description: Issuer events with address labels.
+    columns:
+      - name: transaction_hash
+        tests: [not_null]
+      - name: log_index
+        tests: [not_null]
+
+  - name: mart_blacklist_events
+    description: Freeze/unfreeze/destroy events with balances and state.
+    columns:
+      - name: transaction_hash
+        tests: [not_null]
+      - name: log_index
+        tests: [not_null]

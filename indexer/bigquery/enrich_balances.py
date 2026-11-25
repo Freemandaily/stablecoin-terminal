@@ -24,7 +24,6 @@ plain full nodes return "missing trie node" for old blocks.
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from contextlib import nullcontext
@@ -40,7 +39,7 @@ from backend.ingest.config import (
 )
 from backend.ingest.db import get_conn
 from backend.ingest.logging_setup import get_logger
-from backend.ingest.sinks import SinkConfig, gcs_manifest, gcs_read_part, gcs_run
+from backend.ingest.sinks import SinkConfig, gcs_read_rows, gcs_run
 
 log = get_logger("blacklist-balances")
 
@@ -51,7 +50,7 @@ EVENT_TYPES = ("FREEZE", "UNFREEZE", "DESTROY")  # canonical names, B-D34
 
 PACE_S = 0.2  # polite pacing between eth_call requests
 MAX_CONSECUTIVE_FAILURES = 10  # abort: endpoint is down or rate-limiting
-GCS_BAL_CHUNK = 1000  # rows per JSONL part in GCS (B-D50)
+GCS_BAL_CHUNK = 1000  # rows per Parquet part in GCS (B-D50/B-D52)
 
 TODO_SQL = """
     select e.transaction_hash, e.log_index, e.token, e.contract_address,
@@ -128,32 +127,22 @@ def main() -> int:
                 return 1
             todo = cur.execute(TODO_SQL).fetchall()
     else:
-        # GCS-only: derive todo from today's event + balance parts, not Postgres.
+        # GCS-only: derive todo from today's Parquet parts, not Postgres (B-D52).
         done_keys: set[tuple] = set()
-        bal_manifest = gcs_manifest("raw_blacklist_balances", cfg)
-        if bal_manifest:
-            for part in bal_manifest.get("parts", []):
-                text = gcs_read_part("raw_blacklist_balances", part["name"], cfg) or ""
-                for line in text.splitlines():
-                    r = json.loads(line)
-                    done_keys.add((r["transaction_hash"], r["log_index"]))
+        for r in gcs_read_rows("raw_blacklist_balances", cfg):
+            done_keys.add((r["transaction_hash"], r["log_index"]))
         todo = []
-        ev_manifest = gcs_manifest("raw_issuer_events", cfg)
-        if ev_manifest:
-            for part in ev_manifest.get("parts", []):
-                text = gcs_read_part("raw_issuer_events", part["name"], cfg) or ""
-                for line in text.splitlines():
-                    r = json.loads(line)
-                    if r.get("event_type") not in EVENT_TYPES:
-                        continue
-                    key = (r["transaction_hash"], r["log_index"])
-                    if key in done_keys:
-                        continue
-                    todo.append((
-                        r["transaction_hash"], r["log_index"], r["token"],
-                        r["contract_address"], str(r.get("blacklisted_address") or "").lower(),
-                        r["block_number"],
-                    ))
+        for r in gcs_read_rows("raw_issuer_events", cfg):
+            if r.get("event_type") not in EVENT_TYPES:
+                continue
+            key = (r["transaction_hash"], r["log_index"])
+            if key in done_keys:
+                continue
+            todo.append((
+                r["transaction_hash"], r["log_index"], r["token"],
+                r["contract_address"], str(r.get("blacklisted_address") or "").lower(),
+                r["block_number"],
+            ))
         log.info("GCS-only balances: %d events missing a balance", len(todo))
 
     log.info("%d events missing a balance (%d known)", len(todo), before)
@@ -200,7 +189,7 @@ def main() -> int:
                         "balance_block": block, "source": "eth_call_balanceOf",
                     })
                     if len(gcs_buf) >= GCS_BAL_CHUNK:
-                        run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                        run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
                         gcs_buf = []
                         part_no += 1
                     fetched += 1
@@ -208,7 +197,7 @@ def main() -> int:
                         log.info("… %d/%d fetched", fetched, len(todo))
                     time.sleep(PACE_S)
             if gcs_buf:
-                run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
             if cur is not None:
                 after = cur.execute("SELECT count(*) FROM raw_blacklist_balances").fetchone()[0]
                 pending = len(cur.execute(TODO_SQL).fetchall())

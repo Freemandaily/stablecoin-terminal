@@ -32,7 +32,7 @@ from psycopg.rows import dict_row
 from .config import HTTP_TIMEOUT, USER_AGENT
 from .db import get_conn
 from .logging_setup import get_logger
-from .sinks import SinkConfig, gcs_read_part, save
+from .sinks import SinkConfig, gcs_read_rows, save
 
 log = get_logger("logos")
 
@@ -104,27 +104,28 @@ def main() -> int:
                 """
             ).fetchone()
     else:
-        # GCS-only: read today's raw parts, no Postgres lookup (B-D50).
-        addr_text = gcs_read_part("raw_asset_addresses", "addresses.jsonl", cfg)
-        if not addr_text:
+        # GCS-only: read today's Parquet parts, no Postgres lookup (B-D50/B-D52).
+        addr_rows = gcs_read_rows("raw_asset_addresses", cfg)
+        if not addr_rows:
             log.error("no GCS address part — run ingest-addresses with RAW_SINK=gcs")
             return 1
-        s1_text = gcs_read_part("raw_assets", "raw_assets.json", cfg)
         meta: dict[str, dict] = {}
-        if s1_text:
-            for a in json.loads(s1_text).get("peggedAssets", []):
+        for s1 in gcs_read_rows("raw_assets", cfg):
+            raw = s1.get("peggedAssets")
+            if not raw:
+                continue
+            pegged = json.loads(raw) if isinstance(raw, str) else raw
+            for a in pegged:
                 meta[str(a["id"])] = {
                     "symbol": a.get("symbol") or "?",
                     "circ": (a.get("circulating") or {}).get("peggedUSD") or 0,
                 }
         rows = []
-        for line in addr_text.splitlines():
-            if not line:
-                continue
-            r = json.loads(line)
+        for r in addr_rows:
+            aid = str(r["asset_id"])
             rows.append({
-                "asset_id": r["asset_id"], "chain": r["chain"], "address": r["address"],
-                "symbol": meta.get(r["asset_id"], {}).get("symbol", "?"),
+                "asset_id": aid, "chain": r["chain"], "address": r["address"],
+                "symbol": meta.get(aid, {}).get("symbol", "?"),
                 "current_logo": None,  # legacy CoinGecko state lives in Postgres only
             })
         rows.sort(key=lambda r: -meta.get(r["asset_id"], {}).get("circ", 0))
@@ -161,11 +162,11 @@ def main() -> int:
                 "UPDATE raw_assets SET logo_url = %s WHERE id = %s", updates
             )
 
-    # GCS keeps the verified URL mapping under the raw_assets directory, in a
-    # separate part so it never clashes with the DeFiLlama raw_assets.json.
+    # GCS keeps the verified URL mapping under the same flat raw_assets
+    # directory, in a separate Parquet part beside the DeFiLlama payload.
     save(
         "raw_assets",
-        parts=[("logos.jsonl", [{"asset_id": aid, "logo_url": url} for url, aid in updates])],
+        parts=[("logos.parquet", [{"asset_id": aid, "logo_url": url} for url, aid in updates])],
         source="trustwallet", cfg=cfg,
     )
 

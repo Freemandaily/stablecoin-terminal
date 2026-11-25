@@ -41,6 +41,7 @@ dbt-test: ## run dbt tests
 ingest-check: ## smoke-test data source connectivity
 	uv run python -m backend.ingest.check
 
+
 ingest-supply: ## DeFiLlama ingest (S1-S4 + ALL peggedUSD coin histories, ~10-20 min) → raw_*
 	uv run python -m backend.ingest.defillama --coins
 ingest-addresses: ## DeFiLlama S2 contract-address harvest → raw_asset_addresses (B-D37)

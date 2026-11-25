@@ -1,0 +1,27 @@
+name: stableflow
+version: 1.0.0
+config-version: 2
+
+profile: stableflow
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+on-run-start:
+  - "CREATE SCHEMA IF NOT EXISTS {{ target.schema }}"
+  - "CREATE SCHEMA IF NOT EXISTS staging"
+  - "CREATE SCHEMA IF NOT EXISTS marts"
+
+models:
+  stableflow:
+    +file_format: iceberg
+    staging:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+      +schema: marts

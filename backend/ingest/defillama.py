@@ -168,7 +168,7 @@ def main() -> int:
             )
             done = failed = 0
             # One GCS run for the whole loop: every coin lands in a separate
-            # part under the same ingest_date, and one manifest covers them all.
+            # Parquet part in the same flat table directory, one manifest covers them.
             with gcs_run(
                 "raw_supply_daily", source="defillama.s2",
                 meta={"coins_targeted": len(targets)}, cfg=cfg,
@@ -183,7 +183,7 @@ def main() -> int:
                     # Postgres path is unchanged (GCS-only never opens a conn).
                     if c is not None:
                         load_coin_history(c, cid, hist)
-                    supply.add_part(f"coin_{cid}.json", hist)
+                    supply.add_part(f"coin_{cid}.parquet", hist)
                     del hist  # large parsed payload — release before the next fetch
                     done += 1
                     if done % 50 == 0:

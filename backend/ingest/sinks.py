@@ -1,11 +1,15 @@
 """Raw ingest sinks: Postgres (as today) and/or GCS (B-D50).
 
 One call shape for every ingestion job: ``save(table, payload, pg_load=…)``.
-The caller passes the *original* source payload; GCS gets it verbatim as
-JSON / JSONL under a deterministic, per-table, per-ingest-date prefix::
+The caller passes the *original* source payload; GCS stores it as Parquet
+(B-D54) under a plain date directory inside the table, so the Iceberg job can
+go straight to the day it needs::
 
-    gs://<bucket>/<prefix>/<table>/ingest_date=YYYY-MM-DD/<part>.json
-    gs://<bucket>/<prefix>/<table>/ingest_date=YYYY-MM-DD/_manifest.json
+    gs://<bucket>/<prefix>/<table>/YYYY-MM-DD/part-NNNNN.parquet
+    gs://<bucket>/<prefix>/<table>/YYYY-MM-DD/_manifest.json
+    gs://<bucket>/<prefix>/<table>/_state.json        (cross-day bookmark)
+
+Only metadata (manifest, state) is JSON; every raw data part is Parquet.
 
 ``RAW_SINK`` selects the destination:
 
@@ -18,8 +22,8 @@ primary store for the API and dbt), while a GCS failure is logged DEGRADED
 and left for a re-run — the deterministic object names make re-runs overwrite,
 never duplicate. Set ``GCS_REQUIRED=1`` to make GCS failures fatal.
 
-Auth is Application Default Credentials. GitHub Actions uses OIDC Workload
-Identity Federation via ``google-github-actions/auth@v2`` (no stored keys);
+Auth is Application Default Credentials. GitHub Actions uses a service-account
+JSON key (secret ``GCP_SA_KEY``) via ``google-github-actions/auth@v2``;
 locally use ``gcloud auth application-default login`` or
 ``GOOGLE_APPLICATION_CREDENTIALS``. The storage client is imported lazily so
 ``RAW_SINK=postgres`` works without the GCS client installed.
@@ -33,9 +37,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from decimal import Decimal
+from io import BytesIO
 from typing import Any, Callable, Iterable, Iterator
 
 from .db import get_conn
@@ -44,6 +51,8 @@ from .logging_setup import get_logger
 log = get_logger("sinks")
 
 VALID_SINKS = ("postgres", "gcs", "both")
+PARQUET_MIME = "application/vnd.apache.parquet"
+JSON_COLUMNS_META = b"sf_json_columns"
 
 
 @dataclass(frozen=True)
@@ -99,20 +108,91 @@ def _client() -> Any:
     return _client_singleton
 
 
+def _table_path(table: str, cfg: SinkConfig) -> str:
+    """Table root — holds only `_state.json` (B-D54)."""
+    return f"{cfg.prefix}/{table}" if cfg.prefix else table
+
+
+def _day_path(table: str, cfg: SinkConfig) -> str:
+    """Plain date directory holding that day's Parquet parts + manifest."""
+    return f"{_table_path(table, cfg)}/{cfg.ingest_date}"
+
+
+def _manifest_name(cfg: SinkConfig) -> str:
+    return "_manifest.json"
+
+
+def _parquet_name(cfg: SinkConfig, index: int) -> str:
+    return f"part-{index:05d}.parquet"
+
+
 def _content_type(name: str) -> str:
-    return "application/x-ndjson" if name.endswith(".jsonl") else "application/json"
+    return PARQUET_MIME if name.endswith(".parquet") else "application/json"
 
 
-def _text(name: str, content: Any) -> str:
-    """Serialize one part without reshaping the payload."""
+def _json_bytes(content: Any) -> bytes:
+    """Metadata only — state and manifest stay JSON (B-D52)."""
     if isinstance(content, bytes):
-        return content.decode("utf-8")
-    if isinstance(content, str):
         return content
-    if name.endswith(".jsonl"):
-        rows = [content] if isinstance(content, dict) else content
-        return "".join(json.dumps(r, default=str, separators=(",", ":")) + "\n" for r in rows)
-    return json.dumps(content, indent=2, default=str)
+    if isinstance(content, str):
+        return content.encode("utf-8")
+    return json.dumps(content, indent=2, default=str).encode("utf-8")
+
+
+def _parquet_cell(value: Any) -> Any:
+    """Keep scalars typed; nest dicts/lists as JSON strings for a stable schema."""
+    if value is None or isinstance(value, (bool, int, float, str, Decimal, datetime)):
+        return value
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, default=str)
+    return str(value)
+
+
+def _parquet_bytes(content: Any) -> bytes:
+    """Encode original source payload(s) as Parquet — no JSONL parts (B-D52)."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    json_columns: set[str] = set()
+
+    def encode(row: dict) -> dict:
+        out = {}
+        for k, v in row.items():
+            if isinstance(v, (dict, list, tuple)):
+                json_columns.add(k)
+            out[k] = _parquet_cell(v)
+        return out
+
+    if isinstance(content, list):
+        rows = [
+            encode(r) if isinstance(r, dict) else {"payload": _parquet_cell(r)}
+            for r in content
+        ]
+    elif isinstance(content, dict):
+        rows = [encode(content)]
+    else:
+        rows = [{"payload": _parquet_cell(content)}]
+
+    if rows:
+        # from_pylist uses only the first row's keys; build the union explicitly
+        # so sparse rows (e.g. logos joined to supply) keep every column.
+        keys: list[str] = []
+        for row in rows:
+            for key in row:
+                if key not in keys:
+                    keys.append(key)
+        table = pa.Table.from_arrays(
+            [pa.array([row.get(key) for row in rows]) for key in keys], names=keys
+        )
+    else:
+        table = pa.table({"payload": pa.array([], type=pa.string())})
+    metadata = dict(table.schema.metadata or {})
+    if json_columns:
+        metadata[JSON_COLUMNS_META] = json.dumps(sorted(json_columns)).encode("utf-8")
+        table = table.replace_schema_metadata(metadata)
+    buf = BytesIO()
+    pq.write_table(table, buf)
+    return buf.getvalue()
 
 
 class _GcsRun:
@@ -123,36 +203,47 @@ class _GcsRun:
         self.table = table
         self.source = source
         self.meta = meta or {}
-        # keyed by object name so multiple jobs (or re-runs) on the same
-        # ingest_date accumulate parts instead of clobbering the manifest
+        # keyed by physical object name so multiple jobs (or re-runs) on the
+        # same ingest date accumulate parts instead of clobbering the manifest
         self.parts: dict[str, dict[str, Any]] = {}
+        # logical name → physical name, so a re-run overwrites its own part
+        # while a different job (e.g. logos) still gets a new one.
+        self._physical: dict[str, str] = {}
         self.degraded = False
         self.skip = False
-        self.base = f"{cfg.prefix}/{table}/ingest_date={cfg.ingest_date}" if cfg.prefix else (
-            f"{table}/ingest_date={cfg.ingest_date}"
-        )
+        self.base = _day_path(table, cfg)
+        self.manifest_name = _manifest_name(cfg)
+        self._next_part = 0
         self.bucket = _client().bucket(cfg.bucket)
         # Invalidate the previous manifest before touching any object: a run
         # that fails mid-write must never look complete to a reader. Carry its
-        # part list forward — e.g. logos.jsonl joins today's raw_assets.json,
-        # and each coin history joins the same raw_supply_daily prefix.
+        # part list forward — e.g. logos joins today's raw_assets, and each
+        # coin history joins the same date directory.
         try:
-            old = self.bucket.blob(f"{self.base}/_manifest.json")
+            old = self.bucket.blob(f"{self.base}/{self.manifest_name}")
             if old.exists():
                 prior = json.loads(old.download_as_text())
                 if prior.get("status") == "complete":
                     for p in prior.get("parts", []):
                         if p.get("name"):
                             self.parts[p["name"]] = p
+                            self._physical[p.get("logical") or p["name"]] = p["name"]
                 old.delete()
         except Exception as e:  # noqa: BLE001 — best effort, surface real write errors in add_part
             log.debug("could not clear/merge prior manifest at %s: %s", self.base, e)
+        pattern = re.compile(r"^part-(\d{5})\.parquet$")
+        indices = [
+            int(m.group(1))
+            for name in self.parts
+            if (m := pattern.match(name))
+        ]
+        self._next_part = max(indices, default=-1) + 1
 
     @property
     def objects(self) -> list[str]:
         return [
             f"gs://{self.cfg.bucket}/{self.base}/{n}"
-            for n in [*self.parts, "_manifest.json"]
+            for n in [*self.parts, self.manifest_name]
         ]
 
     def _fail(self, msg: str) -> None:
@@ -162,16 +253,25 @@ class _GcsRun:
         log.warning("GCS DEGRADED — %s: %s (Postgres unaffected; re-run to retry)", self.table, msg)
 
     def add_part(self, name: str, content: Any) -> None:
-        data = _text(name, content).encode("utf-8")
+        """Write one Parquet part; `name` is a stable logical label."""
+        data = _parquet_bytes(content)
+        physical = self._physical.get(name)
+        if physical is None:
+            physical = _parquet_name(self.cfg, self._next_part)
+            self._next_part += 1
+            self._physical[name] = physical
         try:
-            self.bucket.blob(f"{self.base}/{name}").upload_from_string(
-                data, content_type=_content_type(name)
+            self.bucket.blob(f"{self.base}/{physical}").upload_from_string(
+                data, content_type=_content_type(physical)
             )
         except Exception as e:  # noqa: BLE001 — cloud/transient errors must not kill ingest
-            self._fail(f"upload {name}: {e}")
+            self._fail(f"upload {physical}: {e}")
             return
-        self.parts[name] = {
-            "name": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()
+        self.parts[physical] = {
+            "name": physical,
+            "logical": name,
+            "bytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
         }
 
     def skip_manifest(self) -> None:
@@ -195,17 +295,38 @@ class _GcsRun:
             **self.meta,
         }
         try:
-            self.bucket.blob(f"{self.base}/_manifest.json").upload_from_string(
-                json.dumps(manifest, indent=2, default=str).encode("utf-8"),
+            self.bucket.blob(f"{self.base}/{self.manifest_name}").upload_from_string(
+                _json_bytes(manifest),
                 content_type="application/json",
             )
         except Exception as e:  # noqa: BLE001
             self._fail(f"manifest: {e}")
 
 
+def gcs_read_text(table: str, name: str, cfg: SinkConfig | None = None) -> str | None:
+    """Read a JSON metadata object: manifest from the day dir, state at root."""
+    cfg = cfg or SinkConfig.from_env()
+    if not cfg.wants_gcs:
+        return None
+    root = _table_path(table, cfg) if name == "_state.json" else _day_path(table, cfg)
+    path = f"{root}/{name}"
+    try:
+        blob = _client().bucket(cfg.bucket).blob(path)
+        return blob.download_as_text() if blob.exists() else None
+    except Exception as e:  # noqa: BLE001 — absence/unreachable both mean "no resume state"
+        log.debug("no GCS metadata object gs://%s/%s: %s", cfg.bucket, path, e)
+        return None
+
+
+def gcs_read_part(table: str, name: str, cfg: SinkConfig | None = None) -> str | None:
+    """Backward-compatible alias for metadata reads (data parts are Parquet)."""
+    return gcs_read_text(table, name, cfg)
+
+
 def gcs_manifest(table: str, cfg: SinkConfig | None = None) -> dict | None:
     """Read the current run's manifest, or None if the run is absent/incomplete."""
-    text = gcs_read_part(table, "_manifest.json", cfg)
+    cfg = cfg or SinkConfig.from_env()
+    text = gcs_read_text(table, _manifest_name(cfg), cfg)
     if not text:
         return None
     try:
@@ -215,23 +336,78 @@ def gcs_manifest(table: str, cfg: SinkConfig | None = None) -> dict | None:
         return None
 
 
-def gcs_read_part(table: str, name: str, cfg: SinkConfig | None = None) -> str | None:
-    """Read one part from the current ingest-date prefix, or None if absent.
+def gcs_read_rows(table: str, cfg: SinkConfig | None = None) -> list[dict]:
+    """Read every Parquet part of the current manifest as plain dict rows.
 
-    Lets GCS-only jobs resume within the same day without a Postgres lookup.
+    GCS-only jobs use this instead of Postgres for work lists (B-D50). A
+    missing part is fatal: the manifest is a completion marker, so proceeding
+    with fewer rows would silently skip or duplicate work.
+    """
+    cfg = cfg or SinkConfig.from_env()
+    manifest = gcs_manifest(table, cfg)
+    if not manifest:
+        return []
+    import pyarrow.parquet as pq
+
+    base = _day_path(table, cfg)
+    rows: list[dict] = []
+    for part in manifest.get("parts", []):
+        name = part.get("name") or ""
+        if not name.endswith(".parquet"):
+            continue
+        path = f"{base}/{name}"
+        try:
+            data = _client().bucket(cfg.bucket).blob(path).download_as_bytes()
+            table = pq.read_table(BytesIO(data))
+            json_columns = json.loads(
+                (table.schema.metadata or {}).get(JSON_COLUMNS_META, b"[]")
+            )
+            decoded = table.to_pylist()
+            for row in decoded:
+                for col in json_columns:
+                    if isinstance(row.get(col), str):
+                        row[col] = json.loads(row[col])
+            rows.extend(decoded)
+        except Exception as e:  # noqa: BLE001 — corrupt completion marker must not pass silently
+            raise RuntimeError(f"GCS part unreadable: gs://{cfg.bucket}/{path}") from e
+    return rows
+
+
+def _state_path(table: str, cfg: SinkConfig) -> str:
+    """Cross-day bookmark at the table root, not tied to an ingest date."""
+    return f"{_table_path(table, cfg)}/_state.json"
+
+
+def gcs_read_state(table: str, cfg: SinkConfig | None = None) -> dict | None:
+    """Read cross-day state (e.g. last ingested block).
+
+    Returns None only when the object is absent. A real cloud error is raised:
+    in GCS-only mode we cannot silently fall back to a stale floor.
     """
     cfg = cfg or SinkConfig.from_env()
     if not cfg.wants_gcs:
         return None
-    base = f"{cfg.prefix}/{table}/ingest_date={cfg.ingest_date}" if cfg.prefix else (
-        f"{table}/ingest_date={cfg.ingest_date}"
-    )
-    try:
-        blob = _client().bucket(cfg.bucket).blob(f"{base}/{name}")
-        return blob.download_as_text() if blob.exists() else None
-    except Exception as e:  # noqa: BLE001 — absence/unreachable both mean "no resume state"
-        log.debug("no GCS resume part gs://%s/%s/%s: %s", cfg.bucket, base, name, e)
+    path = _state_path(table, cfg)
+    blob = _client().bucket(cfg.bucket).blob(path)
+    if not blob.exists():
         return None
+    return json.loads(blob.download_as_text())
+
+
+def gcs_write_state(table: str, state: dict, cfg: SinkConfig | None = None) -> bool:
+    """Publish new state; False (with a warning) when GCS is unavailable."""
+    cfg = cfg or SinkConfig.from_env()
+    if not cfg.wants_gcs:
+        return False
+    try:
+        _client().bucket(cfg.bucket).blob(_state_path(table, cfg)).upload_from_string(
+            _json_bytes(state),
+            content_type="application/json",
+        )
+        return True
+    except Exception as e:  # noqa: BLE001 — state is resumable; never fail raw ingest over it
+        log.warning("GCS state write failed for %s (retry next run): %s", table, e)
+        return False
 
 
 class _NoopRun:
@@ -307,7 +483,7 @@ def save(
                 for name, content in parts:
                     run.add_part(name, content)
             elif payload is not None:
-                run.add_part(part or f"{table}.json", payload)
+                run.add_part(part or f"{table}.parquet", payload)
         report.gcs = "degraded" if run.degraded else "ok"
         report.objects = list(run.objects)
 

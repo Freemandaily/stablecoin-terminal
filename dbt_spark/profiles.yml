@@ -1,0 +1,21 @@
+stableflow:
+  target: serverless
+  outputs:
+    serverless:
+      type: spark
+      method: session
+      host: local
+      schema: stableflow
+      threads: 4
+      config:
+        spark.sql.session.timeZone: UTC
+        spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+        spark.sql.catalog.spark_catalog: org.apache.iceberg.spark.SparkCatalog
+        spark.sql.catalog.spark_catalog.type: hadoop
+        spark.sql.catalog.spark_catalog.warehouse: gs://term-flow/warehouse
+        spark.sql.catalog.spark_catalog.io-impl: org.apache.iceberg.hadoop.HadoopFileIO
+        spark.sql.catalog.iceberg: org.apache.iceberg.spark.SparkCatalog
+        spark.sql.catalog.iceberg.type: hadoop
+        spark.sql.catalog.iceberg.warehouse: gs://term-flow/warehouse
+        spark.sql.catalog.iceberg.io-impl: org.apache.iceberg.hadoop.HadoopFileIO
+        spark.sql.warehouse.dir: gs://term-flow/warehouse

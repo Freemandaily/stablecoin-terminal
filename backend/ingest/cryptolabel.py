@@ -63,7 +63,7 @@ from .config import (
 from .db import get_conn
 from .http import FetchError
 from .logging_setup import get_logger
-from .sinks import SinkConfig, gcs_manifest, gcs_read_part, gcs_run
+from .sinks import SinkConfig, gcs_read_rows, gcs_run
 
 log = get_logger("cryptolabel")
 
@@ -83,7 +83,7 @@ UPSERT_SQL = """
 
 PACING_S = 0.1  # polite gap between requests
 MAX_CONSECUTIVE_FAILURES = 5  # abort if the API looks down
-GCS_LABEL_CHUNK = 1000  # rows per JSONL part in GCS (B-D50)
+GCS_LABEL_CHUNK = 1000  # rows per Parquet part in GCS (B-D50/B-D52)
 SOURCES = ("cryptolabel", "arkham")
 
 
@@ -256,24 +256,15 @@ def main() -> int:
             )
             labeled = {r[0] for r in cur.fetchall()}
     else:
-        # GCS-only: derive the work list from today's raw parts, not Postgres.
+        # GCS-only: derive the work list from today's Parquet parts (B-D52).
         want, labeled = set(), set()
-        events_manifest = gcs_manifest("raw_issuer_events", cfg)
-        if events_manifest:
-            for part in events_manifest.get("parts", []):
-                text = gcs_read_part("raw_issuer_events", part["name"], cfg) or ""
-                for line in text.splitlines():
-                    addr = str(json.loads(line).get("blacklisted_address") or "").lower()
-                    if addr:
-                        want.add(addr)
-        labels_manifest = gcs_manifest("raw_address_labels", cfg)
-        if labels_manifest:
-            for part in labels_manifest.get("parts", []):
-                text = gcs_read_part("raw_address_labels", part["name"], cfg) or ""
-                for line in text.splitlines():
-                    row = json.loads(line)
-                    if row.get("entity_name") and row["entity_name"] != "Unknown":
-                        labeled.add(row["address"])
+        for r in gcs_read_rows("raw_issuer_events", cfg):
+            addr = str(r.get("blacklisted_address") or "").lower()
+            if addr:
+                want.add(addr)
+        for r in gcs_read_rows("raw_address_labels", cfg):
+            if r.get("entity_name") and r["entity_name"] != "Unknown":
+                labeled.add(str(r["address"]).lower())
         log.info("GCS-only labels: %d addresses in events from today's parts", len(want))
 
     todo = sorted(want - labeled)
@@ -336,7 +327,7 @@ def main() -> int:
                     "labels": labels, "source": args.source,
                 })
                 if len(gcs_buf) >= GCS_LABEL_CHUNK:
-                    run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                    run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
                     gcs_buf = []
                     part_no += 1
                 ok += 1
@@ -346,7 +337,7 @@ def main() -> int:
                     log.info("… %d/%d fetched", i, len(todo))
                 time.sleep(PACING_S)
             if gcs_buf:
-                run.add_part(f"part-{part_no:05d}.jsonl", gcs_buf)
+                run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
             if cur is not None:
                 total = cur.execute("SELECT count(*) FROM raw_address_labels").fetchone()[0]
 

@@ -21,7 +21,6 @@ Run:  make ingest-addresses   |   uv run python -m backend.ingest.addresses [--r
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 
 from psycopg.rows import dict_row
@@ -30,7 +29,7 @@ from .config import LLAMA_S1, LLAMA_S2
 from .db import get_conn
 from .http import FetchError, get_json
 from .logging_setup import get_logger
-from .sinks import SinkConfig, gcs_read_part, save
+from .sinks import SinkConfig, gcs_read_rows, save
 
 log = get_logger("addresses")
 
@@ -93,11 +92,11 @@ def main() -> int:
             key=lambda a: -a["circ"],
         )
         have_ids: set[str] = set()
-        prior = gcs_read_part("raw_asset_addresses", "addresses.jsonl", cfg)
+        prior = gcs_read_rows("raw_asset_addresses", cfg)
         if prior and not args.refresh:
             try:
-                have_ids = {json.loads(line)["asset_id"] for line in prior.splitlines() if line}
-            except (KeyError, json.JSONDecodeError) as e:
+                have_ids = {str(r["asset_id"]) for r in prior}
+            except KeyError as e:
                 log.warning("could not parse GCS resume part: %s", e)
         log.info(
             "GCS-only harvest: %d assets from S1, %d already stored this date",
@@ -150,7 +149,7 @@ def main() -> int:
             log.info("addresses: %d/%d stored …", i, len(todo))
 
     # Postgres rows were already upserted above; this call only handles GCS.
-    save("raw_asset_addresses", parts=[("addresses.jsonl", saved_rows)], source=SOURCE, cfg=cfg)
+    save("raw_asset_addresses", parts=[("addresses.parquet", saved_rows)], source=SOURCE, cfg=cfg)
 
     log.info(
         "address harvest complete: %d stored, %d without address, %d failed (of %d fetched)",

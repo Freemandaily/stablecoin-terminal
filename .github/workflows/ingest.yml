@@ -50,7 +50,7 @@ permissions:
 
 concurrency:
   group: ingest-${{ inputs.job || 'all-gcs' }}-${{ inputs.sink || 'gcs' }}
-  cancel-in-progress: false # never interrupt a half-written ingest-date prefix
+  cancel-in-progress: false # never interrupt a half-written Parquet manifest
 
 jobs:
   ingest:
@@ -112,9 +112,11 @@ jobs:
           set -euo pipefail
           case "${{ inputs.job || 'all-gcs' }}" in
             all-gcs)
-              # GCS-only chain: each step reads the same ingest_date prefix,
-              # so no Postgres is required and order satisfies dependencies.
-              make ingest-prices
+              # GCS-only chain: each step reads the same flat raw table dirs
+              # for this ingest date, so no Postgres is required.
+              # ingest-supply includes the four snapshot tables plus per-coin
+              # raw_supply_daily (10–20 min) — no need to run ingest-prices too.
+              make ingest-supply
               make ingest-addresses
               make ingest-logos
               make ingest-issuer-events

@@ -9,10 +9,10 @@
 -- the USDC/USDT blacklist vocabulary (and PYUSD's "wipe") maps onto these three.
 -- WIPE → DESTROY: same semantic (funds of a frozen address removed from supply).
 --
--- Block floor: >= 26455929 (2026-11-20) — advanced after the successful
--- one-shot backfill (B-D34: 6-token merge scanned from 25702009 once at a
--- lifted guard, 311 GB; floors now share one value, advance after each run).
--- Idempotent upserts on tx+log_index make the inclusive overlap harmless.
+-- Block floor: @from_block is bound by indexer/bigquery/ingest.py from the
+-- last ingested block (GCS _state.json / Postgres max(block_number)). Strict
+-- `>` keeps repeated runs additive — no duplicate rows in raw GCS parts.
+-- First run falls back to FALLBACK_FLOOR in ingest.py (currently 26470615).
 -- Final select column order is the contract consumed by indexer/bigquery/ingest.py
 -- (COLUMNS) and backend/jobs/export_issuer_events.py —14 columns, do not reorder.
 
@@ -60,7 +60,7 @@ with stable as (
   WHERE (
     -- USDC + USDT: mint/burn/blacklist events, or Transfer only when from/to =
     -- 0x0 (mint/burn).
-    (block_number >= 26455929 AND (
+    (block_number > @from_block AND (
       (
         address = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
         AND topics[SAFE_OFFSET(0)] IN (
@@ -91,7 +91,7 @@ with stable as (
     ))
     OR
     -- USD1 + PYUSD + USDP + frxUSD: freeze family only.
-    (block_number >= 26455929 AND (
+    (block_number > @from_block AND (
       -- USD1: Freeze, Unfreeze
       (
         address = '0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d'

@@ -13,6 +13,7 @@ __pycache__/
 # data (never commit runtime files)
 data/logs/*
 !data/logs/.gitkeep
+test.py
 
 # dbt
 backend/transform/target/
@@ -25,3 +26,8 @@ backend/transform/dbt_files/
 
 # dbt runtime logs
 backend/transform/logs/
+
+# dbt-spark project artifacts
+dbt_spark/target/
+dbt_spark/dbt_packages/
+dbt_spark/logs/
