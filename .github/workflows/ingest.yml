@@ -13,6 +13,11 @@
 #
 # The service account needs roles/storage.objectAdmin on gs://term-flow.
 # Rotate GCP_SA_KEY periodically; never commit the JSON file to the repo.
+#
+# Scheduled lanes (UTC):
+#   22:10 daily  -> ingest-supply, ingest-addresses, ingest-logos, ingest-prices
+#   every 4h     -> ingest-issuer-events, enrich-labels (arkham), enrich-balances
+# A successful run dispatches `ingest-complete` to lake.yml.
 
 name: Ingest raw data (Postgres / GCS)
 
@@ -41,15 +46,22 @@ on:
         description: Optional GCS backfill date (YYYY-MM-DD); blank = UTC today
         type: string
         required: false
-  # Optional daily run — enable once GCP_SA_KEY is configured:
-  # schedule:
-  #   - cron: '30 5 * * *'
+      source:
+        description: Label source used by enrich-labels
+        type: choice
+        default: arkham
+        options: [arkham, cryptolabel]
+  # Two lanes: slow snapshots daily, onchain events every 4 hours (UTC).
+  # github.event.schedule tells the job which chain to run.
+  schedule:
+    - cron: '10 22 * * *'    # snapshot lane
+    - cron: '10 */4 * * *'   # onchain lane
 
 permissions:
-  contents: read
+  contents: write # needed to dispatch the lake build after a successful ingest
 
 concurrency:
-  group: ingest-${{ inputs.job || 'all-gcs' }}-${{ inputs.sink || 'gcs' }}
+  group: ingest-${{ github.event.schedule || inputs.job || 'manual' }}-${{ inputs.sink || 'gcs' }}
   cancel-in-progress: false # never interrupt a half-written Parquet manifest
 
 jobs:
@@ -84,6 +96,7 @@ jobs:
       ARKHAM_API_KEY: ${{ secrets.ARKHAM_API_KEY }}
       CRYPTOLABEL_API_KEY: ${{ secrets.CRYPTOLABEL_API_KEY }}
       ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
+      SOURCE: ${{ inputs.source || 'arkham' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -108,20 +121,51 @@ jobs:
 
       - name: Run ingest job
         shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
           set -euo pipefail
-          case "${{ inputs.job || 'all-gcs' }}" in
-            all-gcs)
-              # GCS-only chain: each step reads the same flat raw table dirs
-              # for this ingest date, so no Postgres is required.
-              # ingest-supply includes the four snapshot tables plus per-coin
-              # raw_supply_daily (10–20 min) — no need to run ingest-prices too.
-              make ingest-supply
-              make ingest-addresses
-              make ingest-logos
-              make ingest-issuer-events
-              make enrich-labels
-              make enrich-balances
-              ;;
-            *) make "${{ inputs.job }}" ;;
-          esac
+          if [[ "$EVENT" == 'schedule' ]]; then
+            if [[ "$SCHEDULE" == '10 22 * * *' ]]; then
+              # Slow reference lane — snapshots, addresses, logos, prices.
+              jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices)
+            else
+              # Fast onchain lane — event feeds, then labels and balances.
+              jobs=(ingest-issuer-events enrich-labels enrich-balances)
+            fi
+          else
+            # Manual trigger keeps the original single-job / all-gcs behaviour.
+            selected="${{ inputs.job || 'all-gcs' }}"
+            if [[ "$selected" == 'all-gcs' ]]; then
+              jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices ingest-issuer-events enrich-labels enrich-balances)
+            else
+              jobs=("$selected")
+            fi
+          fi
+
+          for j in "${jobs[@]}"; do
+            echo "::group::$j"
+            make "$j"
+            echo "::endgroup::"
+          done
+
+      - name: Trigger lake build after successful ingest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          DAY: ${{ inputs.ingest_date }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT" == 'schedule' ]]; then
+            if [[ "$SCHEDULE" == '10 22 * * *' ]]; then lane=snapshot; else lane=onchain; fi
+          else
+            lane=manual
+          fi
+          day="${DAY:-$(date -u +%F)}"
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" \
+            -f event_type=ingest-complete \
+            -f "client_payload[lane]=$lane" \
+            -f "client_payload[date]=$day"

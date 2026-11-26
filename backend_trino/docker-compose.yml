@@ -1,0 +1,45 @@
+services:
+  # Metadata-only Iceberg JDBC catalog. No mart data is stored here.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PG_DB:-iceberg}
+      POSTGRES_USER: ${PG_USER:-iceberg}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-iceberg}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  trino:
+    image: trinodb/trino:483
+    ports:
+      - "8082:8080"          # 8080 static server, 8081 existing StableFlow API
+    depends_on:
+      - postgres
+    volumes:
+      - ./trino/catalog/lake.properties:/etc/trino/catalog/lake.properties:ro
+      - ./trino/core-site.xml:/etc/trino/gcs/core-site.xml:ro
+      - ../../.config/gcloud:/etc/trino/gcp-adc:ro
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /etc/trino/gcp-adc/application_default_credentials.json
+      PG_USER: ${PG_USER:-iceberg}
+      PG_PASSWORD: ${PG_PASSWORD:-iceberg}
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend_trino/Dockerfile
+    ports:
+      - "8083:8000"          # serves frontend/ + /api/* + /query/* + /sql
+    depends_on:
+      - trino
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app:ro              # live code reload in dev
+      - ../frontend:/app/frontend:ro
+    restart: unless-stopped
+
+volumes:
+  pgdata:

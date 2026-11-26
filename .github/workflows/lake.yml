@@ -9,6 +9,10 @@
 #   gs://term-flow, and the compute service account needs storage read/write.
 #
 # No --async: each submit waits, so a failed Spark/dbt batch fails the job.
+#
+# Triggered by ingest.yml after each successful ingest lane, or manually via
+# workflow_dispatch. There is no fixed lake cron — the ingest schedule is the
+# clock, and the build always uses the date that ingest just wrote.
 
 name: Lake build (Iceberg + dbt-spark)
 
@@ -45,17 +49,17 @@ on:
         type: choice
         default: run
         options: [none, run, test, build]
-  # Scheduled runs cannot pass workflow_dispatch inputs, so the job below
-  # derives the target date from UTC when triggered by this cron.
-  schedule:
-    - cron: '30 6 * * *'
+  # ingest.yml dispatches this after each successful ingest lane. Manual
+  # workflow_dispatch remains available with all inputs below.
+  repository_dispatch:
+    types: [ingest-complete]
 
 permissions:
   contents: read
 
 concurrency:
-  group: lake-${{ inputs.table || 'all' }}
-  cancel-in-progress: false # never interrupt a half-written Iceberg commit
+  group: lake-build
+  cancel-in-progress: false # never interrupt a half-written Iceberg/dbt run
 
 env:
   PROJECT: analytic-sages-data-portal
@@ -71,7 +75,7 @@ env:
 
 jobs:
   build_iceberg:
-    if: inputs.lake_command != 'none'
+    if: github.event_name != 'workflow_dispatch' || inputs.lake_command != 'none'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -86,18 +90,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Manual runs keep the existing input behaviour. Dispatch runs build
+          # all tables for the exact date the ingest lane just wrote; unchanged
+          # tables are skipped by manifest fingerprints.
           table="${{ inputs.table }}"
-          if [[ -z "$table" ]]; then
-            if [[ "${{ github.event_name }}" == 'schedule' ]]; then table=all; else table=raw_issuer_events; fi
-          fi
+          if [[ -z "$table" ]]; then table=all; fi
           start="${{ inputs.start_date }}"
           end="${{ inputs.end_date }}"
-          if [[ "${{ github.event_name }}" == 'schedule' && -z "$start" && -z "$end" ]]; then
-            # Yesterday's UTC date — the day whose manifest was completed by
-            # the preceding ingest run. Change to `date -u +%F` for same-day.
-            day="$(date -u -d 'yesterday' +%F)"
+          if [[ "${{ github.event_name }}" == 'repository_dispatch' ]]; then
+            day="${{ github.event.client_payload.date }}"
+            if [[ -z "$day" ]]; then day="$(date -u +%F)"; fi
             start="$day"; end="$day"
           fi
+          echo "build table=$table start=${start:-auto} end=${end:-auto} lane=${{ github.event.client_payload.lane }}"
           args=(--table "$table" --bucket "$BUCKET")
           if [[ -n "$start" && -n "$end" ]]; then
             args+=(--start-date "$start" --end-date "$end")
@@ -114,7 +119,8 @@ jobs:
   dbt_spark:
     needs: build_iceberg
     if: >-
-      always() && inputs.dbt_command != 'none' &&
+      always() &&
+      (github.event_name != 'workflow_dispatch' || inputs.dbt_command != 'none') &&
       (needs.build_iceberg.result == 'success' || needs.build_iceberg.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 60
