@@ -8,7 +8,9 @@ resolves an address CryptoLabel could not, so it is pinned here instead.
 
 from __future__ import annotations
 
-from backend.ingest.cryptolabel import arkham_row, cryptolabel_row
+from datetime import UTC, datetime
+
+from backend.ingest.cryptolabel import arkham_row, cryptolabel_row, label_row
 
 # entity + label, contract on Ethereum
 ARKHAM_ENTITY = {
@@ -84,3 +86,17 @@ def test_cryptolabel_row_unchanged():
     assert (name, cat, atype) == ("Binance", "exchange", "eoa")
     assert url == "https://etherscan.io/address/0xabc"
     assert len(labels) == 1
+
+
+def test_gcs_label_row_has_fetched_at():
+    """Iceberg raw_address_labels requires the Postgres-era column (B-D52)."""
+    ts = datetime(2026, 11, 26, 9, 0, tzinfo=UTC)
+    row = label_row(
+        "0xabc",
+        ("Circle", "stablecoin", "contract", "https://etherscan.io/address/0xabc", []),
+        "arkham",
+        ts,
+    )
+    assert row["fetched_at"] == ts
+    assert row["address"] == "0xabc"
+    assert row["source"] == "arkham"

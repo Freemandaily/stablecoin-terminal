@@ -47,6 +47,7 @@ import json
 import sys
 import time
 from contextlib import nullcontext
+from datetime import UTC, datetime
 
 import httpx
 from psycopg.types.json import Json
@@ -213,6 +214,26 @@ def arkham_row(addr: str, payload: dict) -> tuple:
     return name, category, address_type, explorer, labels
 
 
+def label_row(addr: str, values: tuple, source: str, fetched_at: datetime) -> dict:
+    """One raw_address_labels row for the GCS sink (B-D52).
+
+    `fetched_at` must be written by the producer: the Postgres path had a
+    DEFAULT now(), but GCS-only rows have no database to supply it, and the
+    Iceberg bronze table expects the column.
+    """
+    entity_name, category, addr_type, explorer, labels = values
+    return {
+        "address": addr,
+        "entity_name": entity_name,
+        "entity_category": category,
+        "address_type": addr_type,
+        "explorer_url": explorer,
+        "labels": labels,
+        "source": source,
+        "fetched_at": fetched_at,
+    }
+
+
 # ── shared driver ────────────────────────────────────────────────────────────
 
 
@@ -263,6 +284,10 @@ def main() -> int:
             if addr:
                 want.add(addr)
         for r in gcs_read_rows("raw_address_labels", cfg):
+            if "fetched_at" not in r:
+                # Legacy GCS row: re-fetch and rewrite it with the current
+                # schema so Iceberg keeps its `fetched_at` column.
+                continue
             if r.get("entity_name") and r["entity_name"] != "Unknown":
                 labeled.add(str(r["address"]).lower())
         log.info("GCS-only labels: %d addresses in events from today's parts", len(want))
@@ -282,6 +307,7 @@ def main() -> int:
 
     # ── 2. fetch + upsert, one address at a time ──────────────────
     ok = got_labels = failed = consecutive = total = 0
+    fetched_at = datetime.now(UTC)
     with gcs_run("raw_address_labels", source=f"address-enrich:{args.source}", cfg=cfg) as run:
         with (get_conn() if cfg.wants_pg else nullcontext()) as conn:
             cur = conn.cursor() if conn is not None else None
@@ -321,11 +347,12 @@ def main() -> int:
                             explorer, Json(labels), args.source,
                         ),
                     )
-                gcs_buf.append({
-                    "address": addr, "entity_name": entity_name, "entity_category": category,
-                    "address_type": addr_type, "explorer_url": explorer,
-                    "labels": labels, "source": args.source,
-                })
+                gcs_buf.append(label_row(
+                    addr,
+                    (entity_name, category, addr_type, explorer, labels),
+                    args.source,
+                    fetched_at,
+                ))
                 if len(gcs_buf) >= GCS_LABEL_CHUNK:
                     run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
                     gcs_buf = []
