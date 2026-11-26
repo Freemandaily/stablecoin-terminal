@@ -9,6 +9,7 @@ so the row stays todo and renders `—` downstream (AGENTS.md §9).
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 
 import httpx
 
@@ -22,6 +23,15 @@ BLOCK = 26430074
 def _client(handler, monkeypatch) -> httpx.Client:
     monkeypatch.setattr(eb, "ETH_RPC_URL", "https://rpc.invalid/eth")
     return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_gcs_balance_row_has_fetched_at():
+    """Iceberg raw_blacklist_balances expects the Postgres-era column (B-D52)."""
+    ts = datetime(2026, 11, 26, 9, 0, tzinfo=UTC)
+    row = eb.balance_row("0xtx", 3, ADDR, ADDR, "100", BLOCK, ts)
+    assert row["fetched_at"] == ts
+    assert row["transaction_hash"] == "0xtx"
+    assert row["balance_raw"] == "100"
 
 
 def test_balance_of_payload_and_parse(monkeypatch):

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import UTC, datetime
 
 from psycopg.rows import dict_row
 
@@ -34,6 +35,22 @@ from .sinks import SinkConfig, gcs_read_rows, save
 log = get_logger("addresses")
 
 SOURCE = "defillama.s2"
+
+
+def address_row(asset_id: str, chain: str, address: str, ingested_at: datetime) -> dict:
+    """One raw_asset_addresses row for the GCS sink (B-D52).
+
+    The Postgres path gets `ingested_at` from now() in its UPSERT; GCS rows
+    have no database default and must carry it themselves — the Iceberg
+    bronze table was created with that column.
+    """
+    return {
+        "asset_id": asset_id,
+        "chain": chain,
+        "address": address,
+        "source": SOURCE,
+        "ingested_at": ingested_at,
+    }
 
 
 def parse_address(raw: object) -> tuple[str, str] | None:
@@ -95,7 +112,11 @@ def main() -> int:
         prior = gcs_read_rows("raw_asset_addresses", cfg)
         if prior and not args.refresh:
             try:
-                have_ids = {str(r["asset_id"]) for r in prior}
+                # Legacy rows lack `ingested_at`: re-fetch so the rewritten
+                # parts carry the column Iceberg expects.
+                have_ids = {
+                    str(r["asset_id"]) for r in prior if "ingested_at" in r
+                }
             except KeyError as e:
                 log.warning("could not parse GCS resume part: %s", e)
         log.info(
@@ -115,6 +136,7 @@ def main() -> int:
 
     saved = no_addr = failed = 0
     saved_rows: list[dict] = []
+    ingested_at = datetime.now(UTC)
     for i, a in enumerate(todo, 1):
         aid, sym = a["id"], a["symbol"] or "?"
         try:
@@ -143,7 +165,7 @@ def main() -> int:
                     """,
                     (aid, chain, addr, SOURCE),
                 )
-        saved_rows.append({"asset_id": aid, "chain": chain, "address": addr, "source": SOURCE})
+        saved_rows.append(address_row(aid, chain, addr, ingested_at))
         saved += 1
         if i % 25 == 0:
             log.info("addresses: %d/%d stored …", i, len(todo))
