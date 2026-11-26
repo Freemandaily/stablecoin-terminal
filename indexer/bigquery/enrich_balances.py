@@ -27,7 +27,6 @@ from __future__ import annotations
 import sys
 import time
 from contextlib import nullcontext
-from datetime import UTC, datetime
 
 import httpx
 import psycopg
@@ -79,11 +78,11 @@ INSERT_SQL = """
 
 
 def balance_row(tx: str, log_idx: int, token: str, addr: str,
-                balance_raw: str, block: int, fetched_at: datetime) -> dict:
+                balance_raw: str, block: int) -> dict:
     """One raw_blacklist_balances row for the GCS sink (B-D52).
 
-    The Postgres UPSERT sets `fetched_at = now()`; GCS-only rows need the
-    producer to supply it because the Iceberg bronze table has that column.
+    The Iceberg bronze table has no `fetched_at` column, even though the
+    Postgres UPSERT maintains one — do not emit it into GCS parts.
     """
     return {
         "transaction_hash": tx,
@@ -93,7 +92,6 @@ def balance_row(tx: str, log_idx: int, token: str, addr: str,
         "balance_raw": balance_raw,
         "balance_block": block,
         "source": "eth_call_balanceOf",
-        "fetched_at": fetched_at,
     }
 
 
@@ -150,8 +148,9 @@ def main() -> int:
         # GCS-only: derive todo from today's Parquet parts, not Postgres (B-D52).
         done_keys: set[tuple] = set()
         for r in gcs_read_rows("raw_blacklist_balances", cfg):
-            if "fetched_at" not in r:
-                # Legacy GCS row: re-fetch and rewrite with the current schema.
+            if "fetched_at" in r:
+                # Bad row from the schema-drift incident: not done. Re-fetch
+                # so the part is rewritten without that extra column.
                 continue
             done_keys.add((r["transaction_hash"], r["log_index"]))
         todo = []
@@ -175,7 +174,6 @@ def main() -> int:
 
     fetched = failed = 0
     streak = 0
-    fetched_at = datetime.now(UTC)
     with gcs_run("raw_blacklist_balances", source="eth_call_balanceOf", cfg=cfg) as run:
         with (get_conn() if cfg.wants_pg else nullcontext()) as conn:
             cur = conn.cursor() if conn is not None else None
@@ -207,9 +205,7 @@ def main() -> int:
                             INSERT_SQL,
                             (tx, log_idx, token, addr, str(bal), block, "eth_call_balanceOf"),
                         )
-                    gcs_buf.append(balance_row(
-                        tx, log_idx, token, addr, str(bal), block, fetched_at,
-                    ))
+                    gcs_buf.append(balance_row(tx, log_idx, token, addr, str(bal), block))
                     if len(gcs_buf) >= GCS_BAL_CHUNK:
                         run.add_part(f"part-{part_no:05d}.parquet", gcs_buf)
                         gcs_buf = []

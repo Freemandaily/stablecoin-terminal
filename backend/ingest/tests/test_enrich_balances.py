@@ -9,7 +9,6 @@ so the row stays todo and renders `—` downstream (AGENTS.md §9).
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
 
 import httpx
 
@@ -25,11 +24,10 @@ def _client(handler, monkeypatch) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
-def test_gcs_balance_row_has_fetched_at():
-    """Iceberg raw_blacklist_balances expects the Postgres-era column (B-D52)."""
-    ts = datetime(2026, 11, 26, 9, 0, tzinfo=UTC)
-    row = eb.balance_row("0xtx", 3, ADDR, ADDR, "100", BLOCK, ts)
-    assert row["fetched_at"] == ts
+def test_gcs_balance_row_matches_iceberg_schema():
+    """Iceberg raw_blacklist_balances has no `fetched_at` column."""
+    row = eb.balance_row("0xtx", 3, ADDR, ADDR, "100", BLOCK)
+    assert "fetched_at" not in row
     assert row["transaction_hash"] == "0xtx"
     assert row["balance_raw"] == "100"
 
