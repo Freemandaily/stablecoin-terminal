@@ -55,7 +55,7 @@ on:
   # github.event.schedule tells the job which chain to run.
   schedule:
     - cron: '10 22 * * *'    # snapshot lane
-    - cron: '10 */4 * * *'   # onchain lane
+    - cron: '10 */2 * * *'   # onchain lane
 
 permissions:
   contents: write # needed to dispatch the lake build after a successful ingest
