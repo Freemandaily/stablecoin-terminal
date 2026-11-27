@@ -171,8 +171,11 @@ def main() -> int:
             log.info("addresses: %d/%d stored …", i, len(todo))
 
     if not saved_rows:
-        log.error("no addresses harvested — refusing to write an empty GCS manifest")
-        return 1
+        if failed == len(todo):
+            log.error("all S2 fetches failed — refusing to write an empty GCS manifest")
+            return 1
+        log.info("no new addresses to store (%d without address) — keeping existing parts", no_addr)
+        return 0
 
     # Postgres rows were already upserted above; this call only handles GCS.
     save("raw_asset_addresses", parts=[("addresses.parquet", saved_rows)], source=SOURCE, cfg=cfg)

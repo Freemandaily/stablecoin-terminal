@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 
+import pyarrow.parquet as pq
 import pytest
 
 from backend.ingest import sinks
@@ -265,3 +267,11 @@ def test_read_helpers_support_gcs_only_resume(fake_gcs, monkeypatch):
     assert sinks.gcs_read_text(
         "raw_asset_addresses", "missing.json", cfg
     ) is None
+
+
+def test_supply_parquet_pins_null_column_types():
+    """All-null S2 columns must stay string/double, not physical INT32."""
+    data = sinks._parquet_bytes({"cmcId": None, "price": None}, "raw_supply_daily")
+    schema = pq.read_table(BytesIO(data)).schema
+    assert str(schema.field("cmcId").type) == "string"
+    assert str(schema.field("price").type) == "double"

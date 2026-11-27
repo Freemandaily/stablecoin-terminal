@@ -18,6 +18,7 @@ Run:  uv run python -m backend.ingest.defillama            # S1 + S3 + S4
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from contextlib import nullcontext
 
@@ -29,6 +30,38 @@ from .logging_setup import get_logger
 from .sinks import SinkConfig, gcs_run, save
 
 log = get_logger("defillama")
+
+# Iceberg raw_supply_daily is string-typed for these columns. DeFiLlama S2
+# sends some of them as ints (cmcId, price) or omits them entirely; PyArrow
+# then infers INT64/INT32/null per part and Spark cannot read the day folder
+# with one schema (B-D52). Cast at write time, not in the bronze reader.
+SUPPLY_STRING_FIELDS = (
+    "id", "name", "address", "symbol", "url", "description",
+    "mintRedeemDescription", "onCoinGecko", "gecko_id", "cmcId",
+    "pegType", "pegMechanism", "priceSource", "auditLinks", "twitter",
+    "wiki", "bridgeConfig",
+)
+
+
+def _string_cell(value: object) -> str:
+    """Keep nested values as JSON text; everything else as plain string."""
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, default=str)
+    return str(value)
+
+
+def normalize_supply_payload(payload: dict) -> dict:
+    """One stable Parquet schema for every coin part in a day folder."""
+    out = dict(payload)
+    for field in SUPPLY_STRING_FIELDS:
+        if out.get(field) is not None:
+            out[field] = _string_cell(out[field])
+    if out.get("price") is not None and not isinstance(out["price"], bool):
+        try:
+            out["price"] = float(out["price"])
+        except (TypeError, ValueError):
+            out["price"] = None
+    return out
 
 
 def fetch_assets() -> dict:
@@ -183,7 +216,10 @@ def main() -> int:
                     # Postgres path is unchanged (GCS-only never opens a conn).
                     if c is not None:
                         load_coin_history(c, cid, hist)
-                    supply.add_part(f"coin_{cid}.parquet", hist)
+                    supply.add_part(
+                        f"coin_{cid}.parquet",
+                        normalize_supply_payload(hist) if cfg.wants_gcs else hist,
+                    )
                     del hist  # large parsed payload — release before the next fetch
                     done += 1
                     if done % 50 == 0:

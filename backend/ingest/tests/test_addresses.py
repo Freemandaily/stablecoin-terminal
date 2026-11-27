@@ -48,3 +48,27 @@ def test_gcs_addresses_refuse_empty_harvest(monkeypatch):
 
     assert addresses_mod.main() == 1
     assert saved == []
+
+
+def test_gcs_addresses_no_new_addresses_is_noop(monkeypatch):
+    """Assets with no S2 address must not replace a good day manifest."""
+    monkeypatch.setenv("RAW_SINK", "gcs")
+    monkeypatch.setenv("GCS_INGEST_DATE", "2026-11-27")
+    monkeypatch.setattr(sys, "argv", ["addresses"])
+    monkeypatch.setattr(addresses_mod, "gcs_read_rows", lambda *a, **k: [])
+
+    def fake_get_json(url: str, **kwargs):
+        if url == LLAMA_S1:
+            return {
+                "peggedAssets": [
+                    {"id": "1", "symbol": "USDT", "circulating": {"peggedUSD": 100.0}}
+                ]
+            }
+        return {"address": ""}
+
+    monkeypatch.setattr(addresses_mod, "get_json", fake_get_json)
+    saved: list[tuple] = []
+    monkeypatch.setattr(addresses_mod, "save", lambda *a, **k: saved.append((a, k)))
+
+    assert addresses_mod.main() == 0
+    assert saved == []

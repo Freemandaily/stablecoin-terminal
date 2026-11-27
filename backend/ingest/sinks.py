@@ -54,6 +54,22 @@ VALID_SINKS = ("postgres", "gcs", "both")
 PARQUET_MIME = "application/vnd.apache.parquet"
 JSON_COLUMNS_META = b"sf_json_columns"
 
+# PyArrow infers `null` (physical INT32) for an all-null column. Spark cannot
+# convert that to string/double when other parts of the same day have real
+# values, so pin the physical types for wide S2 payloads (B-D52).
+PARQUET_COLUMN_TYPES = {
+    "raw_supply_daily": {
+        "id": "string", "name": "string", "address": "string", "symbol": "string",
+        "url": "string", "description": "string", "mintRedeemDescription": "string",
+        "onCoinGecko": "string", "gecko_id": "string", "cmcId": "string",
+        "pegType": "string", "pegMechanism": "string", "priceSource": "string",
+        "auditLinks": "string", "twitter": "string", "wiki": "string",
+        "bridgeConfig": "string", "chainConfig": "string",
+        "chainBalances": "string", "currentChainBalances": "string",
+        "tokens": "string", "price": "float64",
+    },
+}
+
 
 @dataclass(frozen=True)
 class SinkConfig:
@@ -148,10 +164,15 @@ def _parquet_cell(value: Any) -> Any:
     return str(value)
 
 
-def _parquet_bytes(content: Any) -> bytes:
+def _parquet_bytes(content: Any, table: str = "") -> bytes:
     """Encode original source payload(s) as Parquet — no JSONL parts (B-D52)."""
     import pyarrow as pa
     import pyarrow.parquet as pq
+
+    pinned = {
+        key: getattr(pa, dtype)()
+        for key, dtype in PARQUET_COLUMN_TYPES.get(table, {}).items()
+    }
 
     json_columns: set[str] = set()
 
@@ -182,7 +203,11 @@ def _parquet_bytes(content: Any) -> bytes:
                 if key not in keys:
                     keys.append(key)
         table = pa.Table.from_arrays(
-            [pa.array([row.get(key) for row in rows]) for key in keys], names=keys
+            [
+                pa.array([row.get(key) for row in rows], type=pinned.get(key))
+                for key in keys
+            ],
+            names=keys,
         )
     else:
         table = pa.table({"payload": pa.array([], type=pa.string())})
@@ -254,7 +279,7 @@ class _GcsRun:
 
     def add_part(self, name: str, content: Any) -> None:
         """Write one Parquet part; `name` is a stable logical label."""
-        data = _parquet_bytes(content)
+        data = _parquet_bytes(content, self.table)
         physical = self._physical.get(name)
         if physical is None:
             physical = _parquet_name(self.cfg, self._next_part)
