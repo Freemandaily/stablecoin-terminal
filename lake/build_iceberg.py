@@ -231,6 +231,21 @@ def _skip_processed(
     return kept
 
 
+def _has_nested_assets(spark, table: str, bucket: str, prefix: str, day: str) -> bool:
+    """True when a date folder carries the nested DeFiLlama payload.
+
+    The logo job writes flat `{asset_id, logo_url}` parts into the same
+    raw_assets folder. A logo-only folder must never drive createOrReplace(),
+    or Iceberg loses the `peggedAssets` column dbt needs.
+    """
+    path = f"gs://{bucket}/{prefix}/{table}/{day}/*.parquet"
+    try:
+        return "peggedAssets" in spark.read.parquet(path).columns
+    except Exception as e:  # noqa: BLE001 — unreadable folder is not usable
+        print(f"Cannot inspect {table} parts for {day}: {e}")
+        return False
+
+
 def _resolve_days(table: str, args, spark):
     """Return ([(day, manifest_fingerprint), ...], is_snapshot) for one table."""
 
@@ -240,7 +255,24 @@ def _resolve_days(table: str, args, spark):
     if table in SNAPSHOT_TABLES:
         day = args.snapshot_date or args.end_date or args.start_date
         explicit = bool(day)
-        if day:
+        if table == "raw_assets":
+            if day and _has_nested_assets(spark, table, args.bucket, args.gcs_prefix, day):
+                days = [(day, fingerprint(day))]
+            else:
+                if day:
+                    print(f"Skipping {day}: raw_assets parts have no peggedAssets (logo-only)")
+                discovered = _discover_days(spark, args.bucket, args.gcs_prefix, table)
+                usable = [
+                    d for d in discovered
+                    if _has_nested_assets(spark, table, args.bucket, args.gcs_prefix, d[0])
+                ]
+                if not usable:
+                    print(f"Skipping {table}: no nested snapshot available")
+                    return [], True
+                days = [usable[-1]]  # latest nested snapshot wins
+                if day and day != days[0][0]:
+                    print(f"Using nested {table} snapshot {days[0][0]} instead of {day}")
+        elif day:
             days = [(day, fingerprint(day))]
         else:
             discovered = _discover_days(spark, args.bucket, args.gcs_prefix, table)
@@ -288,7 +320,13 @@ def build_table(
         day, fingerprint = days[0]
         src = _load_day(spark, table, args.bucket, args.gcs_prefix, day)
         if src is None:
-            return 1
+            # A lane-dispatched `all` build only has manifests for the tables
+            # that lane wrote. Missing snapshot data is not a build failure
+            # there; it fails only when this exact table was requested.
+            if _resolve_tables(args.table) == [table]:
+                return 1
+            print(f"Skipping {table}: no complete manifest for {day} in multi-table build")
+            return 0
         src.writeTo(target).createOrReplace()
         write_watermark(
             table, day, day, value_name="snapshot_date", fingerprints={day: fingerprint}
