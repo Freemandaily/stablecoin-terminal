@@ -6,6 +6,7 @@ their peg holds, and how they're actually used.
 
 ```
 $295.1B supply · −$6.5B (7d) · 1 live peg outlier — data: stablecoins.llama.fi
+
 ```
 
 ## Status
