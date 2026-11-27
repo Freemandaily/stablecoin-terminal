@@ -14,9 +14,8 @@
 # The service account needs roles/storage.objectAdmin on gs://term-flow.
 # Rotate GCP_SA_KEY periodically; never commit the JSON file to the repo.
 #
-# Scheduled lanes (UTC):
-#   22:10 daily  -> ingest-supply, ingest-addresses, ingest-logos, ingest-prices
-#   every 4h     -> ingest-issuer-events, enrich-labels (arkham), enrich-balances
+# Lane scheduling is handled by Cloudflare Cron Triggers, which dispatch this
+# workflow with job=snapshot or job=onchain (UTC). Manual runs still work.
 # A successful run dispatches `ingest-complete` to lake.yml.
 
 name: Ingest raw data (Postgres / GCS)
@@ -30,11 +29,13 @@ on:
         default: gcs
         options: [gcs, both, postgres]
       job:
-        description: Ingest job (all-gcs = full ordered chain, GCS only)
+        description: Ingest job (snapshot/onchain = scheduled lanes, all-gcs = full chain)
         type: choice
         default: all-gcs
         options:
           - all-gcs
+          - snapshot
+          - onchain
           - ingest-prices
           - ingest-supply
           - ingest-addresses
@@ -51,17 +52,15 @@ on:
         type: choice
         default: arkham
         options: [arkham, cryptolabel]
-  # Two lanes: slow snapshots daily, onchain events every 4 hours (UTC).
-  # github.event.schedule tells the job which chain to run.
-  schedule:
-    - cron: '10 22 * * *'    # snapshot lane
-    - cron: '10 */2 * * *'   # onchain lane
+  # GitHub's schedule trigger is disabled for now: Cloudflare Cron Triggers are
+  # the clock and dispatch job=snapshot / job=onchain via workflow_dispatch.
+  # Re-enable only if the external scheduler is unavailable.
 
 permissions:
   contents: write # needed to dispatch the lake build after a successful ingest
 
 concurrency:
-  group: ingest-${{ github.event.schedule || inputs.job || 'manual' }}-${{ inputs.sink || 'gcs' }}
+  group: ingest-${{ inputs.job || 'manual' }}-${{ inputs.sink || 'gcs' }}
   cancel-in-progress: false # never interrupt a half-written Parquet manifest
 
 jobs:
@@ -124,24 +123,34 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
+          JOB: ${{ inputs.job || 'all-gcs' }}
         run: |
           set -euo pipefail
           if [[ "$EVENT" == 'schedule' ]]; then
             if [[ "$SCHEDULE" == '10 22 * * *' ]]; then
-              # Slow reference lane — snapshots, addresses, logos, prices.
+              # Legacy schedule branch — only if GitHub cron is re-enabled.
               jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices)
             else
-              # Fast onchain lane — event feeds, then labels and balances.
               jobs=(ingest-issuer-events enrich-labels enrich-balances)
             fi
           else
-            # Manual trigger keeps the original single-job / all-gcs behaviour.
-            selected="${{ inputs.job || 'all-gcs' }}"
-            if [[ "$selected" == 'all-gcs' ]]; then
-              jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices ingest-issuer-events enrich-labels enrich-balances)
-            else
-              jobs=("$selected")
-            fi
+            case "$JOB" in
+              snapshot)
+                # Slow reference lane — snapshots, addresses, logos, prices.
+                jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices)
+                ;;
+              onchain)
+                # Fast onchain lane — event feeds, then labels and balances.
+                jobs=(ingest-issuer-events enrich-labels enrich-balances)
+                ;;
+              all-gcs)
+                # Manual full chain.
+                jobs=(ingest-supply ingest-addresses ingest-logos ingest-prices ingest-issuer-events enrich-labels enrich-balances)
+                ;;
+              *)
+                jobs=("$JOB")
+                ;;
+            esac
           fi
 
           for j in "${jobs[@]}"; do
@@ -156,11 +165,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EVENT: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
+          JOB: ${{ inputs.job || 'all-gcs' }}
           DAY: ${{ inputs.ingest_date }}
         run: |
           set -euo pipefail
           if [[ "$EVENT" == 'schedule' ]]; then
             if [[ "$SCHEDULE" == '10 22 * * *' ]]; then lane=snapshot; else lane=onchain; fi
+          elif [[ "$JOB" == 'snapshot' || "$JOB" == 'onchain' ]]; then
+            lane="$JOB"
           else
             lane=manual
           fi
