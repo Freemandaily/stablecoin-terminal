@@ -18,9 +18,16 @@ With no `--table`, the default is `all`.
 `others` / `all` process every table in a single Spark session, so the two
 recommended Dataproc batches are: raw_issuer_events alone, then all the rest.
 
-Event tables reload inclusive `_ingest_date` partitions (rerun overwrites).
-Snapshot tables (raw_assets / raw_chain_current) do a full `createOrReplace()`.
-dbt-spark is not started here — it will read `iceberg.stableflow.<table>` later.
+Event tables append only bronze rows whose natural key (MERGE_KEYS) is not
+already in Iceberg, so a narrower later extract never deletes FREEZE/UNFREEZE
+rows an earlier extract contributed. No Iceberg MERGE is used: the Spark
+session extensions that power it are not reliably available on Dataproc 2.1.
+`--replace` restores the old full-partition overwrite when explicitly wanted;
+`--recover` rebuilds from every parquet still under the Iceberg data prefix
+(orphaned snapshot files included) and dedupes by natural key. No dates are
+hardcoded: partitions come from the raw manifest day. Snapshot tables
+(raw_assets / raw_chain_current) do a full `createOrReplace()`. dbt-spark is
+not started here — it will read `iceberg.stableflow.<table>` later.
 """
 
 from __future__ import annotations
@@ -44,6 +51,7 @@ from lib.schemas import (  # noqa: E402
 from lib.spark_session import CATALOG_NAME, get_spark  # noqa: E402
 from lib.watermarks import already_processed, write_watermark  # noqa: E402
 from pyspark.sql import functions as F  # noqa: E402
+from pyspark.sql.window import Window  # noqa: E402
 
 ALIASES = {
     "transfers": "raw_issuer_events",
@@ -86,6 +94,23 @@ parser.add_argument(
     "--force",
     action="store_true",
     help="rebuild all discovered dates even when the manifest is unchanged",
+)
+parser.add_argument(
+    "--replace",
+    action="store_true",
+    help=(
+        "explicitly overwrite whole event partitions "
+        "(default is a non-destructive key-based append)"
+    ),
+)
+parser.add_argument(
+    "--recover",
+    action="store_true",
+    help=(
+        "event tables: rebuild from every parquet file still under the Iceberg "
+        "data prefix (including orphaned snapshot files) plus current bronze days, "
+        "deduped by natural key. Repairs rows lost to earlier full-partition overwrites."
+    ),
 )
 
 
@@ -135,6 +160,20 @@ def _day_fingerprint(spark, table: str, bucket: str, prefix: str, day: str):
     return _manifest_fingerprint(manifest)
 
 
+def _parquet_files(spark, path: str) -> list[str]:
+    """List Parquet objects directly, without asking Spark to merge schemas."""
+    jvm = spark._jvm
+    hpath = jvm.org.apache.hadoop.fs.Path(path)
+    fs = hpath.getFileSystem(spark._jsc.hadoopConfiguration())
+    if not fs.isDirectory(hpath):
+        return []
+    return [
+        status.getPath().toString()
+        for status in fs.listStatus(hpath)
+        if status.getPath().getName().endswith(".parquet")
+    ]
+
+
 def _load_day(spark, table: str, bucket: str, prefix: str, day: str):
     """Read straight from one date folder, after checking its completion marker."""
     day_path = f"gs://{bucket}/{prefix}/{table}/{day}"
@@ -149,11 +188,22 @@ def _load_day(spark, table: str, bucket: str, prefix: str, day: str):
         return None
 
     try:
-        src = spark.read.parquet(f"{day_path}/*.parquet")
-    except Exception as e:  # noqa: BLE001 — no Parquet objects in this date folder
+        parts = _parquet_files(spark, day_path)
+        if not parts:
+            raise ValueError("no Parquet parts in the date folder")
+        # Read/normalize one part at a time. A date folder can hold different
+        # schemas (S1 snapshot + logo map, or INT vs BIGINT columns in separate
+        # BigQuery extracts); Spark's mergeSchema=true fails on the latter with
+        # CANNOT_MERGE_INCOMPATIBLE_DATA_TYPE. normalize() casts each part to
+        # the lake schema first, and unionByName fills columns a part lacks.
+        src = None
+        for part_path in parts:
+            part = normalize(spark.read.parquet(part_path), table)
+            src = part if src is None else src.unionByName(part, allowMissingColumns=True)
+    except Exception as e:  # noqa: BLE001 — no readable Parquet parts in this day
         print(f"No Parquet parts in {day_path}: {e}")
         return None
-    src = normalize(src, table).withColumn("_ingest_date", F.to_date(F.lit(day)))
+    src = src.withColumn("_ingest_date", F.to_date(F.lit(day)))
     print(f"Loaded {table} dt={day} rows={src.count()} from {day_path}")
     return src
 
@@ -164,6 +214,79 @@ def _table_exists(spark, target: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def _dedupe_by_key(df, keys: list[str]):
+    """Keep the newest row per natural key (no date literal involved)."""
+    if not keys:
+        return df
+    order = [
+        F.col("_ingest_date").desc_nulls_last(),
+        F.col("_ingested_at").desc_nulls_last(),
+    ]
+    window = Window.partitionBy(*[F.col(k) for k in keys]).orderBy(*order)
+    return (
+        df.withColumn("_dedupe_rn", F.row_number().over(window))
+        .where(F.col("_dedupe_rn") == 1)
+        .drop("_dedupe_rn")
+    )
+
+
+def _align_to_table(src, target_cols: list[str]):
+    """Project a source onto an existing Iceberg schema.
+
+    New upstream fields (e.g. extra DeFiLlama coin metadata) must not break a
+    write to an established table: Iceberg rejects extra data columns on
+    overwritePartitions. Unknown fields are dropped with a visible notice, and
+    missing ones are filled with NULL so the dbt contract stays stable.
+    """
+    extra = [c for c in src.columns if c not in target_cols]
+    missing = [c for c in target_cols if c not in src.columns]
+    if extra:
+        print(f"Ignoring upstream columns absent from the Iceberg schema: {extra}")
+    if missing:
+        print(f"Filling columns absent from this bronze extract with NULL: {missing}")
+    return src.select(*[
+        F.col(c) if c in src.columns else F.lit(None).cast("string").alias(c)
+        for c in target_cols
+    ])
+
+
+def _append_new_event_rows(spark, target: str, src, keys: list[str]) -> int:
+    """Append bronze rows whose natural key is not in the Iceberg table yet.
+
+    Iceberg MERGE needs Spark session extensions that are not reliably loaded
+    on Dataproc 2.1 (`MERGE INTO TABLE is not supported temporarily`). A
+    left-anti join on the natural key has the same non-destructive effect
+    without that dependency: a later narrow extract can never delete older
+    FREEZE/UNFREEZE rows, and re-read rows are simply skipped.
+    """
+    src = _dedupe_by_key(src, keys)
+    src = _align_to_table(src, spark.table(target).columns)
+    existing = spark.table(target).select(*[F.col(k) for k in keys]).distinct()
+    # Count before the write: afterwards the anti-join would see its own
+    # appended rows and lazily re-evaluate to zero.
+    new = src.join(existing, on=keys, how="left_anti").cache()
+    added = new.count()
+    new.writeTo(target).append()
+    return added
+
+
+def _recover_from_iceberg_files(spark, table: str, warehouse: str, db: str, bronze):
+    """Union every parquet still under the Iceberg data prefix with bronze.
+
+    Iceberg leaves parquet files from older snapshots on GCS after an
+    overwrite. Those files are the only remaining copy of rows that a later
+    narrow bronze extract dropped. Reading the whole data prefix and deduping
+    by natural key restores them without naming any date or snapshot id.
+    """
+    data_path = f"{warehouse}/{db}/{table}/data"
+    historic = spark.read.option("mergeSchema", "true").parquet(data_path)
+    if "_ingest_date_day" in historic.columns:  # physical partition helper
+        historic = historic.drop("_ingest_date_day")
+    if bronze is None:
+        return historic
+    return historic.unionByName(bronze, allowMissingColumns=True)
 
 
 def _date_range(start: str, end: str):
@@ -240,7 +363,10 @@ def _has_nested_assets(spark, table: str, bucket: str, prefix: str, day: str) ->
     """
     path = f"gs://{bucket}/{prefix}/{table}/{day}/*.parquet"
     try:
-        return "peggedAssets" in spark.read.parquet(path).columns
+        return (
+            "peggedAssets"
+            in spark.read.option("mergeSchema", "true").parquet(path).columns
+        )
     except Exception as e:  # noqa: BLE001 — unreadable folder is not usable
         print(f"Cannot inspect {table} parts for {day}: {e}")
         return False
@@ -327,6 +453,8 @@ def build_table(
                 return 1
             print(f"Skipping {table}: no complete manifest for {day} in multi-table build")
             return 0
+        # createOrReplace() takes the merged source schema, which now includes
+        # asset_id from the logo parts. No separate ALTER TABLE step is needed.
         src.writeTo(target).createOrReplace()
         write_watermark(
             table, day, day, value_name="snapshot_date", fingerprints={day: fingerprint}
@@ -335,48 +463,77 @@ def build_table(
         return 0
 
     fingerprints: dict[str, str | None] = {}
+    keys = MERGE_KEYS.get(table, [])
+    destructive = args.replace or not keys
     src_list = []
     for day, fingerprint in days:
         fingerprints[day] = fingerprint
         df = _load_day(spark, table, args.bucket, args.gcs_prefix, day)
         if df is None:
-            if exists:  # true per-day reload: an empty bronze day clears its partition
+            if exists and destructive:  # explicit full reload only
                 spark.sql(f"DELETE FROM {target} WHERE _ingest_date = DATE '{day}'")
                 print(f"Cleared empty partition {target} _ingest_date={day}")
+            else:
+                print(f"No complete manifest for {table} on {day} — keeping existing Iceberg rows")
             continue
         src_list.append(df)
 
-    if not src_list:
+    bronze = None
+    if src_list:
+        bronze = src_list[0]
+        for df in src_list[1:]:
+            bronze = bronze.unionByName(df, allowMissingColumns=True)
+
+    if bronze is None and not (args.recover and exists):
         print(f"No bronze rows for {table} in {label} — nothing to write")
         return 0
 
-    src = src_list[0]
-    for df in src_list[1:]:
-        src = src.unionByName(df, allowMissingColumns=True)
+    if bronze is not None:
+        missing = [key for key in keys if key not in bronze.columns]
+        if missing:
+            raise ValueError(f"Schema drift: expected keys {missing} not in {bronze.columns}")
 
-    missing = [key for key in MERGE_KEYS.get(table, []) if key not in src.columns]
-    if missing:
-        raise ValueError(f"Schema drift: expected keys {missing} not in {src.columns}")
-
-    if not exists:
-        src.writeTo(target).partitionedBy(F.days(F.col("_ingest_date"))).createOrReplace()
-        print(f"Created partitioned {target} rows={src.count()}")
-    else:
-        src.writeTo(target).overwritePartitions()
+    written = bronze
+    target_cols = spark.table(target).columns if exists else None
+    if args.recover and exists:
+        written = _recover_from_iceberg_files(
+            spark, table, args.warehouse, args.database, bronze
+        )
+        written = _dedupe_by_key(written, keys)
+        written = _align_to_table(written, target_cols)
+        written.writeTo(target).partitionedBy(F.days(F.col("_ingest_date"))).createOrReplace()
+        print(f"Recovered {target} from all Iceberg data files rows={written.count()}")
+    elif not exists:
+        written.writeTo(target).partitionedBy(F.days(F.col("_ingest_date"))).createOrReplace()
+        print(f"Created partitioned {target} rows={written.count()}")
+    elif destructive:
+        # Established tables keep their schema even when upstream adds fields.
+        written = _align_to_table(written, target_cols)
+        written.writeTo(target).overwritePartitions()
         print(f"Overwrote partitions in {target} for {label}")
+    else:
+        added = _append_new_event_rows(spark, target, written, keys)
+        print(f"Appended {added} new rows to {target} by keys {keys} — existing rows preserved")
 
     value_col = next(
-        (c for c in ("block_number", "block_slot", "balance_block") if c in src.columns),
+        (c for c in ("block_number", "block_slot", "balance_block") if c in written.columns),
         None,
     )
     last_value = (
-        src.agg(F.max(value_col).alias("m")).collect()[0]["m"] if value_col else days[-1][0]
+        written.agg(F.max(value_col).alias("m")).collect()[0]["m"]
+        if value_col
+        else days[-1][0]
     )
     value_name = "last_block" if value_col else "last_ingest_date"
-    write_watermark(
-        table, last_value, days[-1][0], value_name=value_name, fingerprints=fingerprints
+    last_ingest_date = (
+        str(written.agg(F.max("_ingest_date")).collect()[0][0])
+        if "_ingest_date" in written.columns
+        else (days[-1][0] if days else label)
     )
-    print(f"Done. Watermark: {value_name}={last_value} last_ingest_date={days[-1][0]}")
+    write_watermark(
+        table, last_value, last_ingest_date, value_name=value_name, fingerprints=fingerprints
+    )
+    print(f"Done. Watermark: {value_name}={last_value} last_ingest_date={last_ingest_date}")
     return 0
 
 

@@ -589,7 +589,7 @@ $('#strip').innerHTML = [
 })();
 
 /* ── coins table (sortable) ────────────── */
-/* logos: same-origin proxy URLs from the API; missing/failed → letter chip */
+/* logos: verified same-origin proxy URLs from the API; missing/failed → letter chip */
 const escA = s => esc(s).replace(/"/g,'&quot;');
 const coinLogo = r => r.logo_url
   ? `<img class="clogo" src="${escA(r.logo_url)}" data-let="${escA(r.sym.charAt(0))}" alt="" loading="lazy" decoding="async">`

@@ -32,7 +32,7 @@ from typing import Any
 import psycopg
 from google.cloud import bigquery
 
-from backend.ingest.config import BQ_MAX_BYTES_BILLED, BQ_PROJECT
+from backend.ingest.config import BQ_LOOKBACK_BLOCKS, BQ_MAX_BYTES_BILLED, BQ_PROJECT
 from backend.ingest.db import get_conn
 from backend.ingest.logging_setup import get_logger
 from backend.ingest.sinks import SinkConfig, gcs_read_state, gcs_run, gcs_write_state
@@ -94,7 +94,14 @@ def _query_config(from_block: int, *, dry_run: bool = False) -> bigquery.QueryJo
 
 
 def resolve_from_block(cfg: SinkConfig) -> int:
-    """Last ingested block from Postgres and/or GCS state; never guess low."""
+    """Resume block from Postgres/GCS state, with a late-log lookback.
+
+    HIGH-volume MINT/BURN rows push `last_ingested_block` ahead of the slower
+    blacklist logs. A strict `block_number > @from_block` then hides any
+    FREEZE/UNFREEZE/DESTROY log that becomes visible below that bookmark.
+    Re-reading a bounded block tail fixes this without hardcoding a date; the
+    existing `(transaction_hash, log_index)` dedupe makes overlap harmless.
+    """
     candidates = [FALLBACK_FLOOR]
     if cfg.wants_pg:
         try:
@@ -123,8 +130,15 @@ def resolve_from_block(cfg: SinkConfig) -> int:
                     candidates.append(value)
                 else:
                     log.warning("GCS state has no valid last_ingested_block: %s", state)
-    floor = max(candidates)
-    log.info("resume floor: block > %d", floor)
+    head = max(candidates)
+    # First run starts at FALLBACK_FLOOR. Once a checkpoint exists, overlap the
+    # requested tail even if that reaches below the bootstrap block — that is
+    # the only way to recover logs that arrived after the old floor had moved.
+    has_checkpoint = any(value > FALLBACK_FLOOR for value in candidates)
+    floor = max(0, head - BQ_LOOKBACK_BLOCKS) if has_checkpoint else head
+    log.info(
+        "resume floor: block > %d (head=%d lookback=%d)", floor, head, BQ_LOOKBACK_BLOCKS
+    )
     return floor
 
 

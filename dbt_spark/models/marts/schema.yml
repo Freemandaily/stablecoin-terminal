@@ -1,5 +1,13 @@
 version: 2
 models:
+  - name: mart_assets
+    description: Final asset master; one row per asset with verified logo.
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: symbol
+        tests: [not_null]
+
   - name: mart_market_overview
     description: Full-market daily totals with explicit core-7 coverage.
     columns:

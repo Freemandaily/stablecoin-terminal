@@ -27,13 +27,16 @@ with core as (
 
 logos as (
 
-    -- The lake's raw_assets is a payload snapshot; logo URLs are not part of
-    -- that payload. Keep the column in the contract but leave it unknown
-    -- rather than fabricating a value (AGENTS.md §9).
+    -- ingest-logos writes verified {asset_id, logo_url} rows into the same
+    -- raw_assets Iceberg table as the S1 snapshot. Join by asset id; assets
+    -- with no verified logo stay NULL rather than getting a fabricated value
+    -- (AGENTS.md §9).
     select
-        cast(null as string) as id,
-        cast(null as string) as logo_url
-    where 1 = 0
+        cast(asset_id as string) as id,
+        max(logo_url)            as logo_url
+    from {{ iceberg_relation('stableflow', 'raw_assets') }}
+    where asset_id is not null and logo_url is not null
+    group by 1
 
 ),
 

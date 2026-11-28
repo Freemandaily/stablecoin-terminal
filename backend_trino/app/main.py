@@ -9,13 +9,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request as StarletteRequest
 
 from app.routers import api, health, query, sql
+from app.logo_proxy import router as logo_router
 
 app = FastAPI(
     title="StableFlow Lakehouse API",
     version="0.1.0",
     description=(
-        "Read-only API over Trino: lake.marts.* and lake.stableflow.raw_assets "
-        "Iceberg tables on gs://term-flow/warehouse. No mart data in Postgres."
+        "Read-only API over Trino: lake.marts.* Iceberg tables on "
+        "gs://term-flow/warehouse. No mart data in Postgres."
     ),
 )
 
@@ -42,6 +43,7 @@ app.add_middleware(NoCacheMiddleware)
 
 app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(api.router)          # /api/* — exact prototype JSON contract
+app.include_router(logo_router)         # /api/tw/*, /api/logo/* — same-origin logos
 app.include_router(query.router)        # /query/* — flexible mart explorer
 app.include_router(sql.router)          # /sql — gated Trino SELECT
 

@@ -32,6 +32,9 @@ KNOWN_IDS = {"USDT": "1", "USDC": "2"}  # documented anchors; verify vs S1 at ru
 BQ_PROJECT = os.getenv("BQ_PROJECT", "")
 BQ_DATASET = os.getenv("BQ_DATASET", "stableflow")
 BQ_MAX_BYTES_BILLED = int(os.getenv("BQ_MAX_BYTES_BILLED", str(50 * 1024**3)))
+# Re-scan the tail of the chain so late-appearing FREEZE/UNFREEZE logs are not
+# skipped when MINT/BURN volume pushes the bookmark past them. No dates here.
+BQ_LOOKBACK_BLOCKS = int(os.getenv("BQ_LOOKBACK_BLOCKS", "5000"))
 BQ_TOKEN_ADDRESSES = (  # USDT, USDC, DAI (mainnet, lowercase for BigQuery compare)
     "0xdac17f958d2ee523a2206206994597c13d831ec7",  # USDT
     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",  # USDC

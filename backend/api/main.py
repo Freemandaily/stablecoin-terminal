@@ -470,7 +470,7 @@ def _events(limit: int, event_type: str | None, since: date | None) -> dict:
                    '0x' || substr(topic2, 27, 40) as dest
             from marts.mart_issuer_events
             where event_type in ('MINT', 'BURN')
-              and amount_usd >= 10000000
+              and amount_usd >= 1000000
               and block_timestamp::date >= %s
             order by block_timestamp desc
             limit %s
@@ -503,8 +503,8 @@ def _events(limit: int, event_type: str | None, since: date | None) -> dict:
             "to": r["dest"],
             "tx": r["tx"],
             "label": (
-                "large mint ≥ $10M" if r["event_type"] == "MINT"
-                else "large burn ≥ $10M"
+                "large mint ≥ $1M" if r["event_type"] == "MINT"
+                else "large burn ≥ $1M"
             ),
         }
         for r in flows

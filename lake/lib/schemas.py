@@ -141,8 +141,13 @@ def normalize(df, table: str):
             for col in ("tokens", "chainBalances"):
                 if col in df.columns:
                     df = df.withColumn(col, _wrap_money_numbers(F.col(col), field))
-    if table == "raw_assets" and "logo_url" not in df.columns:
-        df = df.withColumn("logo_url", F.lit(None).cast("string"))
+    if table == "raw_assets":
+        if "logo_url" not in df.columns:
+            df = df.withColumn("logo_url", F.lit(None).cast("string"))
+        # ingest-logos writes flat {asset_id, logo_url} parts beside the S1
+        # snapshot. Keep the key so the API can join logos by asset id.
+        if "asset_id" in df.columns:
+            df = df.withColumn("asset_id", F.col("asset_id").cast("string"))
 
     for col, schema in JSON_COLUMNS.get(table, {}).items():
         if col in df.columns:

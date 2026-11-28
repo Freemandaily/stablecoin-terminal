@@ -20,9 +20,9 @@ additive changes only; breaking a shape requires a `docs/decisions.md` entry.
 
 | # | Endpoint | View(s) | Status | Backing tables |
 |---|---|---|---|---|
-| 1 | `GET /api/overview` | A + B + C (combined, feeds current UI) | ✅ LIVE | `marts.mart_market_overview`, `mart_peg_daily`, `staging.stg_supply_daily`, `public.raw_*` |
+| 1 | `GET /api/overview` | A + B + C (combined, feeds current UI) | ✅ LIVE | `marts.mart_market_overview`, `mart_assets`, `mart_peg_daily`, `staging.stg_supply_daily`, `public.raw_*` |
 | 2 | `GET /api/peg` | C — deviation board, depeg events, contraction alarms | ✅ LIVE | `marts.mart_peg_daily`, `mart_supply_daily`, `staging.stg_assets` |
-| 3 | `GET /api/coin/{asset_id}` | B — per-coin detail | ✅ LIVE | `marts.mart_supply_daily`, `mart_supply_chain`, `mart_peg_daily`, `staging.stg_assets` |
+| 3 | `GET /api/coin/{asset_id}` | B — per-coin detail | ✅ LIVE | `marts.mart_supply_daily`, `mart_supply_chain`, `mart_peg_daily`, `mart_assets`, `staging.stg_assets` |
 | 4 | `GET /api/health` | — liveness/readiness | ✅ LIVE | `SELECT 1` |
 | 5 | `GET /api/events` | E — activity feed | 🔒 501 (P2.7) | `fct_events` |
 | 6 | `GET /api/flows/mintburn` | F — mint/burn analytics | ✅ LIVE | `marts.mart_mint_burn_daily` (was: `fct_daily_flows`) |
@@ -142,7 +142,7 @@ Unbuilt routes return `501 {"error":"not implemented yet","blocked_by":"...","sp
 
 ### 5 · `GET /api/events` (View E) — LIVE
 
-> Live since P2.2/P2.5 marts: `MINT`/`BURN` from `mart_issuer_events` (≥ $10M,
+> Live since P2.2/P2.5 marts: `MINT`/`BURN` from `mart_issuer_events` (≥ $1M,
 > `from`/`to` = the event's indexed addresses) + `PEG_BREAK` from `mart_peg_daily`
 > (≥ $1B assets, worst break per coin per day; its `ts` is a **date** — no
 > intraday data — and `bps` carries the deviation). `EXCHANGE_IN/OUT` and
@@ -156,7 +156,7 @@ Query params: `limit` (default 50, max 200), `type`
 { "asof":"...", "source":"api: fct_events",
   "events":[ { "ts":"2026-11-05T09:14:00Z","type":"MINT","sym":"USDC",
                "usd":250000000.0,"from":"Circle treasury","to":"0x…","tx":"0x…",
-               "label":"large mint ≥ $10M" } ] }
+               "label":"large mint ≥ $1M" } ] }
 ```
 
 ### 6 · `GET /api/flows/mintburn` (View F) — LIVE

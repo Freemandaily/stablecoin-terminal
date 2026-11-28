@@ -16,38 +16,30 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
 from app import auth, trino_client
+from app.logo_proxy import proxy_logo_url
 
 router = APIRouter(prefix="/api", tags=["frontend-api"], dependencies=[Depends(auth.require_key)])
 
-# raw_assets is one snapshot row per extract with a peggedAssets array.
-# Flatten it into the same stg_assets shape the old Postgres API used.
+# The frontend reads the final asset mart, not the bronze snapshot. stg_assets
+# is ephemeral; mart_assets is the materialized one-row-per-asset artifact
+# where the verified logo map has already been joined by asset id.
 ASSETS_CTE = """
-with assets as (
+with ranked as (
     select
-        cast(a."id" as varchar)                              as id,
-        a."symbol"                                           as symbol,
-        a."name"                                             as name,
-        a."pegType"                                          as peg_type,
-        coalesce(nullif(a."pegMechanism", ''), 'unknown')    as peg_mechanism,
-        a."price"                                            as price,
-        cardinality(a."chains")                              as n_chains,
-        coalesce(a."circulating"."peggedUSD", 0)             as circulating_usd,
-        coalesce(a."circulatingPrevDay"."peggedUSD", 0)      as prev_day_usd,
-        coalesce(a."circulatingPrevWeek"."peggedUSD", 0)     as prev_week_usd,
-        coalesce(a."circulatingPrevMonth"."peggedUSD", 0)    as prev_month_usd,
-        r.logo_url                                           as logo_url,
-        r._ingested_at                                       as ingested_at,
-        r._ingest_date                                       as ingest_date,
-        row_number() over (
-            partition by cast(a."id" as varchar)
-            order by r._ingest_date desc, r._ingested_at desc
-        ) as rn
-    from lake.stableflow.raw_assets r
-    cross join unnest(r.peggedassets) as a
-    where a."id" is not null
-),
-ranked as (
-    select * from assets where rn = 1
+        cast(id as varchar)    as id,
+        symbol,
+        name,
+        peg_type,
+        peg_mechanism,
+        price,
+        n_chains,
+        circulating_usd,
+        prev_day_usd,
+        prev_week_usd,
+        prev_month_usd,
+        logo_url,
+        ingested_at
+    from lake.marts.mart_assets
 )
 """
 
@@ -132,7 +124,7 @@ def _coins(limit: int | None = None) -> list[dict]:
             "price": _f(r["price"], None),
             "peg": r["peg_mechanism"] or "",
             "chains": r["n_chains"],
-            "logo_url": r["logo_url"],
+            "logo_url": proxy_logo_url(r["logo_url"]),
             "dev": peg_dev.get(r["id"]),
         }
         for r in rows
@@ -241,7 +233,7 @@ def _overview() -> dict:
 
     return {
         "asof": _asof(),
-        "source": "api(trino): lake.marts.mart_market_overview · mart_supply_chain · lake.stableflow.raw_assets (GCS Iceberg)",
+        "source": "api(trino): lake.marts.mart_market_overview · mart_supply_chain · mart_assets (GCS Iceberg)",
         "market": {
             "total": _f(m.get("v")),
             "d1": _f(m.get("d1")),
@@ -272,7 +264,7 @@ def _events(limit: int, event_type: str | None, since: date | None) -> dict:
                '0x' || substr(topic2, 27, 40) as dest
         from lake.marts.mart_issuer_events
         where event_type in ('MINT', 'BURN')
-          and amount_usd >= 10000000
+          and amount_usd >= 1000000
           and cast(block_timestamp as date) >= cast(? as date)
         order by block_timestamp desc
         limit """ + str(int(limit)),
@@ -303,8 +295,8 @@ def _events(limit: int, event_type: str | None, since: date | None) -> dict:
             "to": r["dest"],
             "tx": r["tx"],
             "label": (
-                "large mint ≥ $10M" if r["event_type"] == "MINT"
-                else "large burn ≥ $10M"
+                "large mint ≥ $1M" if r["event_type"] == "MINT"
+                else "large burn ≥ $1M"
             ),
         }
         for r in flows
@@ -430,7 +422,7 @@ def _coins_payload() -> dict:
     coins = _coins()
     return {
         "asof": _asof(),
-        "source": "api(trino): lake.stableflow.raw_assets · lake.marts.mart_peg_daily (GCS Iceberg)",
+        "source": "api(trino): lake.marts.mart_assets · mart_peg_daily (GCS Iceberg)",
         "count": len(coins),
         "coins": coins,
     }

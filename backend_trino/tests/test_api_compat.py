@@ -20,7 +20,8 @@ COIN_ROWS = [
         "circulating_usd": 100.0, "prev_day_usd": 99.0,
         "prev_week_usd": 97.0, "prev_month_usd": 95.0,
         "price": 0.999, "peg_mechanism": "fiat-backed",
-        "n_chains": 12, "logo_url": None,
+        "n_chains": 12,
+        "logo_url": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
     },
     {
         "id": "2", "symbol": "USDC", "name": "USD Coin",
@@ -41,6 +42,8 @@ def overview_fake(sql, params=()):
             "usdt_share": 60.0, "usdc_share": None,  # exercise fallback
         }]
     if "from ranked" in sql:
+        assert "from lake.marts.mart_assets" in sql
+        assert "lake.stableflow.raw_assets" not in sql
         return list(COIN_ROWS)
     if "mart_peg_daily" in sql and "max(date)" in sql:
         return list(PEG_ROWS)
@@ -86,12 +89,14 @@ def test_coins_contract(monkeypatch):
     assert set(d) == {"asof", "source", "count", "coins"}
     assert d["count"] == 2
     assert d["coins"][0]["d1"] == 1.0
-    assert d["coins"][0]["logo_url"] is None
+    assert d["coins"][0]["logo_url"].startswith("/api/tw/blockchains/")
+    assert d["coins"][0]["logo_url"].endswith("/logo.png")
 
 
 def test_events_contract(monkeypatch):
     def fake(sql, params=()):
         if "mart_issuer_events" in sql:
+            assert "amount_usd >= 1000000" in sql
             return [{
                 "ts": datetime(2026, 11, 25, 12, 0, tzinfo=UTC),
                 "event_type": "MINT", "token": "USDT", "amount_usd": 20_000_000.0,
@@ -108,7 +113,7 @@ def test_events_contract(monkeypatch):
     assert set(d) == {"asof", "source", "count", "events"}
     assert d["count"] == 2
     mint = [e for e in d["events"] if e["type"] == "MINT"][0]
-    assert mint["label"] == "large mint ≥ $10M"
+    assert mint["label"] == "large mint ≥ $1M"
     assert mint["ts"] == "2026-11-25T12:00:00Z"
     assert mint["to"] == "0x222"
 

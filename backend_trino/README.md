@@ -47,18 +47,18 @@ docker compose exec postgres psql -U iceberg -d iceberg -v ON_ERROR_STOP=1 \
   -c "CREATE TABLE IF NOT EXISTS iceberg_namespace_properties (catalog_name varchar(255) NOT NULL, namespace varchar(255) NOT NULL, property_key varchar(255), property_value varchar(1000), PRIMARY KEY (catalog_name, namespace, property_key))"
 ```
 
-Register the seven marts (safe to re-run):
+Register the marts (safe to re-run):
 
 ```bash
-for t in mart_issuer_events mart_mint_burn_daily mart_peg_daily mart_supply_daily \
-         mart_supply_chain mart_market_overview mart_blacklist_events; do
+for t in mart_assets mart_issuer_events mart_mint_burn_daily mart_peg_daily \
+         mart_supply_daily mart_supply_chain mart_market_overview mart_blacklist_events; do
   docker compose exec trino trino --server localhost:8080 --catalog lake \
     --execute "CALL system.register_table('marts','$t','gs://term-flow/warehouse/marts/$t')"
 done
 ```
 
-Register the asset snapshot used by `/api/coins` and the coin rows in
-`/api/overview` (one GCS parquet row containing a `peggedAssets` array):
+Register the bronze asset snapshot for lake inspection/dbt lineage. The frontend
+API no longer reads it — it serves coin rows from `marts.mart_assets`:
 
 ```bash
 docker compose exec trino trino --server localhost:8080 --catalog lake \
@@ -95,10 +95,12 @@ The copied `frontend/index.html` fetches only these same-origin routes and
 still falls back to its local `data.js` seed when the API is down.
 
 Notes:
-- `logo_url` is `NULL` in the GCS asset snapshot, so the UI's existing letter
-  chip fallback renders — no fabricated logos.
+- Verified logos are joined in dbt `stg_assets` and served from
+  `marts.mart_assets.logo_url`. The API rewrites known upstream URLs to the
+  same-origin `/api/tw/*` / `/api/logo/*` proxy (B-D37); upstream failure is
+  `404`, so the UI's letter chip fallback renders — no fabricated logos.
 - If `mart_market_overview.usdc_share` is `NULL`, `/api/overview` derives the
-  same ratio from real `raw_assets` supply / full-market total instead of
+  same ratio from real `mart_assets` supply / full-market total instead of
   showing a misleading `0%`.
 
 ### Explorer / diagnostic endpoints

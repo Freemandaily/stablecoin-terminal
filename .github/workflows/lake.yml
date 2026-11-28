@@ -67,11 +67,13 @@ env:
   BUCKET: term-flow
   # build_iceberg.py configures its own catalog in lake/lib/spark_session.py:
   # it sets catalog-impl, so `...catalog.iceberg.type=hadoop` must NOT be
-  # passed here (Iceberg rejects type + catalog-impl together), and enabling
-  # the session extensions at submit time loads them before scala-library.
-  LAKE_SPARK_PROPERTIES: '^#^spark.jars.packages=org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.11,org.apache.iceberg:iceberg-gcp-bundle:1.6.1'
-  # run_dbt.py/dbt-spark needs the extensions and both catalog aliases.
-  DBT_SPARK_PROPERTIES: '^#^spark.jars.packages=org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.11,org.apache.iceberg:iceberg-gcp-bundle:1.6.1#spark.sql.session.timeZone=UTC#spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions#spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog#spark.sql.catalog.spark_catalog.type=hadoop#spark.sql.catalog.spark_catalog.warehouse=gs://term-flow/warehouse#spark.sql.catalog.spark_catalog.io-impl=org.apache.iceberg.hadoop.HadoopFileIO#spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog#spark.sql.catalog.iceberg.type=hadoop#spark.sql.catalog.iceberg.warehouse=gs://term-flow/warehouse#spark.sql.catalog.iceberg.io-impl=org.apache.iceberg.hadoop.HadoopFileIO#spark.sql.warehouse.dir=gs://term-flow/warehouse'
+  # passed here (Iceberg rejects type + catalog-impl together). No session
+  # extensions are requested: Dataproc 2.1 loads them too early and the bridge
+  # deliberately avoids MERGE (see build_iceberg.py).
+  LAKE_SPARK_PROPERTIES: '^#^spark.jars.packages=org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.11,org.apache.iceberg:iceberg-gcp-bundle:1.6.1,org.scala-lang:scala-library:2.12.18'
+  # run_dbt.py needs both catalog aliases but no Iceberg session extensions:
+  # Dataproc 2.1 loads them too early and these table models never use MERGE.
+  DBT_SPARK_PROPERTIES: '^#^spark.jars.packages=org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.11,org.apache.iceberg:iceberg-gcp-bundle:1.6.1,org.scala-lang:scala-library:2.12.18#spark.sql.session.timeZone=UTC#spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog#spark.sql.catalog.spark_catalog.type=hadoop#spark.sql.catalog.spark_catalog.warehouse=gs://term-flow/warehouse#spark.sql.catalog.spark_catalog.io-impl=org.apache.iceberg.hadoop.HadoopFileIO#spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog#spark.sql.catalog.iceberg.type=hadoop#spark.sql.catalog.iceberg.warehouse=gs://term-flow/warehouse#spark.sql.catalog.iceberg.io-impl=org.apache.iceberg.hadoop.HadoopFileIO#spark.sql.warehouse.dir=gs://term-flow/warehouse'
 
 jobs:
   build_iceberg:

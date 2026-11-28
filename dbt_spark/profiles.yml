@@ -9,7 +9,8 @@ stableflow:
       threads: 4
       config:
         spark.sql.session.timeZone: UTC
-        spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+        # No Iceberg session extensions: Dataproc 2.1 cannot load them early
+        # enough (scala/Serializable), and these models need no MERGE.
         spark.sql.catalog.spark_catalog: org.apache.iceberg.spark.SparkCatalog
         spark.sql.catalog.spark_catalog.type: hadoop
         spark.sql.catalog.spark_catalog.warehouse: gs://term-flow/warehouse

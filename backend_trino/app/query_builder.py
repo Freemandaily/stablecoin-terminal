@@ -11,6 +11,22 @@ from app import config
 # Column -> type. Types gate which operators are legal. These are exactly the
 # columns materialized by dbt_spark/models/marts/*.sql.
 TABLES: dict[str, dict[str, str]] = {
+    "mart_assets": {
+        "id": "string",
+        "name": "string",
+        "symbol": "string",
+        "peg_type": "string",
+        "peg_mechanism": "string",
+        "price": "number",
+        "gecko_id": "string",
+        "logo_url": "string",
+        "circulating_usd": "number",
+        "prev_day_usd": "number",
+        "prev_week_usd": "number",
+        "prev_month_usd": "number",
+        "n_chains": "number",
+        "ingested_at": "timestamp",
+    },
     "mart_issuer_events": {
         "block_number": "number",
         "block_timestamp": "timestamp",

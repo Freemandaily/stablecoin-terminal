@@ -32,10 +32,10 @@ def get_spark(
     """Return a SparkSession configured for Iceberg HadoopCatalog via GCS."""
     builder = (
         SparkSession.builder.appName(app_name)
-        .config(
-            "spark.sql.extensions",
-            "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
-        )
+        # No session extensions: Dataproc 2.1 cannot load
+        # IcebergSparkSessionExtensions early enough (scala/Serializable is
+        # missing at SparkSession init). The bridge uses writeTo/append only,
+        # so MERGE — the one feature that needs them — is deliberately avoided.
         .config(f"spark.sql.catalog.{CATALOG_NAME}", "org.apache.iceberg.spark.SparkCatalog")
         .config(
             f"spark.sql.catalog.{CATALOG_NAME}.catalog-impl",

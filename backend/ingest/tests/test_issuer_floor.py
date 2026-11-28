@@ -13,6 +13,12 @@ PG_BLOCK = bq.FALLBACK_FLOOR + 100
 GCS_BLOCK = bq.FALLBACK_FLOOR + 150
 
 
+@pytest.fixture(autouse=True)
+def _no_lookback(monkeypatch):
+    """Existing assertions target the raw head; lookback gets its own test."""
+    monkeypatch.setattr(bq, "BQ_LOOKBACK_BLOCKS", 0)
+
+
 class FakeCursor:
     def execute(self, sql):
         return self
@@ -67,6 +73,19 @@ def test_resolve_uses_highest_known_floor(monkeypatch):
     assert bq.resolve_from_block(_cfg("both")) == GCS_BLOCK
     assert bq.resolve_from_block(_cfg("postgres")) == PG_BLOCK
     assert bq.resolve_from_block(_cfg("gcs")) == GCS_BLOCK
+
+
+def test_resolve_overlaps_tail_without_hardcoded_dates(monkeypatch):
+    monkeypatch.setattr(bq, "BQ_LOOKBACK_BLOCKS", 100)
+    monkeypatch.setattr(bq, "gcs_read_state", lambda table, cfg: {"last_ingested_block": GCS_BLOCK})
+    assert bq.resolve_from_block(_cfg("gcs")) == GCS_BLOCK - 100
+
+    # With a real checkpoint, an explicit lookback may reach below bootstrap;
+    # that is how a late log below the old floor is recovered.
+    monkeypatch.setattr(
+        bq, "gcs_read_state", lambda table, cfg: {"last_ingested_block": bq.FALLBACK_FLOOR + 10}
+    )
+    assert bq.resolve_from_block(_cfg("gcs")) == bq.FALLBACK_FLOOR + 10 - 100
 
 
 def test_fallback_when_no_sources(monkeypatch):
